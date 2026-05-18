@@ -1,0 +1,33 @@
+using UnityEngine;
+using UnityEngine.EventSystems;
+using TMPro;
+
+public class TMP_LinkClickHandler : MonoBehaviour, IPointerClickHandler
+{
+    private TextMeshProUGUI pText;
+
+    void Awake()
+    {
+        pText = GetComponent<TextMeshProUGUI>();
+    }
+
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        // 클릭한 위치가 링크 위인지 확인
+        int linkIndex = TMP_TextUtilities.FindIntersectingLink(pText, eventData.position, eventData.pressEventCamera);
+
+        if (linkIndex != -1) // 링크를 클릭했다면
+        {
+            TMP_LinkInfo linkInfo = pText.textInfo.linkInfo[linkIndex];
+            string linkId = linkInfo.GetLinkID();
+
+            // 💡 최신 유니티 권장 방식: FindAnyObjectByType 사용
+            ChatManager chatManager = Object.FindAnyObjectByType<ChatManager>();
+            if (chatManager != null)
+            {
+                // ChatManager의 함수명과 일치시킴
+                chatManager.OnTextLinkClick(linkId);
+            }
+        }
+    }
+}
