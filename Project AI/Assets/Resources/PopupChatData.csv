@@ -1,0 +1,7 @@
+﻿id,context,sender,message,linkPanel
+1,Q1_Start,NPC,AI에 오신 것을 환영합니다!,
+2,Q1_Start,NPC,제가 요구하는 항목을 찾아주세요,
+3,Q1_Start,NPC,1+1이 몇인가요?,
+4,Q1_Start,NPC,"<link=""go_to_wiki""><color=#0000FF><u>여기서 찾으면 금방 찾으실 거예요</u></color></link>",DB_WIKI_Clue_1
+5,Q1_ClueClick,USER,1+1=2인 이유를 찾았어,
+6,Q1_ClueClick,NPC,"오, 정확하게 찾으셨네요!",NEXT_CLUE

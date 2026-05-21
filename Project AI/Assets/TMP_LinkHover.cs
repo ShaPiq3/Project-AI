@@ -19,7 +19,7 @@ public class TMP_LinkHover : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
     public Color hoverColor = Color.yellow;
 
     [Header("채팅 매니저 연동")]
-    public ChatManager chatManager;
+    public NewChatSystem chatSystem;
 
     void Awake()
     {
@@ -76,19 +76,20 @@ public class TMP_LinkHover : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
     {
         int linkIndex = TMP_TextUtilities.FindIntersectingLink(m_TextMeshPro, GetMousePosition(), m_Camera);
 
+
         if (linkIndex != -1)
         {
             TMP_LinkInfo linkInfo = m_TextMeshPro.textInfo.linkInfo[linkIndex];
 
-            if (chatManager != null)
+            if (chatSystem != null)
             {
-                // 짜두신 ChatManager의 OnTextLinkClick 함수를 호출하며 ID를 넘겨줍니다.
-                chatManager.OnTextLinkClick(linkInfo.GetLinkID());
-                Debug.Log($"ChatManager로 링크 ID 전송 성공: {linkInfo.GetLinkID()}");
+                chatSystem.OnTextLinkClick(linkInfo.GetLinkID(), "");
+
+                Debug.Log($"NewChatSystem로 링크 ID 전송 성공: {linkInfo.GetLinkID()}"); //
             }
             else
             {
-                Debug.LogWarning("ChatManager가 연결되어 있지 않습니다!");
+                // ... 생략 ...
             }
         }
     }
