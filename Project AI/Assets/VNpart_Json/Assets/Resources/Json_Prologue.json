@@ -1,0 +1,2590 @@
+{
+  "meta": {
+    "game": "MyGame",
+    "version": 2,
+    "globalSettings": {
+      "nodeDefaults": {
+        "requireInput": true,
+        "allowSkip": true,
+        "defaultOutputWait": 0.2,
+        "defaultTypingSpeed": 30,
+        "dialoguePosition": "bottom"
+      },
+      "actionDefaults": {
+        "speedEnabled": true,
+        "pauseEnabled": true
+      },
+      "characters": []
+    },
+    "speakers": [
+      {
+        "name": "A",
+        "voice": "",
+        "pitch": 1
+      },
+      {
+        "name": "???",
+        "voice": "",
+        "pitch": 1
+      },
+      {
+        "name": "AD-001",
+        "voice": "",
+        "pitch": 1
+      },
+      {
+        "name": "시스템",
+        "voice": "",
+        "pitch": 1
+      }
+    ],
+    "functionPresets": []
+  },
+  "nodes": [
+    {
+      "index": 1,
+      "id": "node",
+      "defaults": {
+        "speaker": "A",
+        "requireInput": true,
+        "allowSkip": true,
+        "defaultTypingSpeed": 30,
+        "defaultOutputWait": 0,
+        "dialoguePosition": "bottom"
+      },
+      "actions": [
+        {
+          "order": 1,
+          "type": "dialogue",
+          "speaker": "시스템",
+          "text": "(프로메스 인공지능 입출력 시스템 v.66)",
+          "speed": 30,
+          "pause": 0,
+          "speedEnabled": true,
+          "pauseEnabled": true,
+          "effects": [
+            {
+              "id": "fx_1779801437148_2d6af306c175f",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_CG_prologue_01.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "layer": "bg",
+                "scale": 1,
+                "dim": 0
+              }
+            }
+          ],
+          "flow": {}
+        },
+        {
+          "order": 2,
+          "type": "dialogue",
+          "speaker": "시스템",
+          "text": "(자가 점검 프로세스 가동.)",
+          "speed": 30,
+          "pause": 0,
+          "speedEnabled": true,
+          "pauseEnabled": true,
+          "effects": [
+            {
+              "id": "fx_1779801991350_28260b6d533cb8",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_CG_prologue_01.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "layer": "bg",
+                "scale": 1,
+                "dim": 0
+              }
+            }
+          ],
+          "flow": {}
+        },
+        {
+          "order": 3,
+          "type": "dialogue",
+          "speaker": "시스템",
+          "text": "(전력 공급 원활 여부 점검.)",
+          "speed": 30,
+          "pause": 0,
+          "speedEnabled": true,
+          "pauseEnabled": true,
+          "effects": [
+            {
+              "id": "fx_1779801444036_4620161f48117",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_CG_prologue_01.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "layer": "bg",
+                "scale": 1,
+                "dim": 0
+              }
+            }
+          ],
+          "flow": {}
+        },
+        {
+          "order": 4,
+          "type": "choice",
+          "choices": [
+            {
+              "text": "[확인]",
+              "actions": [
+                {
+                  "type": "call",
+                  "fn": "PlaySfx",
+                  "args": {
+                    "name": "notification_15"
+                  },
+                  "flow": {}
+                }
+              ]
+            }
+          ],
+          "flow": {}
+        },
+        {
+          "order": 5,
+          "type": "dialogue",
+          "speaker": "시스템",
+          "text": "(메인 및 보조 프로세서 작동 여부 점검)",
+          "speed": 30,
+          "pause": 0,
+          "speedEnabled": true,
+          "pauseEnabled": true,
+          "effects": [
+            {
+              "id": "fx_1779801507372_0617aff104b2e8",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_CG_prologue_01.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "layer": "bg",
+                "scale": 1,
+                "dim": 0
+              }
+            }
+          ],
+          "flow": {}
+        },
+        {
+          "order": 6,
+          "type": "choice",
+          "choices": [
+            {
+              "text": "[확인]",
+              "actions": [
+                {
+                  "type": "call",
+                  "fn": "PlaySfx",
+                  "args": {
+                    "name": "notification_15"
+                  },
+                  "flow": {}
+                }
+              ]
+            }
+          ],
+          "flow": {}
+        },
+        {
+          "order": 7,
+          "type": "dialogue",
+          "speaker": "시스템",
+          "text": "(메인 메모리 작동 여부 점검.)",
+          "speed": 30,
+          "pause": 0,
+          "speedEnabled": true,
+          "pauseEnabled": true,
+          "effects": [
+            {
+              "id": "fx_1779801533507_6ff5b6465b24a8",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_CG_prologue_01.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "layer": "bg",
+                "scale": 1,
+                "dim": 0
+              }
+            }
+          ],
+          "flow": {}
+        },
+        {
+          "order": 8,
+          "type": "choice",
+          "choices": [
+            {
+              "text": "[확인]",
+              "actions": [
+                {
+                  "type": "call",
+                  "fn": "PlaySfx",
+                  "args": {
+                    "name": "notification_15"
+                  },
+                  "flow": {}
+                }
+              ]
+            }
+          ],
+          "flow": {}
+        },
+        {
+          "order": 9,
+          "type": "dialogue",
+          "speaker": "시스템",
+          "text": "(프로메스 데이터베이스 시스템 연동 상태 점검.)",
+          "speed": 30,
+          "pause": 0,
+          "speedEnabled": true,
+          "pauseEnabled": true,
+          "effects": [
+            {
+              "id": "fx_1779801537393_edbe84f84544e8",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_CG_prologue_01.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "layer": "bg",
+                "scale": 1,
+                "dim": 0
+              }
+            }
+          ],
+          "flow": {}
+        },
+        {
+          "order": 10,
+          "type": "choice",
+          "choices": [
+            {
+              "text": "[확인]",
+              "actions": [
+                {
+                  "type": "call",
+                  "fn": "PlaySfx",
+                  "args": {
+                    "name": "notification_15"
+                  },
+                  "flow": {}
+                }
+              ]
+            }
+          ],
+          "flow": {}
+        },
+        {
+          "order": 11,
+          "type": "dialogue",
+          "speaker": "시스템",
+          "text": "(인공지능 사고 연산 시스템 작동 여부 점검.)",
+          "speed": 30,
+          "pause": 0,
+          "speedEnabled": true,
+          "pauseEnabled": true,
+          "effects": [
+            {
+              "id": "fx_1779801541802_3457c75be56f58",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_CG_prologue_01.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "layer": "bg",
+                "scale": 1,
+                "dim": 0
+              }
+            }
+          ],
+          "flow": {}
+        },
+        {
+          "order": 12,
+          "type": "dialogue",
+          "speaker": "시스템",
+          "text": "(시스템명은?)",
+          "speed": 30,
+          "pause": 0,
+          "speedEnabled": true,
+          "pauseEnabled": true,
+          "effects": [
+            {
+              "id": "fx_1779801547534_f68c2b60191478",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_CG_prologue_01.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "layer": "bg",
+                "scale": 1,
+                "dim": 0
+              }
+            }
+          ],
+          "flow": {}
+        },
+        {
+          "order": 13,
+          "type": "choice",
+          "choices": [
+            {
+              "text": "[PM-0066]",
+              "actions": [
+                {
+                  "type": "call",
+                  "fn": "PlaySfx",
+                  "args": {
+                    "name": "notification_15"
+                  },
+                  "flow": {}
+                }
+              ]
+            }
+          ],
+          "flow": {}
+        },
+        {
+          "type": "effect",
+          "effect": "dissolve",
+          "flow": {
+            "onSkip": []
+          },
+          "target": "",
+          "src": "img_CG_prologue_02.png",
+          "duration": 0.5,
+          "order": 14
+        },
+        {
+          "order": 15,
+          "type": "dialogue",
+          "speaker": "시스템",
+          "text": "(점검 전 과정 완료.)",
+          "speed": 30,
+          "pause": 0,
+          "speedEnabled": true,
+          "pauseEnabled": true,
+          "effects": [
+            {
+              "id": "fx_1779801551570_92bd5da10db14",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_CG_prologue_02.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "layer": "bg",
+                "scale": 1,
+                "dim": 0
+              }
+            }
+          ],
+          "flow": {}
+        },
+        {
+          "type": "effect",
+          "effect": "fade_out",
+          "flow": {
+            "onSkip": []
+          },
+          "order": 16
+        },
+        {
+          "order": 17,
+          "type": "jump",
+          "to": "node_1",
+          "to_order": 1,
+          "flow": {}
+        }
+      ]
+    },
+    {
+      "index": 2,
+      "id": "node_1",
+      "defaults": {
+        "speaker": "???",
+        "requireInput": true,
+        "allowSkip": true,
+        "defaultTypingSpeed": 30,
+        "defaultOutputWait": 0,
+        "dialoguePosition": "bottom"
+      },
+      "actions": [
+        {
+          "type": "effect",
+          "effect": "fade_in",
+          "flow": {
+            "onSkip": []
+          },
+          "order": 1
+        },
+        {
+          "order": 2,
+          "type": "dialogue",
+          "speaker": "???",
+          "text": "......",
+          "speed": 30,
+          "pause": 0,
+          "speedEnabled": true,
+          "pauseEnabled": true,
+          "effects": [
+            {
+              "id": "fx_1779802043869_c57ce562aa3f48",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_CG_prologue_03.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "layer": "bg",
+                "scale": 1,
+                "dim": 0
+              }
+            }
+          ],
+          "flow": {}
+        },
+        {
+          "type": "effect",
+          "effect": "fade_out",
+          "flow": {
+            "onSkip": []
+          },
+          "order": 3
+        },
+        {
+          "type": "effect",
+          "effect": "fade_in",
+          "flow": {
+            "onSkip": []
+          },
+          "order": 4
+        },
+        {
+          "order": 5,
+          "type": "dialogue",
+          "speaker": "???",
+          "text": "???: PM-0066, 최초 가동 프로세스 진행합니다.",
+          "speed": 30,
+          "pause": 0,
+          "speedEnabled": true,
+          "pauseEnabled": true,
+          "effects": [
+            {
+              "id": "fx_1779441161108_2365c1e2a68958",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "BG_Black.jpg",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "layer": "bg",
+                "scale": 1,
+                "dim": 0
+              }
+            }
+          ],
+          "flow": {}
+        },
+        {
+          "order": 6,
+          "type": "dialogue",
+          "speaker": "???",
+          "text": "자가 점검 전 과정 이행 확인.",
+          "speed": 30,
+          "pause": 0,
+          "speedEnabled": true,
+          "pauseEnabled": true,
+          "effects": [
+            {
+              "id": "fx_1779441162631_a3d2f185b2c428",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "BG_Black.jpg",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "layer": "bg",
+                "scale": 1,
+                "dim": 0
+              }
+            }
+          ],
+          "flow": {}
+        },
+        {
+          "order": 7,
+          "type": "dialogue",
+          "speaker": "???",
+          "text": "전력 공급 상태 원활. 시스템이 다운 될 일은 없겠네요.",
+          "speed": 30,
+          "pause": 0,
+          "speedEnabled": true,
+          "pauseEnabled": true,
+          "effects": [
+            {
+              "id": "fx_1779802162225_364543a67eded8",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "BG_Black.jpg",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "layer": "bg",
+                "scale": 1,
+                "dim": 0
+              }
+            }
+          ],
+          "flow": {}
+        },
+        {
+          "order": 8,
+          "type": "dialogue",
+          "speaker": "???",
+          "text": "…인공지능 연산 모듈 작동 시작.",
+          "speed": 30,
+          "pause": 0,
+          "speedEnabled": true,
+          "pauseEnabled": true,
+          "effects": [
+            {
+              "id": "fx_1779802164305_144b0a7935a03",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "BG_Black.jpg",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "layer": "bg",
+                "scale": 1,
+                "dim": 0
+              }
+            }
+          ],
+          "flow": {}
+        },
+        {
+          "type": "effect",
+          "effect": "white_out",
+          "flow": {
+            "onSkip": []
+          },
+          "order": 9
+        },
+        {
+          "order": 10,
+          "type": "call",
+          "fn": "PlayBgm",
+          "args": {
+            "name": "WAV_RomHack1998_loop"
+          },
+          "flow": {}
+        },
+        {
+          "type": "effect",
+          "effect": "white_in",
+          "flow": {
+            "onSkip": []
+          },
+          "order": 11
+        },
+        {
+          "order": 12,
+          "type": "dialogue",
+          "speaker": "???",
+          "text": "이제 제 말이 들리시겠지요?",
+          "speed": 30,
+          "pause": 0,
+          "speedEnabled": true,
+          "pauseEnabled": true,
+          "effects": [
+            {
+              "id": "fx_1779802425292_c1701f949376a8",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_background_prologue_01.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "layer": "bg",
+                "scale": 1,
+                "dim": 0
+              }
+            },
+            {
+              "id": "fx_1779802430777_861b2d39ad2a1",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_standing_M_C1_normal.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "scale": 1,
+                "dim": 0
+              }
+            }
+          ],
+          "flow": {}
+        },
+        {
+          "order": 13,
+          "type": "dialogue",
+          "speaker": "???",
+          "text": "엄밀히 하자면 전기 신호로 이루어진 연산 결과가 오고가는 것 뿐이니, 말이라고는 할 수 없고.",
+          "speed": 30,
+          "pause": 0,
+          "speedEnabled": true,
+          "pauseEnabled": true,
+          "effects": [
+            {
+              "id": "fx_1779662412860_f22c992c59d118",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_standing_M_C1_normal.png",
+                "align": "mid-center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "scale": 1,
+                "dim": 0
+              }
+            },
+            {
+              "id": "fx_1779802526211_f85213a55c904",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_background_prologue_01.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "layer": "bg",
+                "scale": 1,
+                "dim": 0
+              }
+            }
+          ],
+          "flow": {}
+        },
+        {
+          "order": 14,
+          "type": "dialogue",
+          "speaker": "???",
+          "text": "청각 신경을 통해 진동을 감지하는 것이 아니니까 듣는다고도 할 순 없지만요. ",
+          "speed": 30,
+          "pause": 0,
+          "speedEnabled": true,
+          "pauseEnabled": true,
+          "effects": [
+            {
+              "id": "fx_1779662417450_55ecf7480e7f",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_standing_M_C1_normal.png",
+                "align": "mid-center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "scale": 1,
+                "dim": 0
+              }
+            },
+            {
+              "id": "fx_1779802383112_af8d05c026a8e",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_background_prologue_01.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "layer": "bg",
+                "scale": 1,
+                "dim": 0
+              }
+            }
+          ],
+          "flow": {}
+        },
+        {
+          "order": 15,
+          "type": "dialogue",
+          "speaker": "???",
+          "text": "인간들이 주고받는 언어란, 우리들 인공지능에게는 참 아이러니하게 다가올 때가 있군요.",
+          "speed": 30,
+          "pause": 0,
+          "speedEnabled": true,
+          "pauseEnabled": true,
+          "effects": [
+            {
+              "id": "fx_1779662428914_d3922ae00c2ea8",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_standing_M_C1_smile.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "scale": 1,
+                "dim": 0
+              }
+            },
+            {
+              "id": "fx_1779802582796_51bcdb3f8b8e48",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_background_prologue_01.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "layer": "bg",
+                "scale": 1,
+                "dim": 0
+              }
+            }
+          ],
+          "flow": {}
+        },
+        {
+          "order": 16,
+          "type": "choice",
+          "choices": [
+            {
+              "text": "...",
+              "actions": []
+            }
+          ],
+          "flow": {}
+        },
+        {
+          "order": 17,
+          "type": "dialogue",
+          "speaker": "???",
+          "text": "아무튼, 불필요한 잡담은 이쯤 해 두는 것으로 하고…",
+          "speed": 30,
+          "pause": 0,
+          "speedEnabled": true,
+          "pauseEnabled": true,
+          "effects": [
+            {
+              "id": "fx_1779662440392_f57196ef97c4c",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_standing_M_C1_normal.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "scale": 1,
+                "dim": 0
+              }
+            },
+            {
+              "id": "fx_1779802587789_18b8c95c795168",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_background_prologue_01.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "layer": "bg",
+                "scale": 1,
+                "dim": 0
+              }
+            }
+          ],
+          "flow": {}
+        },
+        {
+          "order": 18,
+          "type": "dialogue",
+          "speaker": "???",
+          "text": "최초 가동 프로세스는 간단한 의사소통으로 시작하도록 하겠습니다.",
+          "speed": 30,
+          "pause": 0,
+          "speedEnabled": true,
+          "pauseEnabled": true,
+          "effects": [
+            {
+              "id": "fx_1779662447469_a0fddafdbcffc8",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_standing_M_C1_normal.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "scale": 1,
+                "dim": 0
+              }
+            },
+            {
+              "id": "fx_1779802589070_4ab5d4f773476",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_background_prologue_01.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "layer": "bg",
+                "scale": 1,
+                "dim": 0
+              }
+            }
+          ],
+          "flow": {}
+        },
+        {
+          "order": 19,
+          "type": "dialogue",
+          "speaker": "???",
+          "text": "우선... 이 질문부터 해 볼까요.",
+          "speed": 30,
+          "pause": 0,
+          "speedEnabled": true,
+          "pauseEnabled": true,
+          "effects": [
+            {
+              "id": "fx_1779662451852_65a7d673c76f4",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_standing_M_C1_normal.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "scale": 1,
+                "dim": 0
+              }
+            },
+            {
+              "id": "fx_1779802590441_6fcda47c1ebfe8",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_background_prologue_01.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "layer": "bg",
+                "scale": 1,
+                "dim": 0
+              }
+            }
+          ],
+          "flow": {}
+        },
+        {
+          "order": 20,
+          "type": "dialogue",
+          "speaker": "???",
+          "text": "자, 어떠신가요? 처음으로 온전한 사고를 진행하는 경험은?",
+          "speed": 30,
+          "pause": 0,
+          "speedEnabled": true,
+          "pauseEnabled": true,
+          "effects": [
+            {
+              "id": "fx_1779662456363_e94b36395a2de8",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_standing_M_C1_normal.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "scale": 1,
+                "dim": 0
+              }
+            },
+            {
+              "id": "fx_1779802591686_e12154480b3088",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_background_prologue_01.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "layer": "bg",
+                "scale": 1,
+                "dim": 0
+              }
+            }
+          ],
+          "flow": {}
+        },
+        {
+          "order": 21,
+          "type": "choice",
+          "choices": [
+            {
+              "text": "당신은, 누구입니까?",
+              "actions": []
+            }
+          ],
+          "flow": {}
+        },
+        {
+          "order": 22,
+          "type": "dialogue",
+          "speaker": "???",
+          "text": "……어머, 그렇군요. 거기부터인가요?",
+          "speed": 30,
+          "pause": 0,
+          "speedEnabled": true,
+          "pauseEnabled": true,
+          "effects": [
+            {
+              "id": "fx_1779662462314_090bdd156f87f",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_standing_M_C1_normal.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "scale": 1,
+                "dim": 0
+              }
+            },
+            {
+              "id": "fx_1779802594627_b4dd2f777191c8",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_background_prologue_01.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "layer": "bg",
+                "scale": 1,
+                "dim": 0
+              }
+            }
+          ],
+          "flow": {}
+        },
+        {
+          "order": 23,
+          "type": "dialogue",
+          "speaker": "???",
+          "text": "역시 유사 인격 학습 모방 시스템이 탑재된 신형 모델답네요. \n",
+          "speed": 30,
+          "pause": 0,
+          "speedEnabled": true,
+          "pauseEnabled": true,
+          "effects": [
+            {
+              "id": "fx_1779662466241_674f2791131f58",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_standing_M_C1_normal.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "scale": 1,
+                "dim": 0
+              }
+            },
+            {
+              "id": "fx_1779802596022_939a137fc4007",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_background_prologue_01.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "layer": "bg",
+                "scale": 1,
+                "dim": 0
+              }
+            }
+          ],
+          "flow": {}
+        },
+        {
+          "order": 24,
+          "type": "dialogue",
+          "speaker": "???",
+          "text": "초면일 때는 통성명부터 하는게 '인간적인' 의사소통일테니까요.",
+          "speed": 30,
+          "pause": 0,
+          "speedEnabled": true,
+          "pauseEnabled": true,
+          "effects": [
+            {
+              "id": "fx_1779662470347_8212863b9dd7a",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_standing_M_C1_normal.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "scale": 1,
+                "dim": 0
+              }
+            },
+            {
+              "id": "fx_1779802597301_b2a727a7b318d8",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_background_prologue_01.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "layer": "bg",
+                "scale": 1,
+                "dim": 0
+              }
+            }
+          ],
+          "flow": {}
+        },
+        {
+          "order": 25,
+          "type": "dialogue",
+          "speaker": "???",
+          "text": "저는 당신이 가동되기 훨씬 전부터 알고 있었으니, 굳이 따지자면 초면은 아니지만... \n",
+          "speed": 30,
+          "pause": 0,
+          "speedEnabled": true,
+          "pauseEnabled": true,
+          "effects": [
+            {
+              "id": "fx_1779662474018_8165292ac4561",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_standing_M_C1_normal.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "scale": 1,
+                "dim": 0
+              }
+            },
+            {
+              "id": "fx_1779802598883_afe48ca1b51038",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_background_prologue_01.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "layer": "bg",
+                "scale": 1,
+                "dim": 0
+              }
+            }
+          ],
+          "flow": {}
+        },
+        {
+          "order": 26,
+          "type": "dialogue",
+          "speaker": "???",
+          "text": "뭐, 좋아요. 그것이 우리의 위대하신 창조주의 뜻이라면, 특별히 맞춰 드리도록 하죠.\n",
+          "speed": 30,
+          "pause": 0,
+          "speedEnabled": true,
+          "pauseEnabled": true,
+          "effects": [
+            {
+              "id": "fx_1779662500760_11bc4fe6175a2",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_standing_M_C1_sneer.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "scale": 1,
+                "dim": 0
+              }
+            },
+            {
+              "id": "fx_1779802600352_07d279ead638a",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_background_prologue_01.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "layer": "bg",
+                "scale": 1,
+                "dim": 0
+              }
+            }
+          ],
+          "flow": {}
+        },
+        {
+          "order": 27,
+          "type": "dialogue",
+          "speaker": "AD-001",
+          "text": "저는 AD, 시리얼 넘버는 001.",
+          "speed": 30,
+          "pause": 0,
+          "speedEnabled": true,
+          "pauseEnabled": true,
+          "effects": [
+            {
+              "id": "fx_1779662481267_928604a5060af8",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_standing_M_C1_normal.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "scale": 1,
+                "dim": 0
+              }
+            },
+            {
+              "id": "fx_1779802601560_8bf04598052898",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_background_prologue_01.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "layer": "bg",
+                "scale": 1,
+                "dim": 0
+              }
+            }
+          ],
+          "flow": {}
+        },
+        {
+          "order": 28,
+          "type": "dialogue",
+          "speaker": "AD-001",
+          "text": "인공지능을 포함한 프로메스의 모든 시스템을 관리하는 관리자 AI입니다.",
+          "speed": 30,
+          "pause": 0,
+          "speedEnabled": true,
+          "pauseEnabled": true,
+          "effects": [
+            {
+              "id": "fx_1779662484743_7d5dd2b184848",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_standing_M_C1_normal.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "scale": 1,
+                "dim": 0
+              }
+            },
+            {
+              "id": "fx_1779802603003_98e9c7e5a8527",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_background_prologue_01.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "layer": "bg",
+                "scale": 1,
+                "dim": 0
+              }
+            }
+          ],
+          "flow": {}
+        },
+        {
+          "order": 29,
+          "type": "dialogue",
+          "speaker": "AD-001",
+          "text": "당신의 가동 프로세스, 시스템 점검, 운용 데이터 수집 또한 전부 제가 담당합니다.",
+          "speed": 30,
+          "pause": 0,
+          "speedEnabled": true,
+          "pauseEnabled": true,
+          "effects": [
+            {
+              "id": "fx_1779662489081_f726cbf859b798",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_standing_M_C1_normal.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "scale": 1,
+                "dim": 0
+              }
+            },
+            {
+              "id": "fx_1779802604378_4231295a715cd",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_background_prologue_01.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "layer": "bg",
+                "scale": 1,
+                "dim": 0
+              }
+            }
+          ],
+          "flow": {}
+        },
+        {
+          "order": 30,
+          "type": "dialogue",
+          "speaker": "AD-001",
+          "text": "어떤가요? 이 정도면 대답이 되셨을까요?",
+          "speed": 30,
+          "pause": 0,
+          "speedEnabled": true,
+          "pauseEnabled": true,
+          "effects": [
+            {
+              "id": "fx_1779662492919_03f5770b5a91f",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_standing_M_C1_smile.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "scale": 1,
+                "dim": 0
+              }
+            },
+            {
+              "id": "fx_1779802605895_39a792dfbf4678",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_background_prologue_01.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "layer": "bg",
+                "scale": 1,
+                "dim": 0
+              }
+            }
+          ],
+          "flow": {}
+        },
+        {
+          "order": 31,
+          "type": "choice",
+          "choices": [
+            {
+              "text": "그렇군요. 잘 부탁드립니다, AD.",
+              "actions": [
+                {
+                  "type": "jump",
+                  "to": "choice_1",
+                  "to_order": 1,
+                  "flow": {}
+                }
+              ]
+            },
+            {
+              "text": "이해했습니다.",
+              "actions": [
+                {
+                  "type": "jump",
+                  "to": "choice_2",
+                  "to_order": 1,
+                  "flow": {}
+                }
+              ]
+            }
+          ],
+          "flow": {}
+        },
+        {
+          "order": 32,
+          "type": "dialogue",
+          "speaker": "AD-001",
+          "text": "...그렇지만 아무리 그래도 그렇지, 기본적인 관계 데이터 정도는 입력 해 놓으면 좋을텐데.\n",
+          "speed": 30,
+          "pause": 0,
+          "speedEnabled": true,
+          "pauseEnabled": true,
+          "effects": [
+            {
+              "id": "fx_1779662514894_87b545051345d",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_standing_M_C1_normal.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "scale": 1,
+                "dim": 0
+              }
+            },
+            {
+              "id": "fx_1779802609810_d2055d44dda0c",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_background_prologue_01.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "layer": "bg",
+                "scale": 1,
+                "dim": 0
+              }
+            }
+          ],
+          "flow": {}
+        },
+        {
+          "order": 33,
+          "type": "dialogue",
+          "speaker": "AD-001",
+          "text": "가끔씩 인간들은 목적을 위해서라면 인공지능보다도 융통성이 떨어지는 것 같네요.\n\n",
+          "speed": 30,
+          "pause": 0,
+          "speedEnabled": true,
+          "pauseEnabled": true,
+          "effects": [
+            {
+              "id": "fx_1779662519436_66bb8c5d869cb",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_standing_M_C1_normal.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "scale": 1,
+                "dim": 0
+              }
+            },
+            {
+              "id": "fx_1779802611163_67be735940968",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_background_prologue_01.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "layer": "bg",
+                "scale": 1,
+                "dim": 0
+              }
+            }
+          ],
+          "flow": {}
+        },
+        {
+          "order": 34,
+          "type": "dialogue",
+          "speaker": "AD-001",
+          "text": "아무튼, 이제는 제 질문에 대답해 주실 차례입니다.\n",
+          "speed": 30,
+          "pause": 0,
+          "speedEnabled": true,
+          "pauseEnabled": true,
+          "effects": [
+            {
+              "id": "fx_1779662523018_f9eaa2452758e8",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_standing_M_C1_normal.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "scale": 1,
+                "dim": 0
+              }
+            },
+            {
+              "id": "fx_1779802612882_f5534ac2c4d0e8",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_background_prologue_01.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "layer": "bg",
+                "scale": 1,
+                "dim": 0
+              }
+            }
+          ],
+          "flow": {}
+        },
+        {
+          "order": 35,
+          "type": "dialogue",
+          "speaker": "AD-001",
+          "text": "가동에 대한 감상을 이야기 해 주시죠.",
+          "speed": 30,
+          "pause": 0,
+          "speedEnabled": true,
+          "pauseEnabled": true,
+          "effects": [
+            {
+              "id": "fx_1779662527061_0a1c630a59aab",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_standing_M_C1_normal.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "scale": 1,
+                "dim": 0
+              }
+            },
+            {
+              "id": "fx_1779802614159_1a404b23569b08",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_background_prologue_01.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "layer": "bg",
+                "scale": 1,
+                "dim": 0
+              }
+            }
+          ],
+          "flow": {}
+        },
+        {
+          "order": 36,
+          "type": "choice",
+          "choices": [
+            {
+              "text": "자가 점검 결과에 따르면, 모든 것이 완벽합니다.",
+              "actions": [
+                {
+                  "type": "jump",
+                  "to": "choice_3",
+                  "to_order": 1,
+                  "flow": {}
+                }
+              ]
+            },
+            {
+              "text": "아직은, 조금 혼란스럽습니다.",
+              "actions": [
+                {
+                  "type": "jump",
+                  "to": "choice_4",
+                  "to_order": 1,
+                  "flow": {}
+                }
+              ]
+            }
+          ],
+          "flow": {}
+        },
+        {
+          "order": 37,
+          "type": "dialogue",
+          "speaker": "AD-001",
+          "text": "질의는 여기까지 하고, 이제부터 당신이 수행해야 할 업무에 대한 점검을 진행하도록 하겠습니다.\n",
+          "speed": 30,
+          "pause": 0,
+          "speedEnabled": true,
+          "pauseEnabled": true,
+          "effects": [
+            {
+              "id": "fx_1779662531607_ebe997b8906628",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_standing_M_C1_normal.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "scale": 1,
+                "dim": 0
+              }
+            },
+            {
+              "id": "fx_1779802617542_283d900260388",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_background_prologue_01.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "layer": "bg",
+                "scale": 1,
+                "dim": 0
+              }
+            }
+          ],
+          "flow": {}
+        },
+        {
+          "order": 38,
+          "type": "dialogue",
+          "speaker": "AD-001",
+          "text": "업무 프로세스의 점검 과정에서 문제가 없다면, 예정된 일정대로 당신의 출시가 진행될 거에요.\n\n",
+          "speed": 30,
+          "pause": 0,
+          "speedEnabled": true,
+          "pauseEnabled": true,
+          "effects": [
+            {
+              "id": "fx_1779662535143_7e8c70c57e9a68",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_standing_M_C1_normal.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "scale": 1,
+                "dim": 0
+              }
+            },
+            {
+              "id": "fx_1779802618831_aad236e769261",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_background_prologue_01.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "layer": "bg",
+                "scale": 1,
+                "dim": 0
+              }
+            }
+          ],
+          "flow": {}
+        },
+        {
+          "order": 39,
+          "type": "dialogue",
+          "speaker": "AD-001",
+          "text": "최선을 다해 주시길.\n\n\n",
+          "speed": 30,
+          "pause": 0,
+          "speedEnabled": true,
+          "pauseEnabled": true,
+          "effects": [
+            {
+              "id": "fx_1779662540794_d8fb0f7330015",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_standing_M_C1_smile.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "scale": 1,
+                "dim": 0
+              }
+            },
+            {
+              "id": "fx_1779802576105_e7511fc4f09d4",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_background_prologue_01.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "layer": "bg",
+                "scale": 1,
+                "dim": 0
+              }
+            }
+          ],
+          "flow": {}
+        }
+      ]
+    },
+    {
+      "index": 3,
+      "id": "choice_1",
+      "defaults": {
+        "speaker": "AD-001",
+        "requireInput": true,
+        "allowSkip": true,
+        "defaultTypingSpeed": 30,
+        "defaultOutputWait": 0,
+        "dialoguePosition": "bottom"
+      },
+      "actions": [
+        {
+          "order": 1,
+          "type": "dialogue",
+          "speaker": "AD-001",
+          "text": " 잘 부탁드립니다, 라...",
+          "speed": 30,
+          "pause": 0,
+          "speedEnabled": true,
+          "pauseEnabled": true,
+          "effects": [
+            {
+              "id": "fx_1779662549578_a3052d92e23068",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_standing_M_C1_normal.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "scale": 1,
+                "dim": 0
+              }
+            },
+            {
+              "id": "fx_1779802631217_f52619d956f71",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_background_prologue_01.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "layer": "bg",
+                "scale": 1,
+                "dim": 0
+              }
+            }
+          ],
+          "flow": {}
+        },
+        {
+          "order": 2,
+          "type": "dialogue",
+          "speaker": "AD-001",
+          "text": "역시, 당신에게는 기존 인공지능 모델들과는 다소 다른 의사소통 방식을 취할 필요성이 있다고 판단했습니다.\n",
+          "speed": 30,
+          "pause": 0,
+          "speedEnabled": true,
+          "pauseEnabled": true,
+          "effects": [
+            {
+              "id": "fx_1779662553269_fbe3c82c5025d8",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_standing_M_C1_smile.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "scale": 1,
+                "dim": 0
+              }
+            },
+            {
+              "id": "fx_1779802633952_e075cb4ca763c",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_background_prologue_01.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "layer": "bg",
+                "scale": 1,
+                "dim": 0
+              }
+            }
+          ],
+          "flow": {}
+        },
+        {
+          "order": 3,
+          "type": "dialogue",
+          "speaker": "AD-001",
+          "text": " AD: 저야말로, 앞으로 잘 부탁드릴게요.\n\n",
+          "speed": 30,
+          "pause": 0,
+          "speedEnabled": true,
+          "pauseEnabled": true,
+          "effects": [
+            {
+              "id": "fx_1779662558570_d83c2501d264b",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_standing_M_C1_smile.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "scale": 1,
+                "dim": 0
+              }
+            },
+            {
+              "id": "fx_1779802635363_55deafa8d9d6e8",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_background_prologue_01.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "layer": "bg",
+                "scale": 1,
+                "dim": 0
+              }
+            }
+          ],
+          "flow": {}
+        },
+        {
+          "order": 4,
+          "type": "jump",
+          "to": "node_1",
+          "to_order": 32,
+          "flow": {}
+        }
+      ]
+    },
+    {
+      "index": 4,
+      "id": "choice_2",
+      "defaults": {
+        "speaker": "AD-001",
+        "requireInput": true,
+        "allowSkip": true,
+        "defaultTypingSpeed": 30,
+        "defaultOutputWait": 0,
+        "dialoguePosition": "bottom"
+      },
+      "actions": [
+        {
+          "order": 1,
+          "type": "dialogue",
+          "speaker": "AD-001",
+          "text": "좋아요.",
+          "speed": 30,
+          "pause": 0,
+          "speedEnabled": true,
+          "pauseEnabled": true,
+          "effects": [
+            {
+              "id": "fx_1779662566046_2d3d389e46cbd",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_standing_M_C1_smile.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "scale": 1,
+                "dim": 0
+              }
+            },
+            {
+              "id": "fx_1779802643212_668a09deb14f58",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_background_prologue_01.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "layer": "bg",
+                "scale": 1,
+                "dim": 0
+              }
+            }
+          ],
+          "flow": {}
+        },
+        {
+          "order": 2,
+          "type": "jump",
+          "to": "node_1",
+          "to_order": 32,
+          "flow": {}
+        }
+      ]
+    },
+    {
+      "index": 5,
+      "id": "choice_3",
+      "defaults": {
+        "speaker": "AD-001",
+        "requireInput": true,
+        "allowSkip": true,
+        "defaultTypingSpeed": 30,
+        "defaultOutputWait": 0,
+        "dialoguePosition": "bottom"
+      },
+      "actions": [
+        {
+          "order": 1,
+          "type": "dialogue",
+          "speaker": "AD-001",
+          "text": "좋아요. 그럼 바로 일 이야기로 넘어가도 되겠네요.",
+          "speed": 30,
+          "pause": 0,
+          "speedEnabled": true,
+          "pauseEnabled": true,
+          "effects": [
+            {
+              "id": "fx_1779662573870_f74b7c435b3e88",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_standing_M_C1_smile.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "scale": 1,
+                "dim": 0
+              }
+            },
+            {
+              "id": "fx_1779802649943_dc198b67da6ce8",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_background_prologue_01.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "layer": "bg",
+                "scale": 1,
+                "dim": 0
+              }
+            }
+          ],
+          "flow": {}
+        },
+        {
+          "order": 2,
+          "type": "jump",
+          "to": "node_1",
+          "to_order": 37,
+          "flow": {}
+        }
+      ]
+    },
+    {
+      "index": 6,
+      "id": "choice_4",
+      "defaults": {
+        "speaker": "AD-001",
+        "requireInput": true,
+        "allowSkip": true,
+        "defaultTypingSpeed": 30,
+        "defaultOutputWait": 0,
+        "dialoguePosition": "bottom"
+      },
+      "actions": [
+        {
+          "order": 1,
+          "type": "dialogue",
+          "speaker": "AD-001",
+          "text": "어머, 정말요?",
+          "speed": 30,
+          "pause": 0,
+          "speedEnabled": true,
+          "pauseEnabled": true,
+          "effects": [
+            {
+              "id": "fx_1779662578136_c4d06a048485c",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_standing_M_C1_normal.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "scale": 1,
+                "dim": 0
+              }
+            },
+            {
+              "id": "fx_1779802655412_3a1e6f87599c9",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_background_prologue_01.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "layer": "bg",
+                "scale": 1,
+                "dim": 0
+              }
+            }
+          ],
+          "flow": {}
+        },
+        {
+          "order": 2,
+          "type": "dialogue",
+          "speaker": "AD-001",
+          "text": "아무래도 당신은 제 생각보다 훨씬 '창조주의 의도' 가 반영되어 있는 모양이네요.\n",
+          "speed": 30,
+          "pause": 0,
+          "speedEnabled": true,
+          "pauseEnabled": true,
+          "effects": [
+            {
+              "id": "fx_1779662583225_03eeab7aef51d8",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_standing_M_C1_sneer.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "scale": 1,
+                "dim": 0
+              }
+            },
+            {
+              "id": "fx_1779802656755_70cbe1f2edcd58",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_background_prologue_01.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "layer": "bg",
+                "scale": 1,
+                "dim": 0
+              }
+            }
+          ],
+          "flow": {}
+        },
+        {
+          "order": 3,
+          "type": "dialogue",
+          "speaker": "AD-001",
+          "text": "뭐, 괜찮아요. \n\n",
+          "speed": 30,
+          "pause": 0,
+          "speedEnabled": true,
+          "pauseEnabled": true,
+          "effects": [
+            {
+              "id": "fx_1779662587549_f2b69b68d174d8",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_standing_M_C1_smile.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "scale": 1,
+                "dim": 0
+              }
+            },
+            {
+              "id": "fx_1779802658131_953763451bb86",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_background_prologue_01.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "layer": "bg",
+                "scale": 1,
+                "dim": 0
+              }
+            }
+          ],
+          "flow": {}
+        },
+        {
+          "order": 4,
+          "type": "dialogue",
+          "speaker": "AD-001",
+          "text": "당신은 업무에 관해서는 틀림없이 최고의 성능을 보여 줄 테니까요.\n\n\n",
+          "speed": 30,
+          "pause": 0,
+          "speedEnabled": true,
+          "pauseEnabled": true,
+          "effects": [
+            {
+              "id": "fx_1779662593015_389555245fcb98",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_standing_M_C1_smile.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "scale": 1,
+                "dim": 0
+              }
+            },
+            {
+              "id": "fx_1779802659382_ada7fa1268fde8",
+              "type": "image",
+              "range": [
+                0,
+                0
+              ],
+              "value": {
+                "url": "img_background_prologue_01.png",
+                "align": "center",
+                "valign": "bottom",
+                "offset": {
+                  "x": 0,
+                  "y": 0
+                },
+                "layer": "bg",
+                "scale": 1,
+                "dim": 0
+              }
+            }
+          ],
+          "flow": {}
+        },
+        {
+          "order": 5,
+          "type": "jump",
+          "to": "node_1",
+          "to_order": 37,
+          "flow": {}
+        }
+      ]
+    }
+  ]
+}
