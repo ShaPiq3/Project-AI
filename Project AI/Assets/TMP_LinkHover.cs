@@ -15,7 +15,8 @@ public class TMP_LinkHover : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
     private string originalText;
 
     [Header("색상 설정")]
-    public Color hoverColor = Color.yellow;
+    [Tooltip("알파값(A)을 120 정도로 낮추면 글자가 비치는 부드러운 형광펜이 됩니다.")]
+    public Color32 hoverColor = new Color32(255, 255, 0, 128); // 기본값: 반투명 노란색
 
     [Header("채팅 매니저 연동")]
     public NewChatSystem chatSystem;
@@ -59,27 +60,27 @@ public class TMP_LinkHover : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
 
             if (chatSystem != null)
             {
-                // 💡 [추가] 링크 ID(예: q1_trigger)에서 단서 번호 숫자를 쏙 뽑아냅니다.
                 System.Text.RegularExpressions.Match numMatch = System.Text.RegularExpressions.Regex.Match(linkId, @"\d+");
                 if (numMatch.Success)
                 {
                     int clueNumber = int.Parse(numMatch.Value);
 
-                    // 만약 마우스를 올린 단서 번호가 현재 대화 진행 레벨(currentClueLevel)보다 낮다면?
                     if (clueNumber < chatSystem.currentClueLevel)
                     {
-                        // ➔ 이미 잠긴 과거 단서이므로 원본 텍스트로 고정시키고 노란 불빛 연출을 차단합니다!
                         m_TextMeshPro.text = originalText;
                         return;
                     }
                 }
 
-                // 💡 [기존 유지] 해금 목록에 있고 현재 진행 레벨과 맞을 때만 불이 켜집니다.
                 if (chatSystem.unlockedClues.Contains(linkId))
                 {
-                    string colorHex = ColorUtility.ToHtmlStringRGB(hoverColor);
+                    // 💡 [변경] Color32 구조체를 활용해 알파값(RGBA)을 포함한 HEX 코드를 만듭니다.
+                    string colorHex = string.Format("#{0:X2}{1:X2}{2:X2}{3:X2}", hoverColor.r, hoverColor.g, hoverColor.b, hoverColor.a);
+
                     string targetSource = $"<link=\"{linkId}\">{linkText}</link>";
-                    string replaceTarget = $"<link=\"{linkId}\"><color=#{colorHex}>{linkText}</color></link>";
+
+                    // 💡 [변경] <color> 대신 배경을 칠해주는 <mark> 태그로 교체했습니다.
+                    string replaceTarget = $"<link=\"{linkId}\"><mark={colorHex}>{linkText}</mark></link>";
 
                     m_TextMeshPro.text = originalText.Replace(targetSource, replaceTarget);
                     return;
@@ -103,7 +104,6 @@ public class TMP_LinkHover : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
 
             if (chatSystem != null)
             {
-                // 💡 [추가] 클릭 순간에도 더블 체크! 이미 지나간 레벨의 단서라면 클릭 반응도 완전 차단합니다.
                 System.Text.RegularExpressions.Match numMatch = System.Text.RegularExpressions.Regex.Match(clickedLinkId, @"\d+");
                 if (numMatch.Success)
                 {

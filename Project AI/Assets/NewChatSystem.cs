@@ -36,7 +36,7 @@ public class NewChatSystem : MonoBehaviour
 
     [Header("UI 밀어올리기 설정")]
     public RectTransform scrollViewRect;
-    [Tooltip("Selection_Panel이 켜질 때 위로 밀어올릴 세로 높이(크기)입니다.")]
+    [Tooltip("Selection_Panel의 세로 높이(크기)입니다. 처음부터 이만큼 여백을 확보합니다.")]
     public float selectionPanelHeight = 220f;
     private Vector2 originalOffsetMin;
 
@@ -44,6 +44,14 @@ public class NewChatSystem : MonoBehaviour
     public GameObject finalSelectionPanel;
     public Button finalButtonA;
     public Button finalButtonB;
+    // 💡 [추가] 선택지 버튼들의 Image 컴포넌트와 잠금/해금 스프라이트 변수
+    [Space(5)]
+    public Image finalButtonImageA;
+    public Image finalButtonImageB;
+    public Sprite selectionLockedSpriteA;
+    public Sprite selectionUnlockedSpriteA;
+    public Sprite selectionLockedSpriteB;
+    public Sprite selectionUnlockedSpriteB;
 
     [Header("대화 종료 후 팝업 설정")]
     public GameObject updateNotificationPanel;
@@ -84,8 +92,9 @@ public class NewChatSystem : MonoBehaviour
         InitDialogueDictionary();
         InitPanelDictionary();
 
-        if (finalSelectionPanel != null) finalSelectionPanel.SetActive(false);
         if (updateNotificationPanel != null) updateNotificationPanel.SetActive(false);
+
+        LockFinalSelectionPanel();
 
         InitHeaderButton();
         InitAllQuestButtons();
@@ -93,6 +102,31 @@ public class NewChatSystem : MonoBehaviour
         if (scrollViewRect != null)
         {
             originalOffsetMin = scrollViewRect.offsetMin;
+            scrollViewRect.offsetMin = new Vector2(originalOffsetMin.x, originalOffsetMin.y + selectionPanelHeight);
+        }
+    }
+
+    private void Start()
+    {
+        StartCoroutine(AppearFirstQuestButtonAfter5Seconds());
+    }
+
+    // 💡 [수정] 잠금 상태일 때 이미지도 잠금 이미지로 변경하도록 보완
+    private void LockFinalSelectionPanel()
+    {
+        if (finalSelectionPanel != null)
+        {
+            finalSelectionPanel.SetActive(true);
+
+            if (finalButtonA != null) finalButtonA.interactable = false;
+            if (finalButtonB != null) finalButtonB.interactable = false;
+
+            // 💡 버튼 A, B 이미지 잠금 상태로 변경
+            if (finalButtonImageA != null && selectionLockedSpriteA != null)
+                finalButtonImageA.sprite = selectionLockedSpriteA;
+
+            if (finalButtonImageB != null && selectionLockedSpriteB != null)
+                finalButtonImageB.sprite = selectionLockedSpriteB;
         }
     }
 
@@ -121,8 +155,20 @@ public class NewChatSystem : MonoBehaviour
         for (int i = 0; i < questButtonList.Count; i++)
         {
             if (questButtonList[i] == null) continue;
-            if (i == 0) questButtonList[i].SetActive();
-            else questButtonList[i].SetLocked();
+            questButtonList[i].gameObject.SetActive(false);
+            questButtonList[i].SetLocked();
+        }
+    }
+
+    private IEnumerator AppearFirstQuestButtonAfter5Seconds()
+    {
+        yield return new WaitForSeconds(5.0f);
+
+        if (questButtonList.Count > 0 && questButtonList[0] != null)
+        {
+            questButtonList[0].gameObject.SetActive(true);
+            questButtonList[0].SetActive();
+            Debug.Log("<color=lime>[시작 연출 완료]</color> 게임 시작 5초 후 첫 번째 퀘스트 버튼이 등장했습니다.");
         }
     }
 
@@ -206,57 +252,16 @@ public class NewChatSystem : MonoBehaviour
 
                 if (command.StartsWith("Show_UpdatePanel"))
                 {
-                    // 1. 💡 [수정] 알림창 패널 활성화 및 '화면 최상단(맨 앞)' 강제 배치
-                    if (updateNotificationPanel != null)
+                    string[] tokens = command.Split(':');
+                    string targetPanelName = tokens.Length > 1 ? tokens[1].Trim() : "";
+
+                    float appearanceDelay = 0f;
+                    if (tokens.Length > 2)
                     {
-                        updateNotificationPanel.SetActive(true);
-                        updateNotificationPanel.transform.SetAsLastSibling();
+                        float.TryParse(tokens[2].Trim(), out appearanceDelay);
                     }
 
-                    UnlockHeaderButton();
-
-                    string targetPanelName = "";
-                    if (command.Contains(":"))
-                    {
-                        targetPanelName = command.Split(':')[1].Trim();
-                    }
-
-                    // 2. 💡 [수정] 알림창 뜨는 이 타이밍에 즉시 기사 진입 버튼을 활성화하고 리스트 '최상단(위)'으로 정렬
-                    if (!string.IsNullOrEmpty(targetPanelName) && panelDic.ContainsKey(targetPanelName))
-                    {
-                        var mapping = panelDic[targetPanelName];
-                        if (mapping.entryButton != null)
-                        {
-                            mapping.entryButton.SetActive(true);
-                            mapping.entryButton.transform.SetAsFirstSibling();
-                            Debug.Log($"<color=cyan>[실시간 업데이트]</color> {targetPanelName} 진입 버튼이 목록 최상단에 배치되었습니다.");
-                        }
-                    }
-
-                    if (updatePanelButton != null)
-                    {
-                        updatePanelButton.onClick.RemoveAllListeners();
-                        updatePanelButton.onClick.AddListener(() => {
-
-                            updateNotificationPanel.SetActive(false);
-                            if (popupChatPanel != null) popupChatPanel.SetActive(false);
-
-                            if (!string.IsNullOrEmpty(targetPanelName))
-                            {
-                                MoveToTargetPanel(targetPanelName);
-                            }
-                        });
-                    }
-
-                    if (currentPlayingQuestIndex != -1 && currentPlayingQuestIndex < questButtonList.Count)
-                    {
-                        questButtonList[currentPlayingQuestIndex].gameObject.SetActive(false);
-                        int nextQuestIndex = currentPlayingQuestIndex + 1;
-                        if (nextQuestIndex < questButtonList.Count && questButtonList[nextQuestIndex] != null)
-                        {
-                            questButtonList[nextQuestIndex].SetActive();
-                        }
-                    }
+                    StartCoroutine(ShowUpdatePanelDelayed(targetPanelName, appearanceDelay));
                 }
 
                 if (command == "Next_Clue")
@@ -269,6 +274,59 @@ public class NewChatSystem : MonoBehaviour
             }
         }
         chatRoutineHandle = null;
+    }
+
+    private IEnumerator ShowUpdatePanelDelayed(string targetPanelName, float delaySeconds)
+    {
+        if (delaySeconds > 0f)
+        {
+            yield return new WaitForSeconds(delaySeconds);
+        }
+
+        if (updateNotificationPanel != null)
+        {
+            updateNotificationPanel.SetActive(true);
+            updateNotificationPanel.transform.SetAsLastSibling();
+        }
+
+        UnlockHeaderButton();
+
+        if (!string.IsNullOrEmpty(targetPanelName) && panelDic.ContainsKey(targetPanelName))
+        {
+            var mapping = panelDic[targetPanelName];
+            if (mapping.entryButton != null)
+            {
+                mapping.entryButton.SetActive(true);
+                mapping.entryButton.transform.SetAsFirstSibling();
+                Debug.Log($"<color=cyan>[실시간 업데이트]</color> {targetPanelName} 진입 버튼이 {delaySeconds}초 후 목록 최상단에 배치되었습니다.");
+            }
+        }
+
+        if (updatePanelButton != null)
+        {
+            updatePanelButton.onClick.RemoveAllListeners();
+            updatePanelButton.onClick.AddListener(() => {
+                updateNotificationPanel.SetActive(false);
+                if (popupChatPanel != null) popupChatPanel.SetActive(false);
+
+                if (!string.IsNullOrEmpty(targetPanelName))
+                {
+                    MoveToTargetPanel(targetPanelName);
+                }
+            });
+        }
+
+        if (currentPlayingQuestIndex != -1 && currentPlayingQuestIndex < questButtonList.Count)
+        {
+            questButtonList[currentPlayingQuestIndex].gameObject.SetActive(false);
+            int nextQuestIndex = currentPlayingQuestIndex + 1;
+            if (nextQuestIndex < questButtonList.Count && questButtonList[nextQuestIndex] != null)
+            {
+                yield return new WaitForSeconds(2.0f);
+                questButtonList[nextQuestIndex].gameObject.SetActive(true);
+                questButtonList[nextQuestIndex].SetActive();
+            }
+        }
     }
 
     private void MoveToTargetPanel(string panelName)
@@ -307,36 +365,43 @@ public class NewChatSystem : MonoBehaviour
     private void UnlockHeaderButton() { if (targetHeaderButton != null) targetHeaderButton.interactable = true; if (targetHeaderButtonImage != null && unlockedSprite != null) targetHeaderButtonImage.sprite = unlockedSprite; }
     private string DetermineNextContext(string currentContext) { Match match = Regex.Match(currentContext, @"\d+"); if (match.Success) { int currentNum = int.Parse(match.Value); int nextNum = currentNum + 1; currentClueLevel = nextNum; string nextContextName = currentContext.Replace(currentNum.ToString(), nextNum.ToString()); if (nextContextName.Contains("_ClueClick")) nextContextName = nextContextName.Replace("_ClueClick", "_Start"); return nextContextName; } return "Q1_Start"; }
 
+    // 💡 [수정] 해금 타이밍에 활성화된 버튼 이미지로 변경하도록 보완
     private void TriggerFinalSelection()
     {
         if (finalSelectionPanel != null)
         {
             finalSelectionPanel.SetActive(true);
 
-            // 💡 [수정] 스크롤 뷰의 하단 단을 들어 올려 틀 전체(스크롤바, 화살표 포함)를 위로 밀어냅니다.
-            if (scrollViewRect != null)
+            // 1. 버튼 A 해금 및 이미지 교체
+            if (finalButtonA != null)
             {
-                scrollViewRect.offsetMin = new Vector2(originalOffsetMin.x, originalOffsetMin.y + selectionPanelHeight);
+                finalButtonA.interactable = true;
+                finalButtonA.onClick.RemoveAllListeners();
+                finalButtonA.onClick.AddListener(() => OnClickFinalChoice("A"));
+
+                if (finalButtonImageA != null && selectionUnlockedSpriteA != null)
+                    finalButtonImageA.sprite = selectionUnlockedSpriteA;
             }
 
-            finalButtonA.onClick.RemoveAllListeners();
-            finalButtonA.onClick.AddListener(() => OnClickFinalChoice("A"));
-            finalButtonB.onClick.RemoveAllListeners();
-            finalButtonB.onClick.AddListener(() => OnClickFinalChoice("B"));
+            // 2. 버튼 B 해금 및 이미지 교체
+            if (finalButtonB != null)
+            {
+                finalButtonB.interactable = true;
+                finalButtonB.onClick.RemoveAllListeners();
+                finalButtonB.onClick.AddListener(() => OnClickFinalChoice("B"));
 
+                if (finalButtonImageB != null && selectionUnlockedSpriteB != null)
+                    finalButtonImageB.sprite = selectionUnlockedSpriteB;
+            }
+
+            Debug.Log("<color=orange>[선택지 해금]</color> 잠겨있던 최종 선택지 버튼이 해금되었습니다.");
             StartCoroutine(ForceScrollBottomRoutine());
         }
     }
 
     private void OnClickFinalChoice(string choiceType)
     {
-        if (finalSelectionPanel != null) finalSelectionPanel.SetActive(false);
-
-        // 💡 [수정] 선택지가 끝나면 하단 단 마진을 원래 크기로 원상복구 시킵니다.
-        if (scrollViewRect != null)
-        {
-            scrollViewRect.offsetMin = originalOffsetMin;
-        }
+        LockFinalSelectionPanel();
 
         if (choiceType == "A") PlayDialogueGroup("Logical_Btn");
         else if (choiceType == "B") PlayDialogueGroup("Ethical_Btn");
