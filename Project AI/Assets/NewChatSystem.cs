@@ -1,610 +1,482 @@
-using UnityEngine;
-
 using System.Collections;
-
 using System.Collections.Generic;
-
 using System.Linq;
-
 using System.Text.RegularExpressions;
-
+using DG.Tweening;
 using TMPro;
-
+using UnityEngine;
 using UnityEngine.UI;
-
+using DG.Tweening;
 
 
 public class NewChatSystem : MonoBehaviour
-
 {
+    // 완료된 단서들을 기억하는 변수 (이건 창을 닫아도 데이터가 유지되어야 함)
+    public HashSet<string> completedClues = new HashSet<string>();
 
     [System.Serializable]
-
-    public class ChatEntity
-
-    {
-
-        public int id;
-
-        public string context;
-
-        public string sender;
-
-        public string message;
-
-        public string linkPanel;
-
-        public float delay;
-
-    }
-
-
-
+    public class ChatEntity { public int id; public string context; public string sender; public string message; public string linkPanel; public float delay; }
     [System.Serializable]
-
-    public class PanelMapping
-
-    {
-
-        public string panelName;
-
-        public GameObject parentPanel;
-
-        public GameObject panelObject;
-
-        public GameObject entryButton;
-
-    }
-
-
+    public class PanelMapping { public string panelName; public GameObject parentPanel; public GameObject panelObject; public GameObject entryButton; }
 
     [Header("UI 설정")]
-
     public GameObject popupChatPanel;
-
     public Transform chatContent;
-
     public GameObject npcMessagePrefab;
-
     public GameObject userMessagePrefab;
 
+    [Header("효과음 설정")]
+    public AudioSource uiAudioSource;
+    public AudioClip popupAppearSound;
+    public AudioClip messageAppearSound;
+    public AudioClip buttonClickSound;    
 
+    [Header("이미지 교체 설정")]
+    public Image targetButtonImage;
+    public Sprite replacedSprite;
 
     [Header("UI 밀어올리기 설정")]
-
     public RectTransform scrollViewRect;
-
-    [Tooltip("Selection_Panel의 세로 높이(크기)입니다. 처음부터 이만큼 여백을 확보합니다.")]
-
     public float selectionPanelHeight = 220f;
-
     private Vector2 originalOffsetMin;
 
-
-
-    [Header("최종 엔딩 선택지 오브젝트 (CSV 제어)")]
-
+    [Header("최종 엔딩 선택지")]
     public GameObject finalSelectionPanel;
+    public Button finalButtonA, finalButtonB;
+    public Image finalButtonImageA, finalButtonImageB;
+    public Sprite selectionLockedSpriteA, selectionUnlockedSpriteA;
+    public Sprite selectionLockedSpriteB, selectionUnlockedSpriteB;
 
-    public Button finalButtonA;
-
-    public Button finalButtonB;
-
-    // 💡 [추가] 선택지 버튼들의 Image 컴포넌트와 잠금/해금 스프라이트 변수
-
-    [Space(5)]
-
-    public Image finalButtonImageA;
-
-    public Image finalButtonImageB;
-
-    public Sprite selectionLockedSpriteA;
-
-    public Sprite selectionUnlockedSpriteA;
-
-    public Sprite selectionLockedSpriteB;
-
-    public Sprite selectionUnlockedSpriteB;
-
-
-
-    [Header("대화 종료 후 팝업 설정")]
-
+    [Header("대화 종료 후 팝업")]
     public GameObject updateNotificationPanel;
-
     public Button updatePanelButton;
 
 
 
-    [Header("이동 가능한 패널 및 진입 버튼 세트")]
 
+    [Header("패널 및 퀘스트 설정")]
     public List<PanelMapping> moveablePanels = new List<PanelMapping>();
-
     private Dictionary<string, PanelMapping> panelDic = new Dictionary<string, PanelMapping>();
-
-
-
-    [Header("상단 버튼 해금 설정")]
-
     public Button targetHeaderButton;
-
     public Image targetHeaderButtonImage;
-
-    public Sprite lockedSprite;
-
-    public Sprite unlockedSprite;
-
-
-
-    [Header("순서대로 등록하는 퀘스트 버튼 리스트")]
-
+    public Sprite lockedSprite, unlockedSprite;
     public List<QuestButtonRef> questButtonList = new List<QuestButtonRef>();
-
-
-
     private int currentPlayingQuestIndex = -1;
-
-
-
-    [Header("해금된 단서 목록 (실시간 기록)")]
-
     public List<string> unlockedClues = new List<string>();
-
-
-
-    [Header("[기획] 현재 단서 진행 단계")]
-
     public int currentClueLevel = 1;
 
-
-
     private List<ChatEntity> masterChatDataList = new List<ChatEntity>();
-
     private Dictionary<string, List<ChatEntity>> dialogueDic = new Dictionary<string, List<ChatEntity>>();
-
     private Queue<ChatEntity> currentDialogueQueue = new Queue<ChatEntity>();
-
-
-
     private Coroutine chatRoutineHandle = null;
-
     private readonly string csvParserPattern = @",(?=(?:[^""]*""[^""]*"")*[^""]*$)";
-
     private HashSet<string> startedQuestContexts = new HashSet<string>();
+    public GameObject Setting_Panel;
+
+    public void OpenSettingsPanel()
+    {
+        // 이제 Setting_Panel을 제어합니다.
+        Setting_Panel.SetActive(true);
+        Setting_Panel.transform.SetAsLastSibling();
+    }
 
 
 
     private void Awake()
-
     {
-
         LoadDataFromCSV();
-
         InitDialogueDictionary();
-
         InitPanelDictionary();
-
-
-
         if (updateNotificationPanel != null) updateNotificationPanel.SetActive(false);
-
-
-
         LockFinalSelectionPanel();
-
-
-
         InitHeaderButton();
-
         InitAllQuestButtons();
-
-
-
         if (scrollViewRect != null)
-
         {
-
             originalOffsetMin = scrollViewRect.offsetMin;
-
             scrollViewRect.offsetMin = new Vector2(originalOffsetMin.x, originalOffsetMin.y + selectionPanelHeight);
-
         }
-
     }
-
-
 
     private void Start()
-
     {
-
+        RegisterSoundToAllButtons();
         StartCoroutine(AppearFirstQuestButtonAfter5Seconds());
-
     }
 
+    public void RegisterSoundToAllButtons()
+    {
+        // 씬 전체를 뒤지는 대신, 계층 구조상 하위의 버튼만 찾거나 
+        // 혹은 개별 등록을 추천합니다.
+        Button[] allButtons = GetComponentsInChildren<Button>(true); // true 옵션을 넣으면 비활성 버튼도 찾음
+        foreach (Button btn in allButtons)
+        {
+            btn.onClick.RemoveListener(() => uiAudioSource.PlayOneShot(buttonClickSound));
+            btn.onClick.AddListener(() => uiAudioSource.PlayOneShot(buttonClickSound));
+        }
+    }
 
-
-    // 💡 [수정] 잠금 상태일 때 이미지도 잠금 이미지로 변경하도록 보완
+    public void PlayPopupSound()
+    {
+        if (uiAudioSource != null && popupAppearSound != null) uiAudioSource.PlayOneShot(popupAppearSound);
+    }
 
     private void LockFinalSelectionPanel()
-
     {
-
         if (finalSelectionPanel != null)
-
         {
-
             finalSelectionPanel.SetActive(true);
-
-
-
             if (finalButtonA != null) finalButtonA.interactable = false;
-
             if (finalButtonB != null) finalButtonB.interactable = false;
-
-
-
-            // 💡 버튼 A, B 이미지 잠금 상태로 변경
-
-            if (finalButtonImageA != null && selectionLockedSpriteA != null)
-
-                finalButtonImageA.sprite = selectionLockedSpriteA;
-
-
-
-            if (finalButtonImageB != null && selectionLockedSpriteB != null)
-
-                finalButtonImageB.sprite = selectionLockedSpriteB;
-
+            if (finalButtonImageA != null && selectionLockedSpriteA != null) finalButtonImageA.sprite = selectionLockedSpriteA;
+            if (finalButtonImageB != null && selectionLockedSpriteB != null) finalButtonImageB.sprite = selectionLockedSpriteB;
         }
-
     }
-
-
 
     private void InitPanelDictionary()
-
     {
-
         panelDic.Clear();
-
         foreach (var mapping in moveablePanels)
-
         {
-
             if (!string.IsNullOrEmpty(mapping.panelName))
-
             {
-
                 panelDic[mapping.panelName.Trim()] = mapping;
-
                 if (mapping.panelObject != null) mapping.panelObject.SetActive(false);
-
                 if (mapping.entryButton != null) mapping.entryButton.SetActive(false);
-
             }
-
         }
-
     }
-
-
 
     private void InitHeaderButton()
-
     {
-
         if (targetHeaderButton != null) targetHeaderButton.interactable = false;
-
         if (targetHeaderButtonImage != null && lockedSprite != null) targetHeaderButtonImage.sprite = lockedSprite;
-
     }
-
-
 
     private void InitAllQuestButtons()
-
     {
-
-        for (int i = 0; i < questButtonList.Count; i++)
-
-        {
-
-            if (questButtonList[i] == null) continue;
-
-            questButtonList[i].gameObject.SetActive(false);
-
-            questButtonList[i].SetLocked();
-
-        }
-
+        foreach (var btn in questButtonList) { if (btn != null) { btn.gameObject.SetActive(false); btn.SetLocked(); } }
     }
-
-
 
     private IEnumerator AppearFirstQuestButtonAfter5Seconds()
-
     {
-
-        yield return new WaitForSeconds(5.0f);
-
-
-
+        yield return new WaitForSeconds(3.0f);
         if (questButtonList.Count > 0 && questButtonList[0] != null)
-
         {
-
             questButtonList[0].gameObject.SetActive(true);
-
             questButtonList[0].SetActive();
-
-            Debug.Log("<color=lime>[시작 연출 완료]</color> 게임 시작 5초 후 첫 번째 퀘스트 버튼이 등장했습니다.");
-
+            PlayPopupSound();
         }
-
     }
-
-
-
-    public void OnClickQuestButton(string startContextName, QuestButtonRef clickedQuestButton)
-
-    {
-
-        if (popupChatPanel != null)
-
-        {
-
-            popupChatPanel.transform.SetAsLastSibling();
-
-            currentPlayingQuestIndex = questButtonList.IndexOf(clickedQuestButton);
-
-
-
-            if (startedQuestContexts.Contains(startContextName))
-
-            {
-
-                popupChatPanel.SetActive(true);
-
-                return;
-
-            }
-
-
-
-            startedQuestContexts.Add(startContextName);
-
-            popupChatPanel.SetActive(true);
-
-        }
-
-
-
-        PlayDialogueGroup(startContextName);
-
-    }
-
-
 
     public void OnTextLinkClick(string linkId, string targetPanelName)
-
     {
-
         Match numMatch = Regex.Match(linkId, @"\d+");
-
         if (numMatch.Success)
-
         {
-
             int clickedClueNumber = int.Parse(numMatch.Value);
-
             if (clickedClueNumber < currentClueLevel) return;
+        }
 
+        if (linkId == "q2_trigger")
+        {
+            Debug.Log("[시스템] Q2 단서 트리거 클릭됨! Q2_ClueClick 대화 시작.");
+            PlayDialogueGroup("Q2_ClueClick"); // 바로 Q2 대화로 진입
+            return; // 아래의 기본 로직을 타지 않도록 종료
+        }
+
+        if (linkId == "q3_trigger")
+        {
+            Debug.Log("[시스템] Q3 단서 트리거 클릭됨! Q3_ClueClick 대화 시작.");
+            PlayDialogueGroup("Q3_ClueClick"); // 바로 Q3 대화로 진입
+            return; // 아래의 기본 로직을 타지 않도록 종료
+        }
+
+        if (linkId == "q4_trigger")
+        {
+            Debug.Log("[시스템] Q4 단서 트리거 클릭됨! Q4_ClueClick 대화 시작.");
+            PlayDialogueGroup("Q4_ClueClick"); // 바로 Q4 대화로 진입
+            return; // 아래의 기본 로직을 타지 않도록 종료
         }
 
         bool isClueUnlocked = unlockedClues.Contains(linkId);
-
-        if (isClueUnlocked) unlockedClues.Remove(linkId);
-
-
-
         string contextKey = "";
-
         if (linkId.StartsWith("q"))
-
         {
-
             string qNum = linkId.Substring(0, 2).ToUpper();
-
             contextKey = isClueUnlocked ? $"{qNum}_ClueClick" : $"{qNum}_NotFound";
-
         }
 
-        if (!string.IsNullOrEmpty(contextKey) && dialogueDic.ContainsKey(contextKey)) PlayDialogueGroup(contextKey);
-
+        if (!string.IsNullOrEmpty(contextKey) && dialogueDic.ContainsKey(contextKey))
+        {
+            PlayDialogueGroup(contextKey);
+        }
     }
 
-
-
-    public void PlayDialogueGroup(string groupName)
-
+    public void OnClickQuestButton(string startContextName)
     {
+        Debug.Log($"[디버그] 버튼 눌림! 전달받은 context: '{startContextName}'");
+        var questBtn = GetComponent<QuestButtonRef>();
 
-        if (!dialogueDic.ContainsKey(groupName)) return;
+        if (currentDialogueQueue.Count > 0)
+        {
+            // 팝업창 활성화
+            if (popupChatPanel != null)
+            {
+                popupChatPanel.SetActive(true);
+                popupChatPanel.transform.SetAsLastSibling();
+            }
 
-        currentDialogueQueue = new Queue<ChatEntity>(dialogueDic[groupName]);
+            // 코루틴이 멈춰있다면 (null) 다시 시작
+            if (chatRoutineHandle == null)
+            {
+                chatRoutineHandle = StartCoroutine(GenerateChatRoutine());
+            }
+            return;
+        }
 
-        if (chatRoutineHandle != null) StopCoroutine(chatRoutineHandle);
+        if (popupChatPanel != null)
+        {
+            popupChatPanel.SetActive(true);
+            popupChatPanel.transform.SetAsLastSibling();
+            if (questBtn != null) currentPlayingQuestIndex = questButtonList.IndexOf(questBtn);
+            if (!startedQuestContexts.Contains(startContextName)) startedQuestContexts.Add(startContextName);
+        }
 
-        chatRoutineHandle = StartCoroutine(GenerateChatRoutine());
-
+        PlayDialogueGroup(startContextName);
     }
 
+    // 팝업을 닫을 때 호출
+    public void CloseChatPopup()
+    {
+        if (chatRoutineHandle != null)
+        {
+            StopCoroutine(chatRoutineHandle);
+            chatRoutineHandle = null;
+        }
+        popupChatPanel.SetActive(false);
+    }
 
+    // 팝업을 열 때 호출
+    public void OpenChatPopup(string contextName = "")
+    {
+        if (popupChatPanel.activeSelf) return;
+
+        popupChatPanel.SetActive(true);
+        popupChatPanel.transform.SetAsLastSibling();
+
+        // 1. 이미 시작한 퀘스트 컨텍스트라면 새로 시작하지 않음
+        if (!string.IsNullOrEmpty(contextName) && startedQuestContexts.Contains(contextName))
+        {
+            // 이미 본 대화라면 그냥 대화 이어가기(재개)
+            if (chatRoutineHandle == null && currentDialogueQueue.Count > 0)
+            {
+                chatRoutineHandle = StartCoroutine(GenerateChatRoutine());
+            }
+            return;
+        }
+
+        // 2. 처음 보는 컨텍스트거나 대화가 없으면 시작
+        if (!string.IsNullOrEmpty(contextName))
+        {
+            startedQuestContexts.Add(contextName);
+            PlayDialogueGroup(contextName);
+        }
+        else if (currentDialogueQueue != null && currentDialogueQueue.Count > 0 && chatRoutineHandle == null)
+        {
+            chatRoutineHandle = StartCoroutine(GenerateChatRoutine());
+        }
+    }
+    public void PlayDialogueGroup(string groupName, bool forceRestart = false)
+    {
+        // 대화 진행 중이었다면 멈추고 새 대화 시작 (강제 교체)
+        if (chatRoutineHandle != null)
+        {
+            StopCoroutine(chatRoutineHandle);
+            chatRoutineHandle = null;
+        }
+
+        if (dialogueDic.ContainsKey(groupName))
+        {
+            currentDialogueQueue = new Queue<ChatEntity>(dialogueDic[groupName]);
+            chatRoutineHandle = StartCoroutine(GenerateChatRoutine());
+        }
+    }
 
     private IEnumerator GenerateChatRoutine()
-
     {
-
         while (currentDialogueQueue.Count > 0)
-
         {
-
             var entity = currentDialogueQueue.Dequeue();
 
-            yield return new WaitForSeconds(entity.delay);
-
-
+            // 딜레이 안전 처리
+            if (entity.delay > 0) yield return new WaitForSeconds(entity.delay);
 
             GameObject prefab = (entity.sender == "USER" || entity.sender.Contains("USER")) ? userMessagePrefab : npcMessagePrefab;
 
-            GameObject spawned = Instantiate(prefab, chatContent);
-
-            spawned.GetComponentInChildren<TextMeshProUGUI>().text = entity.message;
-
-
+            if (prefab != null && chatContent != null)
+            {
+                GameObject spawned = Instantiate(prefab, chatContent);
+                if (uiAudioSource != null && messageAppearSound != null)
+                {
+                    uiAudioSource.PlayOneShot(messageAppearSound);
+                }
+                var textComp = spawned.GetComponentInChildren<TextMeshProUGUI>();
+                if (textComp != null) textComp.text = entity.message;
+            }
 
             Canvas.ForceUpdateCanvases();
-
             if (chatContent.parent != null && chatContent.parent.parent != null)
-
-            {
-
-                ScrollRect scrollRect = chatContent.parent.parent.GetComponent<ScrollRect>();
-
-                if (scrollRect != null) scrollRect.verticalNormalizedPosition = 0f;
-
-            }
-
-
+                chatContent.parent.parent.GetComponent<ScrollRect>().verticalNormalizedPosition = 0f;
 
             if (!string.IsNullOrEmpty(entity.linkPanel))
-
             {
+                Debug.Log($"[디버그] 현재 처리 중인 메시지: {entity.message}, linkPanel 내용: {entity.linkPanel}");
+                // 세미콜론(;)을 기준으로 명령어들을 나눕니다.
+                string[] commands = entity.linkPanel.Split(';');
+                bool shouldExitRoutine = false;
 
-                string command = entity.linkPanel.Trim();
-
-
-
-                if (command.StartsWith("Unlock:"))
-
+                foreach (string rawCommand in commands)
                 {
-
-                    string clueIdToUnlock = command.Replace("Unlock:", "").Trim();
-
-                    if (!unlockedClues.Contains(clueIdToUnlock)) unlockedClues.Add(clueIdToUnlock);
-
-                }
+                    string command = rawCommand.Trim();
+                    if (string.IsNullOrEmpty(command)) continue;
 
 
-
-                if (command == "Trigger_Selection") TriggerFinalSelection();
-
-
-
-                if (command.StartsWith("Show_UpdatePanel"))
-
-                {
-
-                    string[] tokens = command.Split(':');
-
-                    string targetPanelName = tokens.Length > 1 ? tokens[1].Trim() : "";
-
-
-
-                    float appearanceDelay = 0f;
-
-                    if (tokens.Length > 2)
-
+                    if (command == "Next_Clue")
                     {
-
-                        float.TryParse(tokens[2].Trim(), out appearanceDelay);
-
+                        string nextGroup = DetermineNextContext(entity.context);
+                        PlayDialogueGroup(nextGroup);
+                        shouldExitRoutine = true;
+                        break;
                     }
+                    else if (command.StartsWith("Unlock:"))
+                    {
+                        string clueIdToUnlock = command.Replace("Unlock:", "").Trim();
+                        if (!unlockedClues.Contains(clueIdToUnlock))
+                        {
+                            unlockedClues.Add(clueIdToUnlock);
+                            if (clueIdToUnlock == "q1_trigger" && targetButtonImage != null && replacedSprite != null)
+                                targetButtonImage.sprite = replacedSprite;
+                        }
+                    }
+                    else if (command.StartsWith("Unlock_Quest_"))
+                    {
+                        string questIndexStr = command.Replace("Unlock_Quest_", "").Trim();
+                        if (int.TryParse(questIndexStr, out int questIdx) && questIdx >= 0 && questIdx < questButtonList.Count && questButtonList[questIdx] != null)
+                        {
+                            questButtonList[questIdx].gameObject.SetActive(true);
+                            questButtonList[questIdx].SetActive();
 
+                            if (questIdx != 0)
+                            {
+                                PlayPopupSound();
+                            }
 
+                            if (questIdx == 0 && targetButtonImage != null && replacedSprite != null)
+                            {
+                                targetButtonImage.sprite = replacedSprite;
+                                Debug.Log("[시스템] 퀘스트 0번 해금: 이미지 교체 완료");
+                            }
+                        }
+                    }
+                    else if (command == "Trigger_Selection") TriggerFinalSelection();
+                    else if (command.StartsWith(""))
+                    {
+                        string[] tokens = command.Split(':');
+                        StartCoroutine(ShowUpdatePanelDelayed(tokens.Length > 1 ? tokens[1].Trim() : "", tokens.Length > 2 ? float.Parse(tokens[2].Trim()) : 0f));
+                    }
+                    else if (command.StartsWith("Show_UpdatePanel:"))
+                    {
+                        // 예: "Show_UpdatePanel:EthicalPanel:0"
+                        string[] tokens = command.Split(':');
 
-                    StartCoroutine(ShowUpdatePanelDelayed(targetPanelName, appearanceDelay));
+                        if (tokens.Length >= 3)
+                        {
+                            string panelName = tokens[1].Trim();
 
+                            // 딜레이 값 파싱 (혹시 숫자가 아닌 경우를 대비해 try-catch 또는 float.TryParse 권장)
+                            if (float.TryParse(tokens[2].Trim(), out float delay))
+                            {
+                                StartCoroutine(ShowUpdatePanelDelayed(panelName, delay));
+                            }
+                            else
+                            {
+                                Debug.LogWarning($"[오류] 딜레이 값이 숫자가 아닙니다: {tokens[2]}");
+                                StartCoroutine(ShowUpdatePanelDelayed(panelName, 0f)); // 기본값 0으로 실행
+                            }
+                        }
+                        else
+                        {
+                            Debug.LogError($"[오류] 명령어 형식이 잘못되었습니다: {command}");
+                        }
+                    }
                 }
-
-
-
-                if (command == "Next_Clue")
-
+                if (shouldExitRoutine)
                 {
-
-                    string currentContext = entity.context;
-
-                    string nextGroup = DetermineNextContext(currentContext);
-
-                    PlayDialogueGroup(nextGroup);
-
-                    yield break;
-
+                    FinishCurrentQuest();
+                    chatRoutineHandle = null;
+                    yield break; // GenerateChatRoutine 자체가 여기서 완전히 종료됨
                 }
-
             }
-
         }
-
+        FinishCurrentQuest();
         chatRoutineHandle = null;
-
     }
 
-
-
-    private IEnumerator ShowUpdatePanelDelayed(string targetPanelName, float delaySeconds)
-
+    private void FinishCurrentQuest()
     {
+        Debug.Log($"[시스템] 대화 종료 확인: 인덱스 {currentPlayingQuestIndex}");
 
-        if (delaySeconds > 0f)
-
+        if (currentPlayingQuestIndex != -1 && currentPlayingQuestIndex < questButtonList.Count)
         {
-
-            yield return new WaitForSeconds(delaySeconds);
-
+            questButtonList[currentPlayingQuestIndex].gameObject.SetActive(false);
+            Debug.Log($"[시스템] {currentPlayingQuestIndex}번 버튼을 성공적으로 숨겼습니다.");
+            currentPlayingQuestIndex = -1;
         }
-
-
+    }
+    private IEnumerator ShowUpdatePanelDelayed(string targetPanelName, float delaySeconds)
+    {
+        if (delaySeconds > 0f)
+        {
+            yield return new WaitForSeconds(delaySeconds);
+        }
 
         if (updateNotificationPanel != null)
-
         {
+            // --- [수정 시작] 애니메이션 적용 ---
+            RectTransform rect = updateNotificationPanel.GetComponent<RectTransform>();
+            CanvasGroup cg = updateNotificationPanel.GetComponent<CanvasGroup>();
+            if (cg == null) cg = updateNotificationPanel.AddComponent<CanvasGroup>();
 
+            // 초기 상태: 왼쪽 화면 밖 (-1000f는 패널 너비에 따라 조절)
             updateNotificationPanel.SetActive(true);
+            Vector2 targetPos = rect.anchoredPosition;
+            rect.anchoredPosition = new Vector2(-1000f, targetPos.y);
+            cg.alpha = 0f;
+
+            // 등장 애니메이션: 오른쪽으로 이동 + 페이드인
+            rect.DOAnchorPos(targetPos, 0.5f).SetEase(Ease.OutCubic);
+            cg.DOFade(1f, 0.5f);
 
             updateNotificationPanel.transform.SetAsLastSibling();
-
+            PlayPopupSound();
+            // --- [수정 끝] ---
         }
-
-
 
         UnlockHeaderButton();
 
-
-
+        // ... (이 아래 panelDic 및 entryButton 로직은 그대로 유지)
         if (!string.IsNullOrEmpty(targetPanelName) && panelDic.ContainsKey(targetPanelName))
-
         {
-
             var mapping = panelDic[targetPanelName];
-
             if (mapping.entryButton != null)
-
             {
-
                 mapping.entryButton.SetActive(true);
-
+                Debug.Log($"[시스템] {targetPanelName} 버튼을 활성화했습니다.");
                 mapping.entryButton.transform.SetAsFirstSibling();
-
                 Debug.Log($"<color=cyan>[실시간 업데이트]</color> {targetPanelName} 진입 버튼이 {delaySeconds}초 후 목록 최상단에 배치되었습니다.");
-
             }
-
         }
-
-
 
         if (updatePanelButton != null)
 
@@ -631,34 +503,7 @@ public class NewChatSystem : MonoBehaviour
             });
 
         }
-
-
-
-        if (currentPlayingQuestIndex != -1 && currentPlayingQuestIndex < questButtonList.Count)
-
-        {
-
-            questButtonList[currentPlayingQuestIndex].gameObject.SetActive(false);
-
-            int nextQuestIndex = currentPlayingQuestIndex + 1;
-
-            if (nextQuestIndex < questButtonList.Count && questButtonList[nextQuestIndex] != null)
-
-            {
-
-                yield return new WaitForSeconds(2.0f);
-
-                questButtonList[nextQuestIndex].gameObject.SetActive(true);
-
-                questButtonList[nextQuestIndex].SetActive();
-
-            }
-
-        }
-
     }
-
-
 
     private void MoveToTargetPanel(string panelName)
 
@@ -724,122 +569,105 @@ public class NewChatSystem : MonoBehaviour
 
     }
 
+    private void UnlockHeaderButton()
+    {
+        if (targetHeaderButton != null)
+        {
+            // 1. 기존에 걸려있던 모든 클릭 이벤트 제거
+            targetHeaderButton.onClick.RemoveAllListeners();
 
+            // 2. 버튼 활성화
+            targetHeaderButton.interactable = true;
 
-    private void UnlockHeaderButton() { if (targetHeaderButton != null) targetHeaderButton.interactable = true; if (targetHeaderButtonImage != null && unlockedSprite != null) targetHeaderButtonImage.sprite = unlockedSprite; }
+            // 3. 해금 시 클릭 동작 정의 (대화 재생이 아닌, 필요한 패널 열기 등)
+            targetHeaderButton.onClick.AddListener(() => {
+                Debug.Log("[시스템] 헤더 버튼 클릭됨: 대화 루프 없음");
+                if (uiAudioSource != null && buttonClickSound != null)
+                {
+                    uiAudioSource.PlayOneShot(buttonClickSound);
+                }
+                // 여기서 대화를 다시 시작하는 대신, 
+                // 원하는 동작(예: 패널 열기)만 수행하세요.
+                // 예: MoveToTargetPanel("적절한패널이름");
+            });
+        }
+        if (targetHeaderButtonImage != null && unlockedSprite != null) targetHeaderButtonImage.sprite = unlockedSprite;
+    }
 
-    private string DetermineNextContext(string currentContext) { Match match = Regex.Match(currentContext, @"\d+"); if (match.Success) { int currentNum = int.Parse(match.Value); int nextNum = currentNum + 1; currentClueLevel = nextNum; string nextContextName = currentContext.Replace(currentNum.ToString(), nextNum.ToString()); if (nextContextName.Contains("_ClueClick")) nextContextName = nextContextName.Replace("_ClueClick", "_Start"); return nextContextName; } return "Q1_Start"; }
-
-
-
-    // 💡 [수정] 해금 타이밍에 활성화된 버튼 이미지로 변경하도록 보완
-
+    private string DetermineNextContext(string currentContext)
+    {
+        Match match = Regex.Match(currentContext, @"\d+");
+        if (match.Success)
+        {
+            int currentNum = int.Parse(match.Value);
+            int nextNum = currentNum + 1;
+            currentClueLevel = nextNum;
+            string nextContextName = currentContext.Replace(currentNum.ToString(), nextNum.ToString());
+            if (nextContextName.Contains("_ClueClick")) nextContextName = nextContextName.Replace("_ClueClick", "_Start");
+            return nextContextName;
+        }
+        return "Q1_Start";
+    }
     private void TriggerFinalSelection()
-
     {
-
         if (finalSelectionPanel != null)
-
         {
-
             finalSelectionPanel.SetActive(true);
-
-
-
-            // 1. 버튼 A 해금 및 이미지 교체
-
-            if (finalButtonA != null)
-
-            {
-
-                finalButtonA.interactable = true;
-
-                finalButtonA.onClick.RemoveAllListeners();
-
-                finalButtonA.onClick.AddListener(() => OnClickFinalChoice("A"));
-
-
-
-                if (finalButtonImageA != null && selectionUnlockedSpriteA != null)
-
-                    finalButtonImageA.sprite = selectionUnlockedSpriteA;
-
-            }
-
-
-
-            // 2. 버튼 B 해금 및 이미지 교체
-
-            if (finalButtonB != null)
-
-            {
-
-                finalButtonB.interactable = true;
-
-                finalButtonB.onClick.RemoveAllListeners();
-
-                finalButtonB.onClick.AddListener(() => OnClickFinalChoice("B"));
-
-
-
-                if (finalButtonImageB != null && selectionUnlockedSpriteB != null)
-
-                    finalButtonImageB.sprite = selectionUnlockedSpriteB;
-
-            }
-
-
-
-            Debug.Log("<color=orange>[선택지 해금]</color> 잠겨있던 최종 선택지 버튼이 해금되었습니다.");
-
-            StartCoroutine(ForceScrollBottomRoutine());
-
+            if (finalButtonA != null) { finalButtonA.interactable = true; finalButtonA.onClick.AddListener(() => OnClickFinalChoice("A")); if (finalButtonImageA != null) finalButtonImageA.sprite = selectionUnlockedSpriteA; }
+            if (finalButtonB != null) { finalButtonB.interactable = true; finalButtonB.onClick.AddListener(() => OnClickFinalChoice("B")); if (finalButtonImageB != null) finalButtonImageB.sprite = selectionUnlockedSpriteB; }
+            PlayPopupSound();
         }
-
     }
+  
 
-
-
-    private void OnClickFinalChoice(string choiceType)
-
+    private void OnClickFinalChoice(string choiceType) { LockFinalSelectionPanel(); if (choiceType == "A") PlayDialogueGroup("Logical_Btn"); else PlayDialogueGroup("Ethical_Btn"); }
+    private void LoadDataFromCSV()
     {
+        // 1. CSV 파일을 TextAsset으로 로드 (Assets/Resources 폴더에 있어야 합니다)
+        // 파일 확장자(.csv)는 빼고 파일명만 넣으세요.
+        TextAsset csvData = Resources.Load<TextAsset>("PopupChatData");
 
-        LockFinalSelectionPanel();
-
-
-
-        if (choiceType == "A") PlayDialogueGroup("Logical_Btn");
-
-        else if (choiceType == "B") PlayDialogueGroup("Ethical_Btn");
-
-    }
-
-
-
-    private IEnumerator ForceScrollBottomRoutine()
-
-    {
-
-        yield return new WaitForEndOfFrame();
-
-        Canvas.ForceUpdateCanvases();
-
-        if (chatContent != null && chatContent.parent != null && chatContent.parent.parent != null)
-
+        if (csvData == null)
         {
-
-            ScrollRect scrollRect = chatContent.parent.parent.GetComponent<ScrollRect>();
-
-            if (scrollRect != null) scrollRect.verticalNormalizedPosition = 0f;
-
+            Debug.LogError("[오류] CSV 파일을 찾을 수 없습니다! Resources 폴더에 있는지 확인하세요.");
+            return;
         }
 
+        string[] lines = csvData.text.Split(new[] { "\r\n", "\r", "\n" }, System.StringSplitOptions.None);
+        masterChatDataList.Clear();
+
+        // 2. 첫 줄(헤더)을 건너뛰고 1부터 시작
+        for (int i = 1; i < lines.Length; i++)
+        {
+            if (string.IsNullOrWhiteSpace(lines[i])) continue;
+
+            // 정규식으로 콤마 분리 (큰따옴표 안의 콤마 무시)
+            string[] fields = Regex.Split(lines[i], csvParserPattern);
+            if (fields.Length < 6) continue;
+
+            ChatEntity entity = new ChatEntity
+            {
+                id = int.Parse(fields[0]),
+                context = fields[1].Trim(),
+                sender = fields[2].Trim(),
+                message = fields[3].Trim().Replace("\"", ""), // 큰따옴표 제거
+                linkPanel = fields[4].Trim(),
+                delay = float.Parse(fields[5])
+            };
+            masterChatDataList.Add(entity);
+        }
     }
-
-
-
-    private void LoadDataFromCSV() { TextAsset csvFile = Resources.Load<TextAsset>("PopupChatData"); if (csvFile == null) return; masterChatDataList.Clear(); string[] lines = csvFile.text.Split(new[] { "\r\n", "\n" }, System.StringSplitOptions.RemoveEmptyEntries); for (int i = 1; i < lines.Length; i++) { if (string.IsNullOrWhiteSpace(lines[i])) continue; string[] row = Regex.Split(lines[i], csvParserPattern); if (row.Length < 2 || string.IsNullOrEmpty(row[0])) continue; string cleanId = row[0].Replace("\"", "").Trim(); string cleanContext = row[1].Replace("\"", "").Trim(); string cleanSender = (row.Length > 2) ? row[2].Replace("\"", "").Trim() : ""; string cleanMessage = (row.Length > 3) ? row[3].Replace("\"", "").Trim() : ""; string cleanLinkPanel = (row.Length > 4) ? row[4].Replace("\"", "").Trim() : ""; float parsedDelay = 1.0f; if (row.Length >= 6 && !string.IsNullOrWhiteSpace(row[5])) { string cleanDelay = row[5].Replace("\"", "").Trim(); float.TryParse(cleanDelay, out parsedDelay); } if (int.TryParse(cleanId, out int idResult)) { masterChatDataList.Add(new ChatEntity { id = idResult, context = cleanContext, sender = cleanSender, message = cleanMessage, linkPanel = cleanLinkPanel, delay = parsedDelay <= 0 ? 0.1f : parsedDelay }); } } }
-
-    private void InitDialogueDictionary() { if (masterChatDataList == null || masterChatDataList.Count == 0) return; dialogueDic = masterChatDataList.GroupBy(e => e.context).ToDictionary(g => g.Key, g => g.OrderBy(e => e.id).ToList()); }
-
+    private void InitDialogueDictionary()
+    {
+        dialogueDic.Clear();
+        foreach (var entity in masterChatDataList)
+        {
+            if (!dialogueDic.ContainsKey(entity.context))
+            {
+                dialogueDic[entity.context] = new List<ChatEntity>();
+            }
+            dialogueDic[entity.context].Add(entity);
+        }
+        Debug.Log($"[데이터] {dialogueDic.Count}개의 대화 그룹 로드 완료.");
+    }
 }

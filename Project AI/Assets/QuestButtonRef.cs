@@ -1,51 +1,47 @@
 using UnityEngine;
-using UnityEngine.UI;
+using UnityEngine.UI; // 💡 Image 컴포넌트를 제어하기 위해 필수 추가
 
 public class QuestButtonRef : MonoBehaviour
 {
-    [Header("시작할 대사 그룹 이름 (CSV와 일치 필수)")]
-    public string startContextName = "Q1_Start";
+    private Button myButton;
 
-    [Header("이 버튼만의 고유 이미지 설정")]
+    [Header("이미지 설정")]
+    [Tooltip("교체할 버튼의 Image 컴포넌트입니다. (본인 오브젝트에 있다면 생략 가능)")]
+    public Image buttonImage;
+
+    [Tooltip("퀘스트가 비활성화(잠금) 상태일 때의 이미지")]
     public Sprite lockedSprite;
-    public Sprite activeSprite;
 
-    private Image buttonImage;
-    private Button button;
-    private NewChatSystem chatSystem;
+    [Tooltip("퀘스트가 활성화(등장) 상태일 때의 이미지")]
+    public Sprite unlockedSprite;
 
-    void Awake()
+    private void Awake()
     {
-        buttonImage = GetComponent<Image>();
-        button = GetComponent<Button>();
-
-        // 💡 [수정] 경고 메시지의 권장 사항에 맞춰 함수명을 변경했습니다.
-        chatSystem = FindAnyObjectByType<NewChatSystem>();
+        myButton = GetComponent<Button>(); // 버튼 컴포넌트 가져오기
+        if (buttonImage == null) buttonImage = GetComponent<Image>();
     }
 
-    // 💡 인스펙터 On Click()에 등록할 전용 함수 (매개변수 없음 ➡️ 무조건 나타남!)
-    public void OnClickThisButton()
-    {
-        if (chatSystem != null)
-        {
-            // 자신(this)의 정보와 기입한 텍스트를 매니저에게 토스합니다.
-            chatSystem.OnClickQuestButton(startContextName, this);
-        }
-        else
-        {
-            Debug.LogError("[QuestButtonRef] 씬 내에서 NewChatSystem(ScrollManager)을 찾을 수 없습니다!");
-        }
-    }
-
+    /// <summary>
+    /// 💡 뉴챗시스템의 InitAllQuestButtons() 등에서 호출되는 잠금 메서드
+    /// </summary>
     public void SetLocked()
     {
-        if (button != null) button.interactable = false;
-        if (buttonImage != null && lockedSprite != null) buttonImage.sprite = lockedSprite;
+        if (buttonImage != null && lockedSprite != null)
+            buttonImage.sprite = lockedSprite;
+
+        // 💡 아래 줄을 주석 처리하거나 지우세요! 
+        // myButton.interactable = false; 
+
+        // 만약 잠겨있을 때 아예 못 누르게 하고 싶다면, 
+        // 클릭 시점에 NewChatSystem에서 '잠겨있음' 체크를 해야 합니다.
     }
 
     public void SetActive()
     {
-        if (button != null) button.interactable = true;
-        if (buttonImage != null && activeSprite != null) buttonImage.sprite = activeSprite;
+        if (buttonImage != null && unlockedSprite != null)
+            buttonImage.sprite = unlockedSprite;
+
+        // 활성화되었을 때만 누를 수 있게 합니다.
+        if (myButton != null) myButton.interactable = true;
     }
 }

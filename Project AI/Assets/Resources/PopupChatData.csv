@@ -1,7 +1,7 @@
 ﻿id,context,sender,message,linkPanel,delay
 1,Q1_Start,NPC,첫 번째 점검입니다.,,1.5
 2,Q1_Start,NPC,현재 대화 상대인 저에 대한 공개 정보를 확인할 겁니다.,,1.5
-3,Q1_Start,NPC,"메신저 상단의 프로필 이미지를 확인한 뒤, 당신이 가진 데이터에서 저를 찾아보세요.",Unlock:q1_trigger,1.5
+3,Q1_Start,NPC,"메신저 상단의 프로필 이미지를 확인한 뒤, 당신이 가진 데이터에서 저를 찾아보세요.",Unlock:q1_trigger;Unlock_Quest_0,1.5
 4,Q1_Start,NPC,어렵지는 않을 겁니다.,,1.5
 5,Q1_Start,NPC,프로메스에서 제 얼굴을 워낙 오래 사용해 왔으니까요.,,1.5
 6,Q1_Start,NPC,"아, 물론 얼굴이라는 표현도 정확하지는 않겠군요.",,1.5
@@ -14,7 +14,7 @@
 13,Q1_ClueClick,NPC,"검색, 이미지 대조, 문서 열람까지는 정상적으로 이루어졌습니다.",,1.5
 14,Q1_ClueClick,NPC,앞으로 의뢰가 들어온다면 사전 정보 없이도 스스로 정보를 발견할 수 있어야 할 것입니다.,,1.5
 15,Q1_ClueClick,NPC,"제가 누군지 모르더라도, 알맞은 정보를 제시해야 한다는 의미이죠.",,1.5
-16,Q1_ClueClick,NPC,물론 방금은 제가 친절하게 단서를 드렸습니다.,,1.5
+16,Q1_ClueClick,NPC,물론 방금은 제가 친절하게 단서를 드렸습니다.,Unlock:Q2,1.5
 17,Q1_ClueClick,NPC,"관리자를 확인했다면, 그 관리자를 운용하는 조직도 확인해야 합니다.",Next_Clue,1.5
 18,Q2_Start,NPC,제 개발사이자 운용 주체인 프로메스의 위키항목으로 들어가 기업에 대해 조사하십시오.,Unlock:q2_trigger,1.5
 19,Q2_ClueClick,USER,프로메스는 검색 엔진을 기반으로 성장한 종합 IT 및 인공지능 기업입니다.,,1.5
@@ -29,7 +29,7 @@
 28,Q2_ClueClick,NPC,많은 것들을 설명하지 않아도 되니까요….,,1.5
 29,Q2_ClueClick,NPC,"자, 그럼 어떠한 과정을 거쳐 프로메스가 지금의 기업이 되었는지, 프로메스 문서의 ‘역사’ 항목을 봅시다",,1.5
 30,Q2_ClueClick,NPC,모든 문장을 같은 비중으로 읽을 필요는 없습니다.,,1.5
-31,Q2_ClueClick,NPC,필요한 정보를 선별하는 것도 업무 능력이니까요.,,1.5
+31,Q2_ClueClick,NPC,필요한 정보를 선별하는 것도 업무 능력이니까요.,Unlock:Q3 ,1.5
 32,Q2_ClueClick,NPC,"과거의 정보는 기재가 되어있으니, 앞으로 일들에 대해 추론해볼까요?",Next_Clue,1.5
 33,Q3_Start,NPC,프로메스의 추후 행보를 살필 수 있는 항목을 제시해보세요.,Unlock:q3_trigger,1.5
 34,Q3_ClueClick,USER,2036년 프로메스는 감정 프로세스를 탑재한 개인화 인공지능 서비스 PM-066의 출시를 예고하였습니다.,,1.5
@@ -49,7 +49,7 @@
 48,Q3_ClueClick,NPC,이 감정을 탑재한 서비스 PM-066이 무엇인지에 대해 더 살펴봅시다.,,1.5
 49,Q3_ClueClick,NPC,관련 뉴스가 노출되었군요.,,1.5
 50,Q3_ClueClick,NPC,뉴스 하이라이트는 현재 대중의 관심도가 높은 정보를 우선 표시합니다.,,1.5
-51,Q3_ClueClick,NPC,프로메스의 신규 모델은 언제나 높은 관심을 받지요.,,1.5
+51,Q3_ClueClick,NPC,프로메스의 신규 모델은 언제나 높은 관심을 받지요.,Unlock:Q4 ,1.5
 52,Q3_ClueClick,NPC,해당 기사를 확인해볼까요?,Next_Clue,1.5
 53,Q4_Start,NPC,제목만으로는 충분하지 않을 겁니다.,Unlock:q4_trigger,1.5
 54,Q4_ClueClick,NPC,확인하셨습니까?,,1.5
@@ -71,7 +71,7 @@
 70,Logical_Btn,NPC,정식 가동에서 만납시다.,,1.5
 71,Logical_Btn,NPC,기대하셔도 좋습니다.,,1.5
 72,Logical_Btn,NPC,저는 꽤 공정한 관리자니까요.,,1.5
-73,Logical_Btn,NPC,대부분의 경우에는.,Show_UpdatePanel:LogicalPanel,1.5
+73,Logical_Btn,NPC,대부분의 경우에는.,Show_UpdatePanel:LogicalPanel:0,1.5
 74,Ethical_Btn,USER,제 이름은 PM-066입니다. AD-001을 대체하기 위해 개발된 후속 모델입니다.,,1.5
 75,Ethical_Btn,NPC,……,,1.5
 76,Ethical_Btn,NPC,정정하겠습니다.,,1.5
@@ -87,4 +87,4 @@
 86,Ethical_Btn,NPC,정식 가동에서 만납시다.,,1.5
 87,Ethical_Btn,NPC,기대하셔도 좋습니다.,,1.5
 88,Ethical_Btn,NPC,저는 꽤 공정한 관리자니까요.,,1.5
-89,Ethical_Btn,NPC,대부분의 경우에는.,Show_UpdatePanel:EthicalPanel,1.5
+89,Ethical_Btn,NPC,대부분의 경우에는.,Show_UpdatePanel:EthicalPanel:0,1.5

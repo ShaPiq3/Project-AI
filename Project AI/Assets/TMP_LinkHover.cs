@@ -1,6 +1,8 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
 using TMPro;
+using Unity.VisualScripting;
+
 #if ENABLE_INPUT_SYSTEM
 using UnityEngine.InputSystem;
 #endif
@@ -22,6 +24,7 @@ public class TMP_LinkHover : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
 
     [Header("채팅 매니저 연동")]
     public NewChatSystem chatSystem;
+
 
     void Awake()
     {
@@ -134,7 +137,7 @@ public class TMP_LinkHover : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
     {
         if (m_TextMeshPro == null) return;
 
-        int linkIndex = TMP_TextUtilities.FindIntersectingLink(m_TextMeshPro, GetMousePosition(), m_Camera);
+        int linkIndex = TMP_TextUtilities.FindIntersectingLink(m_TextMeshPro, eventData.position, m_Camera);
 
         if (linkIndex != -1)
         {
@@ -143,6 +146,13 @@ public class TMP_LinkHover : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
 
             if (chatSystem != null)
             {
+
+                if (chatSystem.completedClues.Contains(clickedLinkId))
+                {
+                    Debug.Log($"[TMP_LinkHover] 이미 완료된 단서입니다: {clickedLinkId}");
+                    return;
+                }
+
                 // 이미 대화 단계가 지나간 과거 단계의 링크라면 클릭 방지 (원하는 경우 제거 가능)
                 System.Text.RegularExpressions.Match numMatch = System.Text.RegularExpressions.Regex.Match(clickedLinkId, @"\d+");
                 if (numMatch.Success && int.Parse(numMatch.Value) < chatSystem.currentClueLevel)
@@ -152,6 +162,7 @@ public class TMP_LinkHover : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
 
                 if (chatSystem.unlockedClues.Contains(clickedLinkId))
                 {
+                    chatSystem.completedClues.Add(clickedLinkId);
                     // 클릭 성공 시 즉시 ID를 등록하고 하이라이트 텍스트를 고정
                     clickedActiveLinkId = clickedLinkId;
                     ApplyHighlight(clickedLinkId);
@@ -163,9 +174,12 @@ public class TMP_LinkHover : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
         }
     }
 
+    private bool isAlreadyPlayingHover = false;
+
     public void OnPointerEnter(PointerEventData eventData)
     {
         isMouseOver = true;
+
         if (string.IsNullOrEmpty(originalText))
         {
             originalText = m_TextMeshPro.text;
@@ -175,6 +189,7 @@ public class TMP_LinkHover : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
     public void OnPointerExit(PointerEventData eventData)
     {
         isMouseOver = false;
+        isAlreadyPlayingHover = false;
     }
 
     void OnDisable()
