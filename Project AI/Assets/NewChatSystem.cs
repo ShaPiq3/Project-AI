@@ -592,6 +592,12 @@ public class NewChatSystem : MonoBehaviour
             });
         }
         if (targetHeaderButtonImage != null && unlockedSprite != null) targetHeaderButtonImage.sprite = unlockedSprite;
+
+        if (questButtonList.Count > 0 && questButtonList[0] != null)
+        {
+            questButtonList[0].gameObject.SetActive(false);
+            Debug.Log("[시스템] 헤더 버튼이 해금되어 Q_1 버튼을 숨겼습니다.");
+        }
     }
 
     private string DetermineNextContext(string currentContext)
