@@ -667,14 +667,26 @@ public class NewChatSystem : MonoBehaviour
             string[] fields = Regex.Split(lines[i], csvParserPattern);
             if (fields.Length < 6) continue;
 
+            if (!int.TryParse(fields[0].Trim(), out int parsedId))
+            {
+                Debug.LogWarning($"[경고] {i}번 줄의 ID('{fields[0]}')를 숫자로 변환할 수 없습니다.");
+                continue; // ID가 숫자가 아니면 이 줄은 건너뜁니다.
+            }
+
+            if (!float.TryParse(fields[5].Trim(), out float parsedDelay))
+            {
+                Debug.LogWarning($"[경고] {i}번 줄의 Delay('{fields[5]}')를 숫자로 변환할 수 없습니다. 0으로 설정합니다.");
+                parsedDelay = 0f; // 실패 시 기본값 0 사용
+            }
+
             ChatEntity entity = new ChatEntity
             {
-                id = int.Parse(fields[0]),
+                id = parsedId,
                 context = fields[1].Trim(),
                 sender = fields[2].Trim(),
                 message = fields[3].Trim().Replace("\"", ""), // 큰따옴표 제거
                 linkPanel = fields[4].Trim(),
-                delay = float.Parse(fields[5])
+                delay = parsedDelay
             };
             masterChatDataList.Add(entity);
         }
