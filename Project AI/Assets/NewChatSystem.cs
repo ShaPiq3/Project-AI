@@ -29,7 +29,7 @@ public class NewChatSystem : MonoBehaviour
     public AudioSource uiAudioSource;
     public AudioClip popupAppearSound;
     public AudioClip messageAppearSound;
-    public AudioClip buttonClickSound;    
+    public AudioClip buttonClickSound;
 
     [Header("이미지 교체 설정")]
     public Image targetButtonImage;
@@ -178,6 +178,13 @@ public class NewChatSystem : MonoBehaviour
             if (clickedClueNumber < currentClueLevel) return;
         }
 
+        if (linkId == "q1_trigger")
+        {
+            Debug.Log("[시스템] Q1 단서 트리거 클릭됨! Q1_ClueClick 대화 시작.");
+            PlayDialogueGroup("Q1_ClueClick"); // 바로 Q1 대화로 진입
+            return; // 아래의 기본 로직을 타지 않도록 종료
+        }
+
         if (linkId == "q2_trigger")
         {
             Debug.Log("[시스템] Q2 단서 트리거 클릭됨! Q2_ClueClick 대화 시작.");
@@ -197,6 +204,12 @@ public class NewChatSystem : MonoBehaviour
             Debug.Log("[시스템] Q4 단서 트리거 클릭됨! Q4_ClueClick 대화 시작.");
             PlayDialogueGroup("Q4_ClueClick"); // 바로 Q4 대화로 진입
             return; // 아래의 기본 로직을 타지 않도록 종료
+        }
+
+        if (completedClues.Contains(linkId))
+        {
+            Debug.Log($"[시스템] 이미 완료된 단서입니다: {linkId}");
+            return;
         }
 
         bool isClueUnlocked = unlockedClues.Contains(linkId);
@@ -334,19 +347,17 @@ public class NewChatSystem : MonoBehaviour
                 Debug.Log($"[디버그] 현재 처리 중인 메시지: {entity.message}, linkPanel 내용: {entity.linkPanel}");
                 // 세미콜론(;)을 기준으로 명령어들을 나눕니다.
                 string[] commands = entity.linkPanel.Split(';');
-                bool shouldExitRoutine = false;
+
 
                 foreach (string rawCommand in commands)
                 {
                     string command = rawCommand.Trim();
                     if (string.IsNullOrEmpty(command)) continue;
 
-
-                    if (command == "Next_Clue")
+                    else if (command == "Next_Clue")
                     {
                         string nextGroup = DetermineNextContext(entity.context);
                         PlayDialogueGroup(nextGroup);
-                        shouldExitRoutine = true;
                         break;
                     }
                     else if (command.StartsWith("Unlock:"))
@@ -385,6 +396,7 @@ public class NewChatSystem : MonoBehaviour
                         string[] tokens = command.Split(':');
                         StartCoroutine(ShowUpdatePanelDelayed(tokens.Length > 1 ? tokens[1].Trim() : "", tokens.Length > 2 ? float.Parse(tokens[2].Trim()) : 0f));
                     }
+
                     else if (command.StartsWith("Show_UpdatePanel:"))
                     {
                         // 예: "Show_UpdatePanel:EthicalPanel:0"
@@ -405,23 +417,19 @@ public class NewChatSystem : MonoBehaviour
                                 StartCoroutine(ShowUpdatePanelDelayed(panelName, 0f)); // 기본값 0으로 실행
                             }
                         }
+
                         else
                         {
                             Debug.LogError($"[오류] 명령어 형식이 잘못되었습니다: {command}");
                         }
                     }
                 }
-                if (shouldExitRoutine)
-                {
-                    FinishCurrentQuest();
-                    chatRoutineHandle = null;
-                    yield break; // GenerateChatRoutine 자체가 여기서 완전히 종료됨
-                }
             }
         }
-        FinishCurrentQuest();
         chatRoutineHandle = null;
     }
+
+
 
     private void FinishCurrentQuest()
     {
@@ -495,7 +503,7 @@ public class NewChatSystem : MonoBehaviour
                 if (!string.IsNullOrEmpty(targetPanelName))
 
                 {
-
+                    CloseAllMoveablePanels();
                     MoveToTargetPanel(targetPanelName);
 
                 }
@@ -505,6 +513,14 @@ public class NewChatSystem : MonoBehaviour
         }
     }
 
+    private void CloseAllMoveablePanels()
+    {
+        foreach (var mapping in moveablePanels)
+        {
+            if (mapping.panelObject != null) mapping.panelObject.SetActive(false);
+            // 필요하다면 parentPanel도 여기서 닫습니다.
+        }
+    }
     private void MoveToTargetPanel(string panelName)
 
     {
@@ -624,7 +640,7 @@ public class NewChatSystem : MonoBehaviour
             PlayPopupSound();
         }
     }
-  
+
 
     private void OnClickFinalChoice(string choiceType) { LockFinalSelectionPanel(); if (choiceType == "A") PlayDialogueGroup("Logical_Btn"); else PlayDialogueGroup("Ethical_Btn"); }
     private void LoadDataFromCSV()

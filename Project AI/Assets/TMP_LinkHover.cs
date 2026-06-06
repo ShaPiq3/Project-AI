@@ -2,7 +2,6 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using TMPro;
 using Unity.VisualScripting;
-
 #if ENABLE_INPUT_SYSTEM
 using UnityEngine.InputSystem;
 #endif
@@ -63,7 +62,7 @@ public class TMP_LinkHover : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
     {
         if (m_TextMeshPro == null || string.IsNullOrEmpty(originalText)) return;
 
-        // 💡 [핵심 추가] 고정된 단서가 있는데, 채팅 시스템의 ClueLevel이 증가했다면(다음 단서 대화가 떴다면) 고정을 해제하고 불을 끕니다.
+        // 💡 [단서 레벨 확인] 고정된 단서가 있는데, 채팅 시스템의 ClueLevel이 증가했다면 고정을 해제합니다.
         if (!string.IsNullOrEmpty(clickedActiveLinkId) && chatSystem != null)
         {
             System.Text.RegularExpressions.Match numMatch = System.Text.RegularExpressions.Regex.Match(clickedActiveLinkId, @"\d+");
@@ -73,9 +72,7 @@ public class TMP_LinkHover : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
                 // 만약 시스템의 현재 레벨이 이 링크의 레벨보다 높아졌다면 = 다음 단계로 넘어갔다는 뜻
                 if (linkClueNumber < chatSystem.currentClueLevel)
                 {
-                    clickedActiveLinkId = null;
-                    m_TextMeshPro.text = originalText;
-                    Debug.Log($"[TMP_LinkHover] 다음 단서 활성화 대화 감지: '{clickedActiveLinkId}' 하이라이트 자동 종료.");
+                    ClearHighlight(); // 텍스트 원상복구
                     return;
                 }
             }
@@ -91,18 +88,29 @@ public class TMP_LinkHover : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
         {
             string hoverLinkId = m_TextMeshPro.textInfo.linkInfo[linkIndex].GetLinkID();
 
-            // 해금된 단서 목록에 포함되어 있을 때만 작동
-            if (chatSystem != null && chatSystem.unlockedClues.Contains(hoverLinkId))
+            if (chatSystem != null)
             {
-                ApplyHighlight(hoverLinkId);
-                return;
+                // ✅ [핵심 추가] 이미 완료된 단서라면 호버 하이라이트를 적용하지 않습니다.
+                if (chatSystem.completedClues.Contains(hoverLinkId))
+                {
+                    // 완료된 단서 위에 있을 때는 텍스트를 원본으로 유지합니다.
+                    if (m_TextMeshPro.text != originalText) ClearHighlight();
+                    return; // 하이라이트 적용을 건너뜁니다.
+                }
+
+                // 해금된 단서 목록에 포함되어 있을 때만 하이라이트 작동
+                if (chatSystem.unlockedClues.Contains(hoverLinkId))
+                {
+                    ApplyHighlight(hoverLinkId);
+                    return;
+                }
             }
         }
 
-        // 3. 아무것도 해당하지 않으면 원본으로 복구
+        // 3. 아무것도 해당하지 않거나, 완료된 단서 위에 있거나, 해금되지 않은 단서라면 원본으로 복구
         if (m_TextMeshPro.text != originalText)
         {
-            m_TextMeshPro.text = originalText;
+            ClearHighlight();
         }
     }
 
@@ -120,6 +128,16 @@ public class TMP_LinkHover : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
             string replaceTarget = $"<link=\"{linkId}\"><mark={colorHex}>{linkText}</mark></link>";
 
             m_TextMeshPro.text = originalText.Replace(targetSource, replaceTarget);
+        }
+    }
+
+    // 💡 [추가] 하이라이트를 제거하고 텍스트를 원본으로 복구하는 함수
+    private void ClearHighlight()
+    {
+        clickedActiveLinkId = null;
+        if (m_TextMeshPro != null && !string.IsNullOrEmpty(originalText))
+        {
+            m_TextMeshPro.text = originalText;
         }
     }
 
@@ -146,14 +164,14 @@ public class TMP_LinkHover : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
 
             if (chatSystem != null)
             {
-
+                // [기존 코드 유지] 이미 완료된 단서는 클릭 방지
                 if (chatSystem.completedClues.Contains(clickedLinkId))
                 {
                     Debug.Log($"[TMP_LinkHover] 이미 완료된 단서입니다: {clickedLinkId}");
                     return;
                 }
 
-                // 이미 대화 단계가 지나간 과거 단계의 링크라면 클릭 방지 (원하는 경우 제거 가능)
+                // 이미 대화 단계가 지나간 과거 단계의 링크라면 클릭 방지
                 System.Text.RegularExpressions.Match numMatch = System.Text.RegularExpressions.Regex.Match(clickedLinkId, @"\d+");
                 if (numMatch.Success && int.Parse(numMatch.Value) < chatSystem.currentClueLevel)
                 {
@@ -162,10 +180,12 @@ public class TMP_LinkHover : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
 
                 if (chatSystem.unlockedClues.Contains(clickedLinkId))
                 {
-                    chatSystem.completedClues.Add(clickedLinkId);
                     // 클릭 성공 시 즉시 ID를 등록하고 하이라이트 텍스트를 고정
                     clickedActiveLinkId = clickedLinkId;
                     ApplyHighlight(clickedLinkId);
+
+                    // ✅ [수정] OnTextLinkClick을 호출하기 전에 리스트에 먼저 추가합니다.
+                    chatSystem.completedClues.Add(clickedLinkId);
 
                     chatSystem.OnTextLinkClick(clickedLinkId, "");
                     Debug.Log($"[TMP_LinkHover] 단서 클릭 성공, 다음 단계 대화 전까지 고정: {clickedLinkId}");
@@ -174,7 +194,7 @@ public class TMP_LinkHover : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
         }
     }
 
-    private bool isAlreadyPlayingHover = false;
+    // (isAlreadyPlayingHover 변수는 사용되지 않는 것으로 보여 삭제했습니다.)
 
     public void OnPointerEnter(PointerEventData eventData)
     {
@@ -189,13 +209,22 @@ public class TMP_LinkHover : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
     public void OnPointerExit(PointerEventData eventData)
     {
         isMouseOver = false;
-        isAlreadyPlayingHover = false;
+    }
+
+    // 💡 [주의] 이 함수는 컴포넌트를 비활성화합니다. 클릭까지 막고 싶을 때만 사용하세요.
+    public void ResetHoverEffect()
+    {
+        // 1. 하이라이트 제거 및 텍스트 원상복구
+        ClearHighlight();
+
+        // 2. 컴포넌트 자체를 비활성화하여 마우스 이벤트(클릭 등)를 완전히 차단
+        this.enabled = false;
+        Debug.Log($"[TMP_LinkHover] {gameObject.name}의 하이라이트가 초기화되고 클릭이 잠겼습니다.");
     }
 
     void OnDisable()
     {
-        clickedActiveLinkId = null;
-        if (m_TextMeshPro != null && !string.IsNullOrEmpty(originalText))
-            m_TextMeshPro.text = originalText;
+        // 비활성화될 때도 텍스트를 원상복구합니다.
+        ClearHighlight();
     }
 }

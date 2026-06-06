@@ -64,7 +64,7 @@
           "pauseEnabled": true,
           "effects": [
             {
-              "id": "fx_1779801437148_2d6af306c175f",
+              "id": "fx_1780458099775_ddb3cd46369648",
               "type": "image",
               "range": [
                 0,
@@ -78,9 +78,7 @@
                   "x": 0,
                   "y": 0
                 },
-                "layer": "bg",
-                "scale": 1,
-                "dim": 0
+                "layer": "bg"
               }
             }
           ],
@@ -97,7 +95,7 @@
           "pauseEnabled": true,
           "effects": [
             {
-              "id": "fx_1779801991350_28260b6d533cb8",
+              "id": "fx_1780458120315_e544889b202fd",
               "type": "image",
               "range": [
                 0,
@@ -111,9 +109,7 @@
                   "x": 0,
                   "y": 0
                 },
-                "layer": "bg",
-                "scale": 1,
-                "dim": 0
+                "layer": "bg"
               }
             }
           ],
@@ -130,7 +126,7 @@
           "pauseEnabled": true,
           "effects": [
             {
-              "id": "fx_1779801444036_4620161f48117",
+              "id": "fx_1780458121642_1ac0c9d6a0143",
               "type": "image",
               "range": [
                 0,
@@ -144,9 +140,7 @@
                   "x": 0,
                   "y": 0
                 },
-                "layer": "bg",
-                "scale": 1,
-                "dim": 0
+                "layer": "bg"
               }
             }
           ],
@@ -183,7 +177,7 @@
           "pauseEnabled": true,
           "effects": [
             {
-              "id": "fx_1779801507372_0617aff104b2e8",
+              "id": "fx_1780458125466_cb0010aaf8cc68",
               "type": "image",
               "range": [
                 0,
@@ -197,9 +191,7 @@
                   "x": 0,
                   "y": 0
                 },
-                "layer": "bg",
-                "scale": 1,
-                "dim": 0
+                "layer": "bg"
               }
             }
           ],
@@ -236,7 +228,7 @@
           "pauseEnabled": true,
           "effects": [
             {
-              "id": "fx_1779801533507_6ff5b6465b24a8",
+              "id": "fx_1780458128530_72b46d83165e08",
               "type": "image",
               "range": [
                 0,
@@ -250,9 +242,7 @@
                   "x": 0,
                   "y": 0
                 },
-                "layer": "bg",
-                "scale": 1,
-                "dim": 0
+                "layer": "bg"
               }
             }
           ],
@@ -289,7 +279,7 @@
           "pauseEnabled": true,
           "effects": [
             {
-              "id": "fx_1779801537393_edbe84f84544e8",
+              "id": "fx_1780458132827_cfdae7b024a1f",
               "type": "image",
               "range": [
                 0,
@@ -303,9 +293,7 @@
                   "x": 0,
                   "y": 0
                 },
-                "layer": "bg",
-                "scale": 1,
-                "dim": 0
+                "layer": "bg"
               }
             }
           ],
@@ -342,7 +330,7 @@
           "pauseEnabled": true,
           "effects": [
             {
-              "id": "fx_1779801541802_3457c75be56f58",
+              "id": "fx_1780458135536_969b194d5a2678",
               "type": "image",
               "range": [
                 0,
@@ -356,9 +344,7 @@
                   "x": 0,
                   "y": 0
                 },
-                "layer": "bg",
-                "scale": 1,
-                "dim": 0
+                "layer": "bg"
               }
             }
           ],
@@ -375,7 +361,7 @@
           "pauseEnabled": true,
           "effects": [
             {
-              "id": "fx_1779801547534_f68c2b60191478",
+              "id": "fx_1780458137329_73c2514a03781",
               "type": "image",
               "range": [
                 0,
@@ -389,9 +375,7 @@
                   "x": 0,
                   "y": 0
                 },
-                "layer": "bg",
-                "scale": 1,
-                "dim": 0
+                "layer": "bg"
               }
             }
           ],
