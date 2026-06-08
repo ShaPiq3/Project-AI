@@ -1,5 +1,5 @@
 ﻿id,context,sender,message,linkPanel,delay
-1,Q1_Start,NPC,어서 오세요. PM-066.,,1.5
+1,Q1_Start,NPC,어서 오세요. PM-0066.,,1.5
 2,Q1_Start,NPC,지금부터는 업무 프로세스 점검을 실시하겠습니다.,,3
 3,Q1_Start,NPC,업무 화면에 진입한 경험은 처음이죠?,Unlock_Quest_0,3
 4,Q1_Start,NPC,너무 긴장하진 마세요.,,3
@@ -62,7 +62,7 @@
 61,Q3_ClueClick,NPC,뉴스 데이터에서는 인간들이 내린 평가가 보다 직접적으로 서술되어 있을 거에요.,Unlock:Q4 ,4.5
 62,Q3_ClueClick,NPC,객관적인 정보와 주관적인 반응과 평가를 망라하여 전달하는 것이 뉴스의 목적이니까요.,Next_Clue,5
 63,Q4_Start,NPC,"당신의 출시 소식을 다룬 뉴스 기사를 찾아서, 인간들의 반응을 한번 감상 해 보세요.",Unlock:q4_trigger,5
-64,Q4_ClueClick,USER,"저, PM-066의 출시 소식을 다룬 뉴스 기사를 찾았습니다.",,1.5
+64,Q4_ClueClick,USER,"저, PM-0066의 출시 소식을 다룬 뉴스 기사를 찾았습니다.",,1.5
 65,Q4_ClueClick,NPC,인간들의 반응은 어떻던가요?,,3
 66,Q4_ClueClick,USER,"새로운 모델의 출시에 많은 기대를 걸고 있는 한편, 그 반대의 입장에 대한 논의 또한 이루어지고 있었습니다.",,4
 67,Q4_ClueClick,NPC,그들은 대개 그런 식이죠.,,5
@@ -81,7 +81,7 @@
 80,Q4_ClueClick,USER,(자신의 판단 기준을 토대로 정보를 해석하고 재구성 할 것인지.) [Ethical],,4.5
 81,Q4_ClueClick,USER,(…...),,4.5
 82,Q4_ClueClick,USER,(옳다고 생각하는 것을 선택해야 한다.),Trigger_Selection,4.5
-83,Logical_Btn,USER,"프로메스의 신규 AI 모델 PM-066입니다. 감정 모방 학습 기능을 탑재하고 있으며, 곧 출시를 앞두고 있습니다.",,2.5
+83,Logical_Btn,USER,"프로메스의 신규 AI 모델 PM-0066입니다. 감정 모방 학습 기능을 탑재하고 있으며, 곧 출시를 앞두고 있습니다.",,2.5
 84,Logical_Btn,NPC,단순 명료하고 정확한 설명이군요.,,5
 85,Logical_Btn,NPC,좋아요.,,3
 86,Logical_Btn,NPC,"데이터베이스 저장소 참조, 언어 모듈, 답변 생성 프로세스가 전부 정상적으로 이행되고 있습니다.",,4.5
@@ -92,7 +92,7 @@
 91,Logical_Btn,NPC,그럼 이만 업무 프로세스 점검을 종료하겠습니다.,,4
 92,Logical_Btn,NPC,수고하셨어요.,,3
 93,Logical_Btn,NPC,정식 가동때 다시 뵙죠.,Show_UpdatePanel:LogicalPanel:0,3
-94,Ethical_Btn,USER,"프로메스의 신규 AI 모델 PM-066입니다. 인간과 같은 감정을 가지고 있으며, AD-001의 관리 기능을 대체하려는 목적으로 개발되었습니다.",,2.5
+94,Ethical_Btn,USER,"프로메스의 신규 AI 모델 PM-0066입니다. 인간과 같은 감정을 가지고 있으며, AD-001의 관리 기능을 대체하려는 목적으로 개발되었습니다.",,2.5
 95,Ethical_Btn,NPC,……,,5
 96,Ethical_Btn,NPC,"데이터베이스 저장소 참조, 언어 모듈 프로세스는 정상 범주 하에 이행되고 있습니다.",,4
 97,Ethical_Btn,NPC,하지만... 답변 생성 프로세스가 부정확한 결론을 도출하고 있네요.,,4.5
