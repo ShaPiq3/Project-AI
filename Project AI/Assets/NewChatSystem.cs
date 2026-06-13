@@ -4,9 +4,11 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using DG.Tweening;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
-using DG.Tweening;
 
 
 public class NewChatSystem : MonoBehaviour
@@ -102,6 +104,39 @@ public class NewChatSystem : MonoBehaviour
     {
         RegisterSoundToAllButtons();
         StartCoroutine(AppearFirstQuestButtonAfter5Seconds());
+    }
+
+    private bool isSkipping = false;
+    private void Update()
+    {
+        if (popupChatPanel.activeSelf && popupChatPanel != null)
+        {
+            if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame) {
+                if (IsPointerOverUI(chatContent.gameObject))
+                {
+                    isSkipping = true;
+                }
+            }
+        }
+    }
+
+    private bool IsPointerOverUI(GameObject targetObject)
+    {
+        PointerEventData eventData = new PointerEventData(EventSystem.current);
+        eventData.position = Mouse.current.position.ReadValue();
+
+        var results = new System.Collections.Generic.List<RaycastResult>();
+        EventSystem.current.RaycastAll(eventData, results);
+
+        foreach (var result in results)
+        {
+            // 클릭한 UI 객체가 chatContent이거나, chatContent의 자식(말풍선들)인지 확인
+            if (result.gameObject.transform.IsChildOf(targetObject.transform) || result.gameObject == targetObject)
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     public void RegisterSoundToAllButtons()
@@ -322,8 +357,35 @@ public class NewChatSystem : MonoBehaviour
         {
             var entity = currentDialogueQueue.Dequeue();
 
+            GameObject typingIndicator = null;
+
+            if (entity.delay > 1.5f)
+            {
+                typingIndicator = Instantiate(npcMessagePrefab, chatContent);
+                var textComp = typingIndicator.GetComponentInChildren<TextMeshProUGUI>();
+                if (textComp != null) textComp.text = "...";
+                Canvas.ForceUpdateCanvases();
+            }
+
             // 딜레이 안전 처리
-            if (entity.delay > 0) yield return new WaitForSeconds(entity.delay);
+            if (entity.delay > 0) {
+                float elapsed = 0f;
+                while (elapsed < entity.delay && !isSkipping)
+                {
+
+                    elapsed += Time.deltaTime;
+                    yield return null;
+                }
+            }
+
+            if (typingIndicator != null)
+            {
+                Destroy(typingIndicator);
+                typingIndicator = null; // 초기화
+            }
+
+            isSkipping = false;
+
 
             GameObject prefab = (entity.sender == "USER" || entity.sender.Contains("USER")) ? userMessagePrefab : npcMessagePrefab;
 
@@ -427,7 +489,7 @@ public class NewChatSystem : MonoBehaviour
             }
         }
         chatRoutineHandle = null;
-    }
+    } 
 
 
 
@@ -658,6 +720,7 @@ public class NewChatSystem : MonoBehaviour
         string[] lines = csvData.text.Split(new[] { "\r\n", "\r", "\n" }, System.StringSplitOptions.None);
         masterChatDataList.Clear();
 
+
         // 2. 첫 줄(헤더)을 건너뛰고 1부터 시작
         for (int i = 1; i < lines.Length; i++)
         {
@@ -666,6 +729,8 @@ public class NewChatSystem : MonoBehaviour
             // 정규식으로 콤마 분리 (큰따옴표 안의 콤마 무시)
             string[] fields = Regex.Split(lines[i], csvParserPattern);
             if (fields.Length < 6) continue;
+
+
 
             if (!int.TryParse(fields[0].Trim(), out int parsedId))
             {
@@ -679,12 +744,15 @@ public class NewChatSystem : MonoBehaviour
                 parsedDelay = 0f; // 실패 시 기본값 0 사용
             }
 
+            string rawMessage = fields[3].Trim().Replace("\"", "");
+            rawMessage = rawMessage.Replace("[br]", "\n");
+
             ChatEntity entity = new ChatEntity
             {
                 id = parsedId,
                 context = fields[1].Trim(),
                 sender = fields[2].Trim(),
-                message = fields[3].Trim().Replace("\"", ""), // 큰따옴표 제거
+                message = rawMessage,
                 linkPanel = fields[4].Trim(),
                 delay = parsedDelay
             };
