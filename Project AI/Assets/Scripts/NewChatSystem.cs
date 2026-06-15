@@ -9,6 +9,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
+using static PopupChatData;
 
 
 public class NewChatSystem : MonoBehaviour
@@ -17,7 +18,7 @@ public class NewChatSystem : MonoBehaviour
     public HashSet<string> completedClues = new HashSet<string>();
 
     [System.Serializable]
-    public class ChatEntity { public int id; public string context; public string sender; public string message; public string linkPanel; public float delay; }
+    public class ChatEntity { public int id; public string context; public string sender; public string message; public string linkPanel; public float delay; public string imagePath; }
     [System.Serializable]
     public class PanelMapping { public string panelName; public GameObject parentPanel; public GameObject panelObject; public GameObject entryButton; }
 
@@ -398,9 +399,29 @@ public class NewChatSystem : MonoBehaviour
 
             GameObject prefab = (entity.sender == "USER" || entity.sender.Contains("USER")) ? userMessagePrefab : npcMessagePrefab;
 
+            GameObject spawned = Instantiate(prefab, chatContent);
+
+            if (spawned != null)
+            {
+                var imageComp = spawned.transform.Find("ContentImage")?.GetComponent<Image>();
+                if (imageComp != null)
+                {
+                    if (entity.imagePath != "None" && !string.IsNullOrEmpty(entity.imagePath))
+                    {
+                        Sprite loadedSprite = Resources.Load<Sprite>(entity.imagePath);
+                        if (loadedSprite != null)
+                        {
+                            imageComp.sprite = loadedSprite;
+                            imageComp.gameObject.SetActive(true);
+                        }
+                        else { imageComp.gameObject.SetActive(false); }
+                    }
+                    else { imageComp.gameObject.SetActive(false); }
+                }
+            }
+
             if (prefab != null && chatContent != null)
             {
-                GameObject spawned = Instantiate(prefab, chatContent);
                 if (uiAudioSource != null && messageAppearSound != null)
                 {
                     uiAudioSource.PlayOneShot(messageAppearSound);
@@ -758,6 +779,7 @@ public class NewChatSystem : MonoBehaviour
         // 1. CSV 파일을 TextAsset으로 로드 (Assets/Resources 폴더에 있어야 합니다)
         // 파일 확장자(.csv)는 빼고 파일명만 넣으세요.
         TextAsset csvData = Resources.Load<TextAsset>("PopupChatData");
+  
 
         if (csvData == null)
         {
@@ -802,7 +824,8 @@ public class NewChatSystem : MonoBehaviour
                 sender = fields[2].Trim(),
                 message = rawMessage,
                 linkPanel = fields[4].Trim(),
-                delay = parsedDelay
+                delay = parsedDelay,
+                imagePath = (fields.Length > 6) ? fields[6].Trim() : "None"
             };
             masterChatDataList.Add(entity);
         }
