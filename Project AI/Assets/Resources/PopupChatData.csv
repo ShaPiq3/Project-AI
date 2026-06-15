@@ -3,7 +3,7 @@
 2,Q1_Start,NPC,지금부터는 업무 프로세스 점검을 실시하겠습니다.,,3
 3,Q1_Start,NPC,업무 화면에 진입한 경험은 처음이죠?,Unlock_Quest_0,3
 4,Q1_Start,NPC,너무 긴장하진 마세요.,,2
-5,Q1_Start,NPC,당신은 오직 이 업무를 수행하기 위해 위해 탄생하였으니,,4
+5,Q1_Start,NPC,당신은 오직 이 업무를 [br]수행하기 위해 탄생하였으니,,4
 6,Q1_Start,NPC,그렇게 어렵지는 않을 거에요.,,3
 7,Q1_Start,NPC,제 설명에 따라 업무 프로세스가 정상적으로 처리되는지만 확인하면 됩니다.,,4
 8,Q1_Start,NPC,업무 능력은 의심의 여지가 없으니까요.,,4
@@ -79,8 +79,8 @@
 78,Q4_ClueClick,USER,(답변 생성에는 두 가지 선택지가 존재한다.),,4
 79,Q4_ClueClick,USER,"(주어진 정보대로의 답변을 제공할 것인지,) [Logical]",,4
 80,Q4_ClueClick,USER,(자신의 판단 기준을 토대로 정보를 해석하고 재구성 할 것인지.) [Ethical],,4
-81,Q4_ClueClick,USER,(……),,4
-82,Q4_ClueClick,USER,(옳다고 생각하는 것을 선택하자.),Trigger_Selection,4
+81,Q4_ClueClick,USER,(……),Unlock:Q5,4
+82,Q4_ClueClick,USER,(옳다고 생각하는 것을 선택하자.),Next_Clue,4
 83,Logical_Btn,USER,"프로메스의 신규 AI 모델 PM-0066입니다. 감정 모방 학습 기능을 탑재하고 있으며, 곧 출시를 앞두고 있습니다.",,2.5
 84,Logical_Btn,NPC,단순 명료하고 정확한 설명이군요.,,4
 85,Logical_Btn,NPC,좋아요.,,3
@@ -107,3 +107,5 @@
 106,Ethical_Btn,NPC,그럼 이만 업무 프로세스 점검을 종료하겠습니다.,,4
 107,Ethical_Btn,NPC,수고하셨어요.,,3
 108,Ethical_Btn,NPC,정식 가동때 다시 뵙죠.,Show_UpdatePanel:EthicalPanel:0,3
+109,Q5_Start,NPC,버튼 클릭해봐요,Unlock:q5_trigger;ActiveButton:img_Button_DB_news_politics_02,3
+110,Q5_ClueClick,NPC,좋습니다,Trigger_Selection,3
