@@ -2729,7 +2729,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &192565901
 RectTransform:
   m_ObjectHideFlags: 0
@@ -6024,7 +6024,7 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-      - m_Target: {fileID: 0}
+      - m_Target: {fileID: 760936699}
         m_TargetAssemblyTypeName: UnityEngine.GameObject, UnityEngine
         m_MethodName: SetActive
         m_Mode: 6
@@ -8584,6 +8584,11 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 750093819}
   m_CullTransparentMesh: 1
+--- !u!1 &760936699 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6023176375756764307, guid: 41c3767a446d9d94dbb63d7d4493cb91, type: 3}
+  m_PrefabInstance: {fileID: 216284839}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &768737716
 GameObject:
   m_ObjectHideFlags: 0
@@ -11001,11 +11006,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-<<<<<<< HEAD
-  m_text: "\r\n<size=35><b>1. \uAC1C\uC694</b></size>\r\n<size=14><color=#000000>--------------------------------------------------------------------------------------------------</color></size>\n<link=\"q1_trigger\"><AD-001\uC740
-=======
   m_text: "\r\n<size=30><b>1. \uAC1C\uC694</b></size>\r\n<size=14><color=#000000>--------------------------------------------------------------------------------------------------</color></size>\r\n<link=\"q1_trigger\">AD-001\uC740
->>>>>>> d7bc1705894b1c9a1444e56880d9e943865294a0
     \uD504\uB85C\uBA54\uC2A4\uAC00 2023\uB144 \uACF5\uAC1C\uD55C \uAD00\uB9AC\uC790\uD615
     \uC778\uACF5\uC9C0\uB2A5\uC774\uB2E4.</link>\r\n\uD504\uB85C\uBA54\uC2A4 \uACC4\uC5F4
     AI \uC2DC\uC2A4\uD15C\uC758 \uC694\uCCAD \uCC98\uB9AC, \uAD8C\uD55C \uAC80\uD1A0,

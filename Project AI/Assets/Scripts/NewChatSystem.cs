@@ -417,9 +417,12 @@ public class NewChatSystem : MonoBehaviour
             if (!isSkipping && entity.delay > 0.5f)
             {
                 typingIndicator = Instantiate(npcMessagePrefab, chatContent);
-               // var textComp = typingIndicator.GetComponentInChildren<TextMeshProUGUI>();
-               // if (textComp != null) textComp.text = "...";
+                var textComp = typingIndicator.GetComponentInChildren<TextMeshProUGUI>();
+                if (textComp != null) textComp.text = "...";
                 Canvas.ForceUpdateCanvases();
+
+                ScrollRect scroll = chatContent.parent.parent.GetComponent<ScrollRect>();
+                scroll.verticalNormalizedPosition = 0f;
 
                 float minTypingTime = 2.0f;
                 float waitTime = Mathf.Max(minTypingTime, entity.delay);
