@@ -31,6 +31,9 @@ public class MessageClickable : MonoBehaviour
         }
     }
 
+
+
+
     private void OnDestroy()
     {
         // 오브젝트 파괴 시 리스너 제거

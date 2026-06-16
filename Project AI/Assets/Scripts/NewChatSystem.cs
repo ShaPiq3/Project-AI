@@ -18,7 +18,7 @@ public class NewChatSystem : MonoBehaviour
     public HashSet<string> completedClues = new HashSet<string>();
 
     [System.Serializable]
-    public class ChatEntity { public int id; public string context; public string sender; public string message; public string linkPanel; public float delay; public string imagePath; }
+    public class ChatEntity { public int id; public string context; public string sender; public string message; public string linkPanel; public float delay; public string imagePath; public string triggerAction; }
     [System.Serializable]
     public class PanelMapping { public string panelName; public GameObject parentPanel; public GameObject panelObject; public GameObject entryButton; }
 
@@ -54,7 +54,12 @@ public class NewChatSystem : MonoBehaviour
     public GameObject updateNotificationPanel;
     public Button updatePanelButton;
 
+    [Header("미니게임 버튼")]
+    public Button ImageButton;
+    public Image ImageButtonImage;
 
+    public Sprite CloseSprite;
+    public Sprite OpenSprite;
 
 
     [Header("패널 및 퀘스트 설정")]
@@ -76,6 +81,7 @@ public class NewChatSystem : MonoBehaviour
     private readonly string csvParserPattern = @",(?=(?:[^""]*""[^""]*"")*[^""]*$)";
     private HashSet<string> startedQuestContexts = new HashSet<string>();
     public GameObject Setting_Panel;
+    public GameObject imageGame;
 
     public void OpenSettingsPanel()
     {
@@ -86,26 +92,20 @@ public class NewChatSystem : MonoBehaviour
 
     public void OpenTargetPanel(string panelName)
     {
-        Debug.Log($"[시스템] {panelName} 패널을 엽니다.");
-        CloseAllMoveablePanels();
         MoveToTargetPanel(panelName);
-
-        if (currentActivePrefab != null)
-        {
-            Debug.Log($"[디버그] 프리팹 상태: 활성화={currentActivePrefab.activeSelf}, 위치={currentActivePrefab.transform.position}");
-        }
-        else
-        {
-            Debug.Log("[디버그] currentActivePrefab이 null입니다!");
-        }
-
     }
 
-   
 
+
+    public void CloseImageButton()
+    {
+        ImageButton.interactable = false;   // 클릭 불가
+        ImageButtonImage.sprite = CloseSprite;
+    }
 
     private void Awake()
     {
+        CloseImageButton();
         LoadDataFromCSV();
         InitDialogueDictionary();
         InitPanelDictionary();
@@ -124,8 +124,23 @@ public class NewChatSystem : MonoBehaviour
 
     private void Start()
     {
+        ImageButton.onClick.AddListener(OpenImagePanel);
         RegisterSoundToAllButtons();
         StartCoroutine(AppearFirstQuestButtonAfter5Seconds());
+    }
+
+    private void OpenImageButton()
+    {
+        ImageButton.interactable = true;
+        ImageButtonImage.sprite = OpenSprite;
+
+        Debug.Log("[시스템] ImageButton 해금");
+    }
+    private void OpenImagePanel()
+    {
+        Debug.Log("이미지 게임 열기");
+
+        MoveToTargetPanel("imageGame_Panel");
     }
 
     private bool isSkipping = false;
@@ -236,21 +251,20 @@ public class NewChatSystem : MonoBehaviour
             if (clickedClueNumber < currentClueLevel) return;
         }
 
-        if (linkId == "image")
+        if (linkId == "ImageButton")
         {
-            Debug.Log($"[시스템] 이미지 패널 호출 시도: imageGame");
-
-            // 중요: 이전 코루틴이 있다면 전부 멈추고 새로 시작하여 꼬임 방지
-            StopAllCoroutines();
-            StartCoroutine(ShowUpdatePanelDelayed("imageGame", "imageGame", 0f));
+            Debug.Log("이미지게임 버튼 활성화");
+            OpenImageButton();
             return;
         }
 
         if (linkId == "q1_trigger")
         {
-            Debug.Log("[시스템] Q1 단서 트리거 클릭됨! Q1_ClueClick 대화 시작.");
-            PlayDialogueGroup("Q1_ClueClick"); // 바로 Q1 대화로 진입
-            return; // 아래의 기본 로직을 타지 않도록 종료
+            Debug.Log("[시스템] Q2 단서 트리거 클릭됨! Q1_ClueClick 대화 시작.");
+            PlayDialogueGroup("Q1_ClueClick");
+            OpenImageButton();
+
+            return;
         }
 
         if (linkId == "q2_trigger")
@@ -403,8 +417,8 @@ public class NewChatSystem : MonoBehaviour
             if (!isSkipping && entity.delay > 0.5f)
             {
                 typingIndicator = Instantiate(npcMessagePrefab, chatContent);
-                var textComp = typingIndicator.GetComponentInChildren<TextMeshProUGUI>();
-                if (textComp != null) textComp.text = "...";
+               // var textComp = typingIndicator.GetComponentInChildren<TextMeshProUGUI>();
+               // if (textComp != null) textComp.text = "...";
                 Canvas.ForceUpdateCanvases();
 
                 float minTypingTime = 2.0f;
@@ -451,6 +465,12 @@ public class NewChatSystem : MonoBehaviour
                     }
                     else { imageComp.gameObject.SetActive(false); }
                 }
+            }
+
+
+            if (!string.IsNullOrEmpty(entity.triggerAction))
+            {
+                HandleTriggerAction(entity.triggerAction);
             }
 
             if (prefab != null && chatContent != null)
@@ -511,6 +531,12 @@ public class NewChatSystem : MonoBehaviour
                                 targetButtonImage.sprite = replacedSprite;
                         }
                     }
+
+                    else if (command == "OpenImageButton")
+                    {
+                        OpenImageButton();
+                    }
+
                     else if (command.StartsWith("Unlock_Quest_"))
                     {
                         string questIndexStr = command.Replace("Unlock_Quest_", "").Trim();
@@ -620,6 +646,18 @@ public class NewChatSystem : MonoBehaviour
             currentPlayingQuestIndex = -1;
         }
     }
+
+    private void HandleTriggerAction(string action)
+    {
+        if (action == "ImageGame")
+        {
+            Debug.Log("[트리거] ImageGame 오픈");
+
+            OpenTargetPanel("ImageGame");
+        }
+    }
+
+
     private IEnumerator ShowUpdatePanelDelayed(string targetPanelName, string prefabName, float delaySeconds)
     {
         if (chatRoutineHandle != null) isDialoguePaused = true;
@@ -671,7 +709,10 @@ public class NewChatSystem : MonoBehaviour
             // [수정 핵심] 부모 결정 로직: 
             // 1순위: targetPanelName 오브젝트, 2순위: 캔버스
             GameObject parentPanel = GameObject.Find(targetPanelName);
-            Transform targetParent = parentPanel != null ? parentPanel.transform : FindObjectOfType<Canvas>()?.transform;
+            var mapping = panelDic.ContainsKey(targetPanelName) ? panelDic[targetPanelName] : null;
+            Transform targetParent = (mapping != null && mapping.panelObject != null) ? mapping.panelObject.transform : FindObjectOfType<Canvas>()?.transform;
+                         
+                         
 
             if (targetParent != null)
             {
@@ -897,7 +938,9 @@ public class NewChatSystem : MonoBehaviour
                 message = rawMessage,
                 linkPanel = fields[4].Trim(),
                 delay = parsedDelay,
-                imagePath = (fields.Length > 6) ? fields[6].Trim() : "None"
+                imagePath = (fields.Length > 6) ? fields[6].Trim() : "None",
+                triggerAction = (fields.Length > 7) ? fields[7].Trim() : ""
+
             };
             masterChatDataList.Add(entity);
         }

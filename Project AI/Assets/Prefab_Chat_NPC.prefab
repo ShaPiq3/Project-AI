@@ -269,6 +269,7 @@ GameObject:
   - component: {fileID: 6730549290576481410}
   - component: {fileID: 3301319936345611636}
   - component: {fileID: 7886239388774916604}
+  - component: {fileID: 2615837255461003089}
   m_Layer: 5
   m_Name: Prefab_Chat_NPC
   m_TagString: Untagged
@@ -407,3 +408,15 @@ MonoBehaviour:
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
+--- !u!114 &2615837255461003089
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6138868566297087025}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: be71ea8a6b211cb418e10fafe94b68ee, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TMPLinkHandler
