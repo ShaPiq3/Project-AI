@@ -1,2 +1,3 @@
-﻿StageID,img0,IsCorrect0,img1,IsCorrect1,img2,IsCorrect2,img3,IsCorrect3,img4,IsCorrect4,img5,IsCorrect5,img6,IsCorrect6,img7,IsCorrect7,img8,IsCorrect8,img9,IsCorrect9,img10,IsCorrect10,img11,IsCorrect11
-imageGame_01,IG_S_00,TRUE,IG_S_01,TRUE,IG_S_02,TRUE,IG_S_03,FALSE,IG_S_04,FALSE,IG_S_05,FALSE,IG_S_06,FALSE,IG_S_07,FALSE,IG_S_08,FALSE,IG_S_09,FALSE,IG_S_10,FALSE,IG_S_11,FALSE
+﻿StageID,img0,IsCorrect0,img1,IsCorrect1,img2,IsCorrect2,img3,IsCorrect3,img4,IsCorrect4,img5,IsCorrect5,img6,IsCorrect6,img7,IsCorrect7,img8,IsCorrect8,img9,IsCorrect9,img10,IsCorrect10,img11,IsCorrect11,SuccessImage,Failimage
+IG_01,img_IG_01_00,TRUE,img_IG_01_01,FALSE,img_IG_01_02,FALSE,img_IG_01_03,FALSE,img_IG_01_04,FALSE,img_IG_01_05,FALSE,img_IG_01_06,FALSE,img_IG_01_07,TRUE,img_IG_01_08,FALSE,img_IG_01_09,FALSE,img_IG_01_10,FALSE,img_IG_01_11,TRUE,img_IG_01_S,img_IG_01_F
+IG_02,img_IG_02_00,FALSE,img_IG_02_01,FALSE,img_IG_02_02,TRUE,img_IG_02_03,FALSE,img_IG_02_04,TRUE,img_IG_02_05,FALSE,img_IG_02_06,FALSE,img_IG_02_07,FALSE,img_IG_02_08,FALSE,img_IG_02_09,TRUE,img_IG_02_10,FALSE,img_IG_02_11,FALSE,img_IG_02_S,img_IG_02_F

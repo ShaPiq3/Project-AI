@@ -15,8 +15,9 @@ public class QuizManager : MonoBehaviour
 
     private List<QuizButton> quizButtons = new List<QuizButton>();
     private int maxSelectCount = 0;
+    private string currentStageID = "";
 
-    private Action<float> onQuizCompleteCallback;
+    private Action<bool, Sprite> onQuizCompleteCallback;
 
     private struct ButtonData
     {
@@ -29,6 +30,8 @@ public class QuizManager : MonoBehaviour
         public string stageID;
         public int correctCount;
         public List<ButtonData> buttons;
+        public string successImageName;
+        public string failImageName;
     }
 
     private Dictionary<string, StageData> stageDatabase = new Dictionary<string, StageData>();
@@ -41,18 +44,12 @@ public class QuizManager : MonoBehaviour
         }
         else
         {
+            Debug.LogWarning($"[중복 매니저 감지] 이미 다른 QuizManager 인스턴스가 존재하여 현재 오브젝트({gameObject.name})를 파괴합니다.");
             Destroy(gameObject);
             return;
         }
 
-        foreach (Transform child in imageGrid)
-        {
-            QuizButton qBtn = child.GetComponent<QuizButton>();
-            if (qBtn != null)
-            {
-                quizButtons.Add(qBtn);
-            }
-        }
+        RefreshButtons();
     }
 
     private void Start()
@@ -61,8 +58,25 @@ public class QuizManager : MonoBehaviour
         if (submitBtn != null) submitBtn.onClick.AddListener(SubmitAnswers);
 
         LoadCsvData();
-        if (mainPanel != null) mainPanel.SetActive(false);
-        
+
+        if (string.IsNullOrEmpty(currentStageID))
+        {
+            if (mainPanel != null) mainPanel.SetActive(false);
+        }
+    }
+
+    private void RefreshButtons()
+    {
+        if (imageGrid != null)
+        {
+            quizButtons.Clear();
+            quizButtons.AddRange(imageGrid.GetComponentsInChildren<QuizButton>(true));
+            Debug.Log($"[시스템 체크] imageGrid 하위에서 총 {quizButtons.Count}개의 QuizButton을 완벽히 수집했습니다.");
+        }
+        else
+        {
+            Debug.LogError("[시스템 에러] QuizManager 인스펙터에 Image Grid가 연결되어 있지 않습니다!");
+        }
     }
 
     private void LoadCsvData()
@@ -81,7 +95,7 @@ public class QuizManager : MonoBehaviour
             string line = lines[i];
             string[] parts = line.Split(',');
 
-            if (parts.Length < 25) continue;
+            if (parts.Length < 27) continue;
 
             string stageID = parts[0].Trim();
             List<ButtonData> btnList = new List<ButtonData>();
@@ -102,11 +116,16 @@ public class QuizManager : MonoBehaviour
                 btnList.Add(new ButtonData { imageName = imgName, isCorrect = isCorrect });
             }
 
+            string successImg = parts[25].Trim();
+            string failImg = parts[26].Trim();
+
             StageData data = new StageData
             {
                 stageID = stageID,
                 correctCount = trueCount,
-                buttons = btnList
+                buttons = btnList,
+                successImageName = successImg,
+                failImageName = failImg
             };
 
             stageDatabase[stageID] = data;
@@ -114,8 +133,10 @@ public class QuizManager : MonoBehaviour
         Debug.Log($"엑셀 데이터베이스 빌드 완료: 총 {stageDatabase.Count}개의 스테이지 ID 등록됨.");
     }
 
-    public void PlayStage(string stageID, Action<float> onComplete)
+    public void PlayStage(string stageID, Action<bool, Sprite> onComplete)
     {
+        if (stageDatabase.Count == 0) LoadCsvData();
+
         if (!stageDatabase.ContainsKey(stageID))
         {
             Debug.LogError($"스테이지 ID [{stageID}] 데이터가 엑셀 데이터베이스에 없습니다!");
@@ -123,8 +144,15 @@ public class QuizManager : MonoBehaviour
         }
 
         onQuizCompleteCallback = onComplete;
+        currentStageID = stageID;
+
         StageData data = stageDatabase[stageID];
         maxSelectCount = data.correctCount;
+
+        if (quizButtons == null || quizButtons.Count == 0)
+        {
+            RefreshButtons();
+        }
 
         List<ButtonSetupData> setupDataList = new List<ButtonSetupData>();
 
@@ -136,7 +164,14 @@ public class QuizManager : MonoBehaviour
             if (!string.IsNullOrEmpty(btnData.imageName))
             {
                 string path = "StageImages/" + btnData.imageName;
+
+                Debug.Log($"[경로 체크] 버튼 {i}번에 로드하려는 이미지 경로: '{path}'");
                 loadedSprite = Resources.Load<Sprite>(path);
+
+                if (loadedSprite == null)
+                {
+                    Debug.LogError($"[로드 실패] '{path}' 경로에서 이미지를 찾지 못했습니다. Resources 폴더 구조나 파일명을 대조하세요.");
+                }
             }
 
             setupDataList.Add(new ButtonSetupData(i, loadedSprite, btnData.isCorrect));
@@ -151,10 +186,8 @@ public class QuizManager : MonoBehaviour
 
         if (mainPanel != null) mainPanel.SetActive(true);
 
-        // [추가] 새 스테이지 시작 시에는 아무것도 안 골라진 상태이므로 제출 버튼 비활성화
         UpdateSubmitButtonState();
-
-        Debug.Log($"[{stageID} 시작] 목표 정답 수: {maxSelectCount}개");
+        Debug.Log($"[{stageID} 미니게임 기동] 목표 정답 수: {maxSelectCount}개, 가동된 버튼 개수: {quizButtons.Count}개");
     }
 
     private void ShuffleList<T>(List<T> list)
@@ -175,7 +208,6 @@ public class QuizManager : MonoBehaviour
         return GetSelectedCount() < maxSelectCount;
     }
 
-    // ★ [추가] 현재 플레이어가 몇 개나 선택했는지 세어주는 함수
     private int GetSelectedCount()
     {
         int count = 0;
@@ -186,12 +218,10 @@ public class QuizManager : MonoBehaviour
         return count;
     }
 
-    // ★ [추가] QuizButton에서 토글될 때마다 호출되어 제출 버튼 락을 풀거나 잠그는 함수
     public void UpdateSubmitButtonState()
     {
         if (submitBtn != null)
         {
-            // 현재 고른 개수가 목표 정답 개수와 정확히 일치할 때만 interactable을 true로 바꿈
             submitBtn.interactable = (GetSelectedCount() == maxSelectCount);
         }
     }
@@ -202,14 +232,12 @@ public class QuizManager : MonoBehaviour
         {
             btn.SetSelection(false);
         }
-        // 초기화했으니 다시 제출 버튼 잠금
         UpdateSubmitButtonState();
         Debug.Log("모든 선택이 초기화되었습니다.");
     }
 
     public void SubmitAnswers()
     {
-        // 만약 비정상적인 방법으로 클릭되었다면 차단
         if (GetSelectedCount() != maxSelectCount) return;
 
         int totalCorrectCount = maxSelectCount;
@@ -223,23 +251,39 @@ public class QuizManager : MonoBehaviour
             }
         }
 
-        string finalResult = "오답";
+        bool isSuccess = (selectedCorrectCount == totalCorrectCount);
+        string finalResult = isSuccess ? "정답" : "오답";
 
-        if (selectedCorrectCount == totalCorrectCount)
+        Debug.Log($"[최종 판정 결과] : {finalResult}");
+
+        Sprite resultSprite = null;
+
+        if (stageDatabase.ContainsKey(currentStageID))
         {
-            finalResult = "정답";
+            StageData data = stageDatabase[currentStageID];
+            string targetImgName = isSuccess ? data.successImageName : data.failImageName;
+            resultSprite = Resources.Load<Sprite>("StageImages/" + targetImgName);
         }
 
-        Debug.Log($"[제출 확인] 맞춘 정답 개수: {selectedCorrectCount} / {totalCorrectCount}");
-        Debug.Log($"<b><color=lime>[최종 판정 결과] : {finalResult}</color></b>");
-
+        // 1. 시각적으로 패널을 즉시 끕니다.
         if (mainPanel != null) mainPanel.SetActive(false);
 
+        // 2. 외부 시스템에 결과를 전달합니다.
         if (onQuizCompleteCallback != null)
         {
-            float floatResult = (finalResult == "정답") ? 1f : 0f;
-            onQuizCompleteCallback.Invoke(floatResult);
+            onQuizCompleteCallback.Invoke(isSuccess, resultSprite);
         }
+
+        Debug.Log($"[{currentStageID}] 미니게임 제출 완료 및 창 완전히 닫음.");
+
+        // ★ [종료 로직 수정] UI 캔버스를 제외한 프리팹 최상위 부모 오브젝트를 추적하여 통째로 삭제합니다.
+        Transform topmostParent = transform;
+        while (topmostParent.parent != null && topmostParent.parent.GetComponent<Canvas>() == null)
+        {
+            topmostParent = topmostParent.parent;
+        }
+
+        Destroy(topmostParent.gameObject);
     }
 
     private struct ButtonSetupData
