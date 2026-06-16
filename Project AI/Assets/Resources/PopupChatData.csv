@@ -7,7 +7,7 @@
 6,Q1_Start,NPC,그렇게 어렵지는 않을 거에요.,,3,
 7,Q1_Start,NPC,제 설명에 따라 업무 프로세스가 정상적으로<br>처리되는지만 확인하면 됩니다.,,4,
 8,Q1_Start,NPC,업무 능력은 의심의 여지가 없으니까요.,,4,
-9,Q1_Start,NPC,"<link=""ImageGame"">그럼 우선…</link>",ShowPrefab:imageGame,3,
+9,Q1_Start,NPC,"<link=""image"">그럼 우선…</link>",Show_UpdatePanel:imageGame:0:imageGame,3,
 10,Q1_Start,NPC,지금 저희가 대화를 전달하고 있는 창구는<br> [메신저]라고 합니다.,,4,
 11,Q1_Start,NPC,당신이 처리해야 할 업무가 이 [메신저] <br>플랫폼을 통해 전달되죠.,,4,
 12,Q1_Start,NPC,전달받은 업무를 잘 이해하고,,4,

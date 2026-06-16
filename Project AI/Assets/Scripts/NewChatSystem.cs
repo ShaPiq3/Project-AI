@@ -90,8 +90,18 @@ public class NewChatSystem : MonoBehaviour
         CloseAllMoveablePanels();
         MoveToTargetPanel(panelName);
 
+        if (currentActivePrefab != null)
+        {
+            Debug.Log($"[디버그] 프리팹 상태: 활성화={currentActivePrefab.activeSelf}, 위치={currentActivePrefab.transform.position}");
+        }
+        else
+        {
+            Debug.Log("[디버그] currentActivePrefab이 null입니다!");
+        }
+
     }
 
+   
 
 
     private void Awake()
@@ -109,6 +119,8 @@ public class NewChatSystem : MonoBehaviour
             scrollViewRect.offsetMin = new Vector2(originalOffsetMin.x, originalOffsetMin.y + selectionPanelHeight);
         }
     }
+
+    private bool isDialoguePaused = false;
 
     private void Start()
     {
@@ -128,28 +140,6 @@ public class NewChatSystem : MonoBehaviour
                 }
             }
         }
-    }
-
-    private void ShowSpecificPrefab(string prefabName)
-    {
-        Debug.Log($"[디버그] 프리팹 로드 시도: {prefabName}"); // 1. 이게 찍히는지 확인
-
-        GameObject prefabToLoad = Resources.Load<GameObject>(prefabName);
-
-        if (prefabToLoad == null)
-        {
-            Debug.LogError($"[오류] 프리팹을 찾을 수 없습니다: {prefabName}. Resources 폴더 안의 정확한 이름을 확인하세요.");
-            return;
-        }
-
-        Debug.Log($"[디버그] 프리팹 로드 성공, 생성 중..."); // 2. 이게 찍히는지 확인
-
-        if (currentActivePrefab != null) Destroy(currentActivePrefab);
-
-        currentActivePrefab = Instantiate(prefabToLoad);
-        currentActivePrefab.transform.SetParent(popupChatPanel.transform.parent, false);
-        currentActivePrefab.transform.localScale = Vector3.one;
-        currentActivePrefab.SetActive(true);
     }
 
     private bool IsPointerOverUI(GameObject targetObject)
@@ -238,11 +228,22 @@ public class NewChatSystem : MonoBehaviour
 
     public void OnTextLinkClick(string linkId, string targetPanelName)
     {
+        EventSystem.current.SetSelectedGameObject(null);
         Match numMatch = Regex.Match(linkId, @"\d+");
         if (numMatch.Success)
         {
             int clickedClueNumber = int.Parse(numMatch.Value);
             if (clickedClueNumber < currentClueLevel) return;
+        }
+
+        if (linkId == "image")
+        {
+            Debug.Log($"[시스템] 이미지 패널 호출 시도: imageGame");
+
+            // 중요: 이전 코루틴이 있다면 전부 멈추고 새로 시작하여 꼬임 방지
+            StopAllCoroutines();
+            StartCoroutine(ShowUpdatePanelDelayed("imageGame", "imageGame", 0f));
+            return;
         }
 
         if (linkId == "q1_trigger")
@@ -387,6 +388,11 @@ public class NewChatSystem : MonoBehaviour
     {
         while (currentDialogueQueue.Count > 0)
         {
+            while (isDialoguePaused)
+            {
+                yield return null;
+            }
+
             var entity = currentDialogueQueue.Dequeue();
 
             GameObject typingIndicator = null;
@@ -531,56 +537,55 @@ public class NewChatSystem : MonoBehaviour
                         string[] tokens = command.Split(':');
                     }
 
-                    else if (command.StartsWith("ShowPrefab:"))
-                    {
-                        string prefabName = command.Replace("ShowPrefab:", "").Trim();
-                        ShowSpecificPrefab(prefabName);
-                    }
+
 
                     else if (command.StartsWith("Show_UpdatePanel:"))
                     {
                         // 예: "Show_UpdatePanel:EthicalPanel:0"
                         string[] tokens = command.Split(':');
 
-                        if (tokens.Length >= 3)
+                        if (tokens.Length >= 4)
                         {
                             string panelName = tokens[1].Trim();
+                            string prefabName = tokens[3].Trim();
 
                             // 딜레이 값 파싱 (혹시 숫자가 아닌 경우를 대비해 try-catch 또는 float.TryParse 권장)
-                            if (float.TryParse(tokens[2].Trim(), out float delay))
+                            if (float.TryParse(tokens[2].Trim(), out float delaySeconds))
                             {
-                                StartCoroutine(ShowUpdatePanelDelayed(panelName, delay));
+                                StartCoroutine(ShowUpdatePanelDelayed(panelName, prefabName, delaySeconds));
                             }
                             else
                             {
                                 Debug.LogWarning($"[오류] 딜레이 값이 숫자가 아닙니다: {tokens[2]}");
-                                StartCoroutine(ShowUpdatePanelDelayed(panelName, 0f)); // 기본값 0으로 실행
+                                StartCoroutine(ShowUpdatePanelDelayed(panelName, prefabName, 0f)); // 기본값 0으로 실행
                             }
-                        }
 
-                        else if (command.StartsWith("ActiveButton:"))
+                        }
+                        
+
+                    else if (command.StartsWith("ActiveButton:"))
+                    {
+                        // 명령어 예: "ActiveButton:PanelName1"
+                        string targetButtonName = command.Replace("ActiveButton:", "").Trim();
+
+                        // 씬에 있는 모든 퀘스트 버튼 중 이름이 일치하는 것을 찾아 활성화
+                        var targetBtn = questButtonList.Find(x => x.gameObject.name == targetButtonName);
+                        if (targetBtn != null)
                         {
-                            // 명령어 예: "ActiveButton:PanelName1"
-                            string targetButtonName = command.Replace("ActiveButton:", "").Trim();
-
-                            // 씬에 있는 모든 퀘스트 버튼 중 이름이 일치하는 것을 찾아 활성화
-                            var targetBtn = questButtonList.Find(x => x.gameObject.name == targetButtonName);
-                            if (targetBtn != null)
-                            {
-                                targetBtn.gameObject.SetActive(true);
-                                targetBtn.SetActive(); // 기존에 정의된 활성화 로직
-                                Debug.Log($"[시스템] 버튼 활성화 성공: {targetButtonName}");
-                            }
-                            else
-                            {
-                                Debug.LogError($"[오류] 활성화하려는 버튼을 찾을 수 없습니다: {targetButtonName}");
-                            }
+                            targetBtn.gameObject.SetActive(true);
+                            targetBtn.SetActive(); // 기존에 정의된 활성화 로직
+                            Debug.Log($"[시스템] 버튼 활성화 성공: {targetButtonName}");
                         }
-
                         else
                         {
-                            Debug.LogError($"[오류] 명령어 형식이 잘못되었습니다: {command}");
+                            Debug.LogError($"[오류] 활성화하려는 버튼을 찾을 수 없습니다: {targetButtonName}");
                         }
+                    }
+
+                    else
+                    {
+                        Debug.LogError($"[오류] 명령어 형식이 잘못되었습니다: {command}");
+                    }
                     }
                 }
             }
@@ -615,74 +620,99 @@ public class NewChatSystem : MonoBehaviour
             currentPlayingQuestIndex = -1;
         }
     }
-    private IEnumerator ShowUpdatePanelDelayed(string targetPanelName, float delaySeconds)
+    private IEnumerator ShowUpdatePanelDelayed(string targetPanelName, string prefabName, float delaySeconds)
     {
-        if (delaySeconds > 0f)
-        {
-            yield return new WaitForSeconds(delaySeconds);
-        }
+        if (chatRoutineHandle != null) isDialoguePaused = true;
+        yield return new WaitForEndOfFrame(); // 화면 갱신 대기
+        Debug.Log("[디버그] 클릭 충돌 방지 완료, 로직 시작");
 
+        Debug.Log($"[디버그] 함수 진입! 패널이름: {targetPanelName}, 프리팹이름: {prefabName}");
+        if (delaySeconds > 0f) yield return new WaitForSeconds(delaySeconds);
+
+        // 1. 애니메이션 부분 (기존 유지)
         if (updateNotificationPanel != null)
         {
-            // --- [수정 시작] 애니메이션 적용 ---
             RectTransform rect = updateNotificationPanel.GetComponent<RectTransform>();
             CanvasGroup cg = updateNotificationPanel.GetComponent<CanvasGroup>();
             if (cg == null) cg = updateNotificationPanel.AddComponent<CanvasGroup>();
 
-            // 초기 상태: 왼쪽 화면 밖 (-1000f는 패널 너비에 따라 조절)
             updateNotificationPanel.SetActive(true);
             Vector2 targetPos = rect.anchoredPosition;
             rect.anchoredPosition = new Vector2(-1000f, targetPos.y);
             cg.alpha = 0f;
 
-            // 등장 애니메이션: 오른쪽으로 이동 + 페이드인
             rect.DOAnchorPos(targetPos, 0.5f).SetEase(Ease.OutCubic);
             cg.DOFade(1f, 0.5f);
-
             updateNotificationPanel.transform.SetAsLastSibling();
             PlayPopupSound();
-            // --- [수정 끝] ---
         }
 
         UnlockHeaderButton();
 
-        // ... (이 아래 panelDic 및 entryButton 로직은 그대로 유지)
+        // 2. 버튼 매핑 로직 (기존 유지)
         if (!string.IsNullOrEmpty(targetPanelName) && panelDic.ContainsKey(targetPanelName))
         {
             var mapping = panelDic[targetPanelName];
             if (mapping.entryButton != null)
             {
                 mapping.entryButton.SetActive(true);
-                Debug.Log($"[시스템] {targetPanelName} 버튼을 활성화했습니다.");
                 mapping.entryButton.transform.SetAsFirstSibling();
-                Debug.Log($"<color=cyan>[실시간 업데이트]</color> {targetPanelName} 진입 버튼이 {delaySeconds}초 후 목록 최상단에 배치되었습니다.");
             }
         }
 
-        if (updatePanelButton != null)
-
+        // 3. 프리팹 로드 및 생성
+        GameObject prefabToLoad = Resources.Load<GameObject>(prefabName);
+        if (prefabToLoad != null)
         {
+            if (currentActivePrefab != null) Destroy(currentActivePrefab);
 
+            currentActivePrefab = Instantiate(prefabToLoad);
+
+            // [수정 핵심] 부모 결정 로직: 
+            // 1순위: targetPanelName 오브젝트, 2순위: 캔버스
+            GameObject parentPanel = GameObject.Find(targetPanelName);
+            Transform targetParent = parentPanel != null ? parentPanel.transform : FindObjectOfType<Canvas>()?.transform;
+
+            if (targetParent != null)
+            {
+                currentActivePrefab.transform.SetParent(targetParent, false);
+                Debug.Log($"[성공] '{targetParent.name}' 아래에 생성 완료");
+            }
+
+            // 4. 위치 초기화 (중앙 정렬)
+            RectTransform rect = currentActivePrefab.GetComponent<RectTransform>();
+            if (rect != null)
+            {
+                rect.anchorMin = new Vector2(0.5f, 0.5f);
+                rect.anchorMax = new Vector2(0.5f, 0.5f);
+                rect.pivot = new Vector2(0.5f, 0.5f);
+                rect.anchoredPosition = Vector2.zero;
+                rect.localScale = Vector3.one;
+            }
+
+            currentActivePrefab.SetActive(true);
+            currentActivePrefab.transform.SetAsLastSibling();
+            Debug.Log($"[시스템] 성공적으로 생성함: {prefabName}");
+        }
+        else
+        {
+            Debug.LogError($"[오류] 프리팹을 찾을 수 없습니다: Resources/{prefabName}.prefab 경로를 확인하세요.");
+        }
+
+        // 5. 버튼 이벤트 리스너 (기존 유지)
+        if (updatePanelButton != null)
+        {
             updatePanelButton.onClick.RemoveAllListeners();
-
             updatePanelButton.onClick.AddListener(() => {
-
                 updateNotificationPanel.SetActive(false);
-
                 if (popupChatPanel != null) popupChatPanel.SetActive(false);
-
-
-
                 if (!string.IsNullOrEmpty(targetPanelName))
-
                 {
                     CloseAllMoveablePanels();
                     MoveToTargetPanel(targetPanelName);
-
                 }
-
+                isDialoguePaused = false;
             });
-
         }
     }
 
