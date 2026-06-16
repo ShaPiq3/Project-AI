@@ -406,15 +406,19 @@ public class NewChatSystem : MonoBehaviour
                 var imageComp = spawned.transform.Find("ContentImage")?.GetComponent<Image>();
                 if (imageComp != null)
                 {
-                    if (entity.imagePath != "None" && !string.IsNullOrEmpty(entity.imagePath))
+                    if (entity.imagePath.ToLower() != "none" && !string.IsNullOrEmpty(entity.imagePath))
                     {
                         Sprite loadedSprite = Resources.Load<Sprite>(entity.imagePath);
                         if (loadedSprite != null)
                         {
                             imageComp.sprite = loadedSprite;
                             imageComp.gameObject.SetActive(true);
+           
                         }
-                        else { imageComp.gameObject.SetActive(false); }
+                        else {
+                            Debug.LogWarning($"[오류] 이미지를 찾을 수 없음: {entity.imagePath}");
+                            imageComp.gameObject.SetActive(false); 
+                        }
                     }
                     else { imageComp.gameObject.SetActive(false); }
                 }
@@ -798,7 +802,7 @@ public class NewChatSystem : MonoBehaviour
 
             // 정규식으로 콤마 분리 (큰따옴표 안의 콤마 무시)
             string[] fields = Regex.Split(lines[i], csvParserPattern);
-            if (fields.Length < 6) continue;
+            if (fields.Length < 7) continue;
 
 
 
