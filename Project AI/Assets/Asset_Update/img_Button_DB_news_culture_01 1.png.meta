@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: a16e36b79927b414788d464a8aeca93b
+guid: e87ef1baa0d7ccd4098d1fcc80ac10b6
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -5452709816774487049
-    second: img_Button_DB_news_politics_02_0
+      213: -378084271770555283
+    second: img_Button_DB_news_culture_01 1_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: img_Button_DB_news_politics_02_0
+      name: img_Button_DB_news_culture_01 1_0
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 1197
-        height: 158
+        width: 1250
+        height: 140
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 7f31fd3bf451454b0800000000000000
-      internalID: -5452709816774487049
+      spriteID: d6c24f5ab56c0caf0800000000000000
+      internalID: -378084271770555283
       vertices: []
       indices: 
       edges: []
@@ -135,7 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      img_Button_DB_news_politics_02_0: -5452709816774487049
+      img_Button_DB_news_culture_01 1_0: -378084271770555283
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

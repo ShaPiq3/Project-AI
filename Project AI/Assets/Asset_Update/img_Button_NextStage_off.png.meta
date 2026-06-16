@@ -103,10 +103,10 @@ TextureImporter:
       name: img_Button_NextStage_off_0
       rect:
         serializedVersion: 2
-        x: 2
-        y: 2
-        width: 506
-        height: 116
+        x: 0
+        y: 0
+        width: 750
+        height: 70
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}

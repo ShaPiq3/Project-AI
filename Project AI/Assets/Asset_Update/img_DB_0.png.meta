@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: e1697590fdb78734680dabcb4a17e87e
+guid: 8c1b1b61beddd9d4ba581e9ad0b56456
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 2088551272601228177
-    second: img_Button_DB_news_culture_01_0
+      213: -1443715331241072103
+    second: img_DB_0_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: img_Button_DB_news_culture_01_0
+      name: img_DB_0_0
       rect:
         serializedVersion: 2
-        x: 0
-        y: 0
-        width: 1197
-        height: 158
+        x: 17
+        y: 15
+        width: 380
+        height: 385
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 193169a11560cfc10800000000000000
-      internalID: 2088551272601228177
+      spriteID: 91a279c2e84e6fbe0800000000000000
+      internalID: -1443715331241072103
       vertices: []
       indices: 
       edges: []
@@ -135,7 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      img_Button_DB_news_culture_01_0: 2088551272601228177
+      img_DB_0_0: -1443715331241072103
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
