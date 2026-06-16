@@ -68,6 +68,7 @@ public class NewChatSystem : MonoBehaviour
     public List<string> unlockedClues = new List<string>();
     public int currentClueLevel = 1;
 
+    private GameObject currentActivePrefab;
     private List<ChatEntity> masterChatDataList = new List<ChatEntity>();
     private Dictionary<string, List<ChatEntity>> dialogueDic = new Dictionary<string, List<ChatEntity>>();
     private Queue<ChatEntity> currentDialogueQueue = new Queue<ChatEntity>();
@@ -127,6 +128,28 @@ public class NewChatSystem : MonoBehaviour
                 }
             }
         }
+    }
+
+    private void ShowSpecificPrefab(string prefabName)
+    {
+        Debug.Log($"[디버그] 프리팹 로드 시도: {prefabName}"); // 1. 이게 찍히는지 확인
+
+        GameObject prefabToLoad = Resources.Load<GameObject>(prefabName);
+
+        if (prefabToLoad == null)
+        {
+            Debug.LogError($"[오류] 프리팹을 찾을 수 없습니다: {prefabName}. Resources 폴더 안의 정확한 이름을 확인하세요.");
+            return;
+        }
+
+        Debug.Log($"[디버그] 프리팹 로드 성공, 생성 중..."); // 2. 이게 찍히는지 확인
+
+        if (currentActivePrefab != null) Destroy(currentActivePrefab);
+
+        currentActivePrefab = Instantiate(prefabToLoad);
+        currentActivePrefab.transform.SetParent(popupChatPanel.transform.parent, false);
+        currentActivePrefab.transform.localScale = Vector3.one;
+        currentActivePrefab.SetActive(true);
     }
 
     private bool IsPointerOverUI(GameObject targetObject)
@@ -431,9 +454,19 @@ public class NewChatSystem : MonoBehaviour
                     uiAudioSource.PlayOneShot(messageAppearSound);
                 }
                 var textComp = spawned.GetComponentInChildren<TextMeshProUGUI>();
-                if (textComp != null) textComp.text = entity.message;
 
-                if (!string.IsNullOrEmpty(entity.linkPanel))
+                if (textComp != null)
+                {
+                    textComp.text = entity.message;
+
+                    var linkHandler = spawned.AddComponent<TMPLinkHandler>();
+                    linkHandler.Setup(this);
+
+                    // raycastTarget이 켜져 있어야 클릭이 감지됩니다.
+                    textComp.raycastTarget = true;
+                }
+
+                    if (!string.IsNullOrEmpty(entity.linkPanel))
                 {
                     var clickable = spawned.AddComponent<MessageClickable>();
                     clickable.Setup(entity.linkPanel, this);
@@ -449,7 +482,7 @@ public class NewChatSystem : MonoBehaviour
                 Debug.Log($"[디버그] 현재 처리 중인 메시지: {entity.message}, linkPanel 내용: {entity.linkPanel}");
                 // 세미콜론(;)을 기준으로 명령어들을 나눕니다.
                 string[] commands = entity.linkPanel.Split(';');
-
+  
 
                 foreach (string rawCommand in commands)
                 {
@@ -496,7 +529,12 @@ public class NewChatSystem : MonoBehaviour
                     else if (command.StartsWith(""))
                     {
                         string[] tokens = command.Split(':');
-                        StartCoroutine(ShowUpdatePanelDelayed(tokens.Length > 1 ? tokens[1].Trim() : "", tokens.Length > 2 ? float.Parse(tokens[2].Trim()) : 0f));
+                    }
+
+                    else if (command.StartsWith("ShowPrefab:"))
+                    {
+                        string prefabName = command.Replace("ShowPrefab:", "").Trim();
+                        ShowSpecificPrefab(prefabName);
                     }
 
                     else if (command.StartsWith("Show_UpdatePanel:"))
