@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 0fee6d619f4796048bab4c1102a9786b
+guid: 3928173fe86a3284a976e4c91aa80041
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -6587276104076232084
-    second: img_Page_DB_news_social_06_0
+      213: 3261773079498786278
+    second: img_MainCanvas 1_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: img_Page_DB_news_social_06_0
+      name: img_MainCanvas 1_0
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 1316
-        height: 916
+        width: 1920
+        height: 1080
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: c6afd13c84b4594a0800000000000000
-      internalID: -6587276104076232084
+      spriteID: 6e5057d8555244d20800000000000000
+      internalID: 3261773079498786278
       vertices: []
       indices: 
       edges: []
@@ -135,7 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      img_Page_DB_news_social_06_0: -6587276104076232084
+      img_MainCanvas 1_0: 3261773079498786278
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

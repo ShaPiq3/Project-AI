@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 9a9340a2ad67c0046b982c2d3ea2366b
+guid: 5501fd8230d5cf6419f0f0c281bc3ee2
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 1143878056919479580
-    second: img_Page_DB_news_politics_02_0
+      213: -7151123654114436212
+    second: img_Button_DB_news_social_07_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: img_Page_DB_news_politics_02_0
+      name: img_Button_DB_news_social_07_0
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 1316
-        height: 916
+        width: 1250
+        height: 140
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: c15bc01480fdfdf00800000000000000
-      internalID: 1143878056919479580
+      spriteID: c8b9d93ccea12cc90800000000000000
+      internalID: -7151123654114436212
       vertices: []
       indices: 
       edges: []
@@ -135,7 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      img_Page_DB_news_politics_02_0: 1143878056919479580
+      img_Button_DB_news_social_07_0: -7151123654114436212
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
