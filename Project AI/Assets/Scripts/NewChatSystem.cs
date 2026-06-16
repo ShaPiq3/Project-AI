@@ -288,6 +288,13 @@ public class NewChatSystem : MonoBehaviour
             return; // 아래의 기본 로직을 타지 않도록 종료
         }
 
+        if (linkId == "q5_trigger")
+        {
+            Debug.Log("[시스템]  단서 트리거 클릭됨! Q5_ClueClick 대화 시작.");
+            PlayDialogueGroup("Q5_ClueClick"); // 바로 Q4 대화로 진입
+            return; // 아래의 기본 로직을 타지 않도록 종료
+        }
+
         if (completedClues.Contains(linkId))
         {
             Debug.Log($"[시스템] 이미 완료된 단서입니다: {linkId}");
