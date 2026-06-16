@@ -134,10 +134,10 @@ TextureImporter:
       name: img_commu_01_0
       rect:
         serializedVersion: 2
-        x: 546
-        y: 69
-        width: 85
-        height: 144
+        x: 0
+        y: 0
+        width: 1600
+        height: 900
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
