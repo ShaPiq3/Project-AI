@@ -15,16 +15,26 @@ public class TMPLinkHandler : MonoBehaviour, IPointerClickHandler
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        // 텍스트 내의 링크 영역을 찾습니다.
-        int linkIndex = TMP_TextUtilities.FindIntersectingLink(tmpText, eventData.position, null);
+        if (tmpText == null)
+            return;
 
-        if (linkIndex != -1)
-        {
-            TMP_LinkInfo linkInfo = tmpText.textInfo.linkInfo[linkIndex];
-            string linkId = linkInfo.GetLinkID();
+        if (tmpText.textInfo.linkCount == 0)
+            return;
 
-            // 클릭된 ID를 NewChatSystem의 OnTextLinkClick으로 전달
+        Camera cam = eventData.pressEventCamera;
+
+        int linkIndex = TMP_TextUtilities.FindIntersectingLink(
+            tmpText,
+            eventData.position,
+            cam);
+
+        if (linkIndex == -1)
+            return;
+
+        TMP_LinkInfo linkInfo = tmpText.textInfo.linkInfo[linkIndex];
+        string linkId = linkInfo.GetLinkID();
+
+        if (chatSystem != null)
             chatSystem.OnTextLinkClick(linkId, "");
-        }
     }
 }

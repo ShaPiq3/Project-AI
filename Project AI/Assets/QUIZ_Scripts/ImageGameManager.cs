@@ -132,13 +132,13 @@ public class ImageGameManager : MonoBehaviour
         if (isAllCorrect)
         {
             Debug.Log("★ [결과] 미니게임 클리어 성공! ★");
-            chatSystem.PlayDialogueGroup("Q1_SuccessSubmit");
+            chatSystem.PlayDialogueGroup("Q2_SuccessSubmit");
 
         }
         else
         {
             Debug.Log("Ⅹ [결과] 미니게임 클리어 실패... Ⅹ");
-            chatSystem.PlayDialogueGroup("Q1_FailSubmit");
+            chatSystem.PlayDialogueGroup("Q2_FailSubmit");
         }
 
         chatSystem.CloseImageButton();        // ?? 추가

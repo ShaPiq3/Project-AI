@@ -103,6 +103,11 @@ public class NewChatSystem : MonoBehaviour
         ImageButtonImage.sprite = CloseSprite;
     }
 
+    public void OnClickTriggerButton(string triggerId)
+    {
+        OnTextLinkClick(triggerId, "");
+    }
+
     private void Awake()
     {
         CloseImageButton();
@@ -251,7 +256,7 @@ public class NewChatSystem : MonoBehaviour
             if (clickedClueNumber < currentClueLevel) return;
         }
 
-        if (linkId == "ImageButton")
+        if (linkId == "OpenImageButton")
         {
             Debug.Log("이미지게임 버튼 활성화");
             OpenImageButton();
@@ -262,7 +267,6 @@ public class NewChatSystem : MonoBehaviour
         {
             Debug.Log("[시스템] Q2 단서 트리거 클릭됨! Q1_ClueClick 대화 시작.");
             PlayDialogueGroup("Q1_ClueClick");
-            OpenImageButton();
 
             return;
         }
@@ -561,10 +565,6 @@ public class NewChatSystem : MonoBehaviour
                         }
                     }
                     else if (command == "Trigger_Selection") TriggerFinalSelection();
-                    else if (command.StartsWith(""))
-                    {
-                        string[] tokens = command.Split(':');
-                    }
 
 
 
@@ -573,7 +573,7 @@ public class NewChatSystem : MonoBehaviour
                         // 예: "Show_UpdatePanel:EthicalPanel:0"
                         string[] tokens = command.Split(':');
 
-                        if (tokens.Length >= 4)
+                        if (tokens.Length >= 1)
                         {
                             string panelName = tokens[1].Trim();
                             string prefabName = tokens[3].Trim();
@@ -865,16 +865,18 @@ public class NewChatSystem : MonoBehaviour
 
     private string DetermineNextContext(string currentContext)
     {
-        Match match = Regex.Match(currentContext, @"\d+");
+        Match match = Regex.Match(currentContext, @"Q(\d+)");
+
         if (match.Success)
         {
-            int currentNum = int.Parse(match.Value);
+            int currentNum = int.Parse(match.Groups[1].Value);
             int nextNum = currentNum + 1;
+
             currentClueLevel = nextNum;
-            string nextContextName = currentContext.Replace(currentNum.ToString(), nextNum.ToString());
-            if (nextContextName.Contains("_ClueClick")) nextContextName = nextContextName.Replace("_ClueClick", "_Start");
-            return nextContextName;
+
+            return $"Q{nextNum}_Start";
         }
+
         return "Q1_Start";
     }
     private void TriggerFinalSelection()
