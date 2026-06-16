@@ -46,7 +46,7 @@
 42,Q2_Start,NPC,어떤 이미지가 좋을까요?,,3,
 43,Q2_Start,NPC,"그래요, 인간들이 좋아하는 고양이 사진이라도 하나...",,3,
 44,Q2_Start,NPC,......,,5,
-45,Q2_Start,NPC,...AD?,,5,
+45,Q2_Start,USER,...AD?,,5,
 46,Q2_Start,NPC,"아뇨, 고양이는 취소에요.",,3,
 47,Q2_Start,NPC,소녀의 이미지를 만들어 주세요., ,4,
 48,Q2_Start,NPC,"......갈색 머리의, 새하얀 원피스를 입은 소녀에요.",OpenImageButton,3,
