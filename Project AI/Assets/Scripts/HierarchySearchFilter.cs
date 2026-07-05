@@ -1,24 +1,25 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using TMPro;
 using System;
 
 public class HierarchySearchFilter : MonoBehaviour
 {
-    // ¡Ú [ÇÙ½É Ãß°¡] Ã¢(Panel)°ú ±× Ã¢¿¡ ¼Ò¼ÓµÈ ¹öÆ°µéÀ» ¹­¾îÁÖ´Â ´ÜÀÏ ±×·ì ±¸Á¶Ã¼
     [System.Serializable]
     public struct SearchGroup
     {
-        public string groupName;             // ÀÎ½ºÆåÅÍ È®ÀÎ¿ë ÀÌ¸§ (¿¹: 1¹ø Ã¢ ±×·ì, 2¹ø Ã¢ ±×·ì)
-        public GameObject parentPanel;       // ÇØ´ç Ã¢ (¿¹: Window_01)
-        public GameObject[] itemButtons;     // ±× Ã¢ '³»ºÎ'¿¡ ¼ÓÇÑ ½ÇÁ¦ ¹öÆ°(¸Ş´º)µé ¹è¿­
+        public string groupName;
+        public GameObject parentPanel;
+        public GameObject[] itemButtons;
     }
 
     [Header("Search Input")]
     [SerializeField] private TMP_InputField searchInputField;
 
     [Header("Target UI Search Groups")]
-    // ¡Ú ±âÁ¸ GameObject[] targetPanels ´ë½Å, ±×·ìÈ­µÈ ±¸Á¶Ã¼ ¹è¿­À» »ç¿ëÇÕ´Ï´Ù.
     [SerializeField] private SearchGroup[] searchGroups;
+
+    // â˜… [ì¶”ê°€ëœ ë‚´ë¶€ ë³€ìˆ˜] í˜„ì¬ ìœ ì €ê°€ ì„ íƒí•œ ì¹´í…Œê³ ë¦¬ íƒ­ ìƒíƒœë¥¼ ê¸°ì–µí•©ë‹ˆë‹¤. (ê¸°ë³¸ê°’ì€ ì „ì²´)
+    private string currentCategory = "ALL";
 
     private void Start()
     {
@@ -28,59 +29,74 @@ public class HierarchySearchFilter : MonoBehaviour
         }
     }
 
+    // ğŸ” [ê¸°ì¡´ ìœ ì§€] ê²€ìƒ‰ì°½ì— íƒ€ì´í•‘ë  ë•Œ í˜¸ì¶œë˜ëŠ” í•¨ìˆ˜
     public void OnSearchTextChanged(string keyword)
     {
-        // 1. °Ë»öÃ¢ÀÌ ºñ¾îÀÖÀ» ¶§ÀÇ Ã³¸®
-        if (string.IsNullOrEmpty(keyword))
-        {
-            foreach (var group in searchGroups)
-            {
-                // ÇöÀç È°¼ºÈ­µÇ¾î ÀÖ´Â(´«¿¡ º¸ÀÌ´Â) Ã¢ ³»ºÎÀÇ ¹öÆ°µé¸¸ ´Ù½Ã ÀüºÎ ÄÑÁİ´Ï´Ù.
-                if (group.parentPanel != null && group.parentPanel.activeSelf)
-                {
-                    foreach (var btn in group.itemButtons)
-                    {
-                        if (btn != null) btn.SetActive(true);
-                    }
-                }
-            }
-            return;
-        }
+        UpdateFilter(keyword, currentCategory);
+    }
 
-        string upperKeyword = keyword.ToUpper().Replace(" ", "");
+    // ğŸ¯ [ìƒˆë¡œ ì¶”ê°€] ì¹´í…Œê³ ë¦¬ íƒ­ ë²„íŠ¼(ë‰´ìŠ¤ íƒ­ ë§¤ë‹ˆì € ë“±)ì„ ëˆ„ë¥¼ ë•Œ í˜¸ì¶œí•´ ì¤„ í•¨ìˆ˜!
+    public void OnCategoryTabChanged(string categoryName)
+    {
+        if (string.IsNullOrEmpty(categoryName)) currentCategory = "ALL";
+        else currentCategory = categoryName.ToUpper().Replace(" ", "");
 
-        // 2. ¸ğµç ±×·ìÀ» ¼øÈ¸ÇÏ¸ç ÇÊÅÍ¸µ ÁøÇà
+        // ì¹´í…Œê³ ë¦¬ê°€ ë°”ë€” ë•Œë„ í˜„ì¬ ê²€ìƒ‰ì°½ì— ì íŒ ë‹¨ì–´ë¥¼ ê¸°ë°˜ìœ¼ë¡œ í•„í„°ë§ì„ ë‹¤ì‹œ ê³„ì‚°í•©ë‹ˆë‹¤.
+        string currentKeyword = searchInputField != null ? searchInputField.text : "";
+        UpdateFilter(currentKeyword, currentCategory);
+    }
+
+    // âš™ï¸ [í•µì‹¬ í†µí•© ë§ˆìŠ¤í„° ë¡œì§] ê²€ìƒ‰ì–´ì™€ ì¹´í…Œê³ ë¦¬ë¥¼ ë™ì‹œì— ì—°ì‚°í•˜ì—¬ ìµœì¢… On/Off ê²°ì •
+    private void UpdateFilter(string keyword, string category)
+    {
+        string upperKeyword = string.IsNullOrEmpty(keyword) ? "" : keyword.ToUpper().Replace(" ", "");
+        string upperCategory = category.ToUpper().Replace(" ", "");
+
         foreach (var group in searchGroups)
         {
-            // ¿¹¿Ü ¹æÁö ¾ÈÀüÀåÄ¡
             if (group.parentPanel == null || group.itemButtons == null) continue;
 
-            // ¡Ú [ÇÙ½É ¹ö±× ÇØ°á Á¶°Ç] 
-            // ÇöÀç È­¸é¿¡ 'ÄÑÁ® ÀÖ´Â Ã¢(activeSelf == true)' ³»ºÎÀÇ ¹öÆ°µé¸¸ °Ë»ö¿¡ Âü¿©½ÃÅµ´Ï´Ù!
-            // È­¸é¿¡ ²¨Á®ÀÖ´Â ´Ù¸¥ Ã¢ÀÇ ±×·ìÀº ¾Æ¿¹ °Ë»çÇÏÁö ¾Ê°í ¹«½ÃÇÕ´Ï´Ù.
+            // í˜„ì¬ ì´ ìŠ¤í¬ë¦½íŠ¸ê°€ ë¶™ì€ íŒ¨ë„(ì°½)ì´ í™œì„±í™”ë˜ì–´ ìˆì„ ë•Œë§Œ ìì‹ë“¤ì„ ê²€ì‚¬í•©ë‹ˆë‹¤.
             if (group.parentPanel.activeSelf)
             {
                 foreach (var btn in group.itemButtons)
                 {
-                    if (btn != null)
-                    {
-                        string btnName = btn.name.ToUpper().Replace(" ", "");
+                    if (btn == null) continue;
 
-                        if (btnName.Contains(upperKeyword))
-                        {
-                            btn.SetActive(true);
-                        }
-                        else
-                        {
-                            btn.SetActive(false);
-                        }
+                    // 1. ê¸°ì‚¬ì˜ ì§„ì§œ ì¹´í…Œê³ ë¦¬ íƒœê·¸ ê°€ì ¸ì˜¤ê¸°
+                    NewsItemTag itemTag = btn.GetComponent<NewsItemTag>();
+                    string itemCategory = (itemTag != null) ? itemTag.category : btn.name;
+                    itemCategory = itemCategory.ToUpper().Replace(" ", "");
+
+                    // 2. ê¸°ì‚¬ì˜ ì œëª© í…ìŠ¤íŠ¸(ë˜ëŠ” ì´ë¦„) ê°€ì ¸ì˜¤ê¸°
+                    string btnName = btn.name.ToUpper().Replace(" ", "");
+                    var tmpText = btn.GetComponentInChildren<TextMeshProUGUI>(true);
+                    if (tmpText != null) btnName = tmpText.text.ToUpper().Replace(" ", "");
+
+                    // ----------------------------------------------------
+                    // ğŸ’¡ [ë²„ê·¸ í•´ê²° í•µì‹¬ íŒë³„ì‹] ë‘ ê°€ì§€ ì¡°ê±´ì´ ëª¨ë‘ êµì§‘í•©ì„ ì´ë£¨ì–´ì•¼ í•¨
+                    // ----------------------------------------------------
+
+                    // ì¡°ê±´ A: ì¹´í…Œê³ ë¦¬ ë§¤ì¹­ (íƒ­ì´ 'ALL'ì´ê±°ë‚˜, ê¸°ì‚¬ì˜ ì •ì²´ê°€ í˜„ì¬ íƒ­ê³¼ ì¼ì¹˜í•˜ëŠ”ê°€)
+                    bool isCategoryMatch = (upperCategory == "ALL" || itemCategory.Contains(upperCategory));
+
+                    // ì¡°ê±´ B: ê²€ìƒ‰ì–´ ë§¤ì¹­ (ê²€ìƒ‰ì°½ì´ ë¹„ì–´ìˆê±°ë‚˜, ê¸°ì‚¬ ì œëª©ì— ê²€ìƒ‰ì–´ê°€ í¬í•¨ë˜ì–´ ìˆëŠ”ê°€)
+                    bool isKeywordMatch = (string.IsNullOrEmpty(upperKeyword) || btnName.Contains(upperKeyword));
+
+                    // ë‘˜ ë‹¤ ë§Œì¡±í•  ë•Œë§Œ ì™„ë²½í•˜ê²Œ ë²„íŠ¼ì„ ì¼­ë‹ˆë‹¤.
+                    if (isCategoryMatch && isKeywordMatch)
+                    {
+                        btn.SetActive(true);
+                    }
+                    else
+                    {
+                        btn.SetActive(false); // í•˜ë‚˜ë¼ë„ ì–´ê¸‹ë‚˜ë©´ ìˆ¨ê²¨ì„œ ë ˆì´ì•„ì›ƒ ê·¸ë£¹ ì¬ì •ë ¬ ìœ ë„
                     }
                 }
             }
             else
             {
-                // ²¨Á®ÀÖ´Â Ã¢ÀÇ ¹öÆ°µéÀº °Ë»ö¾î¿Í »ó°ü¾øÀÌ ±âº»ÀûÀ¸·Î ¼Õ´ëÁö ¾Ê°Å³ª 
-                // ¿øÇÏ½Å´Ù¸é ÀüºÎ È°¼ºÈ­(ÃÊ±âÈ­) »óÅÂ·Î ´ë±â½ÃÄÑ µÓ´Ï´Ù.
+                // êº¼ì ¸ìˆëŠ” ì°½ì˜ ë²„íŠ¼ë“¤ì€ ê¸°ë³¸ì ìœ¼ë¡œ ë‹¤ ì¼œë‘ì–´ ì´ˆê¸°í™” ìƒíƒœë¥¼ ìœ ì§€í•©ë‹ˆë‹¤.
                 foreach (var btn in group.itemButtons)
                 {
                     if (btn != null) btn.SetActive(true);

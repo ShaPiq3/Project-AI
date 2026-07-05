@@ -2,66 +2,63 @@ using UnityEngine;
 
 public class NewsTabManager : MonoBehaviour
 {
-    [Header("카테고리별 기사 리스트 패널들")]
-    public GameObject politicsPanel; // 정치 패널
-    public GameObject socialPanel;   // 사회 패널
-    public GameObject economyPanel;  // 경제 패널
+    [Header("기사들이 모여있는 Content 트랜스폼")]
+    // 💡 스크린샷의 'Content' 오브젝트를 여기에 드래그앤드롭합니다.
+    [SerializeField] private Transform contentParent;
 
-    [Header("각 탭 버튼 밑에 있는 강조선(밑줄) 오브젝트들")]
-    // 💡 인스펙터창에서 각 버튼 아래에 만든 밑줄(Line)을 여기에 쏙 넣어줄 겁니다!
-    public GameObject politicsLine;
-    public GameObject socialLine;
-    public GameObject economyLine;
-
-    void Start()
+    // ★ [추가 확장] 나중에 카테고리가 더 늘어나더라도 이 함수 하나로 전부 커버됩니다!
+    // 💡 상단/하단의 각 카테고리 버튼 OnClick 이벤트에 이 함수를 연결합니다.
+    public void SelectCategory(string categoryKeyword)
     {
-        // 게임 시작 시 기본적으로 '정치' 탭이 선택된 상태로 채워줍니다.
-        SelectPoliticsTab();
+        if (contentParent == null) return;
+
+        // 1. 공백이나 문자열이 비어있다면 "전체" 기사를 보여주는 것으로 간주합니다.
+        if (string.IsNullOrEmpty(categoryKeyword) || categoryKeyword.ToUpper() == "ALL")
+        {
+            ShowAllArticles();
+            return;
+        }
+
+        // 2. 글자(띄어쓰기 무시)를 가공합니다.
+        string upperKeyword = categoryKeyword.ToUpper().Replace(" ", "");
+
+        // 3. Content 자식(기사들)을 돌며 이름 기반으로 수루룩 필터링합니다.
+        for (int i = 0; i < contentParent.childCount; i++)
+        {
+            GameObject newsItem = contentParent.GetChild(i).gameObject;
+            if (newsItem == null) continue;
+
+            // 기사 이름(예: "경제 1")의 공백을 채우고 대문자로 변경해 비교합니다.
+            string cleanItemName = newsItem.name.ToUpper().Replace(" ", "");
+
+            if (cleanItemName.Contains(upperKeyword))
+            {
+                newsItem.SetActive(true);  // 카테고리가 맞으면 켬
+            }
+            else
+            {
+                newsItem.SetActive(false); // 안 맞으면 끔 (Vertical Layout Group에 의해 공간 정렬됨)
+            }
+        }
     }
 
-    // 🏛️ 정치 탭 클릭
-    public void SelectPoliticsTab()
+    // 전체 기사를 한 번에 다 보여주는 서브 함수
+    public void ShowAllArticles()
     {
-        SetAllPanelsInactive();
-        if (politicsPanel != null) politicsPanel.SetActive(true);
+        if (contentParent == null) return;
 
-        // 정치 밑줄만 켜고, 나머지는 끕니다.
-        SetLineStatus(true, false, false);
+        for (int i = 0; i < contentParent.childCount; i++)
+        {
+            if (contentParent.GetChild(i) != null)
+            {
+                contentParent.GetChild(i).gameObject.SetActive(true);
+            }
+        }
     }
 
-    // 👥 사회 탭 클릭
-    public void SelectSocialTab()
+    private void Start()
     {
-        SetAllPanelsInactive();
-        if (socialPanel != null) socialPanel.SetActive(true);
-
-        // 사회 밑줄만 켜고, 나머지는 끕니다.
-        SetLineStatus(false, true, false);
-    }
-
-    // 📈 경제 탭 클릭
-    public void SelectEconomyTab()
-    {
-        SetAllPanelsInactive();
-        if (economyPanel != null) economyPanel.SetActive(true);
-
-        // 경제 밑줄만 켜고, 나머지는 끕니다.
-        SetLineStatus(false, false, true);
-    }
-
-    // 기사 패널 리셋
-    private void SetAllPanelsInactive()
-    {
-        if (politicsPanel != null) politicsPanel.SetActive(false);
-        if (socialPanel != null) socialPanel.SetActive(false);
-        if (economyPanel != null) economyPanel.SetActive(false);
-    }
-
-    // 밑줄 제어용 서브 함수
-    private void SetLineStatus(bool poly, bool soc, bool eco)
-    {
-        if (politicsLine != null) politicsLine.SetActive(poly);
-        if (socialLine != null) socialLine.SetActive(soc);
-        if (economyLine != null) economyLine.SetActive(eco);
+        // 게임 시작 시에는 기본적으로 '전체 기사'가 수루룩 나오도록 세팅합니다.
+        ShowAllArticles();
     }
 }
