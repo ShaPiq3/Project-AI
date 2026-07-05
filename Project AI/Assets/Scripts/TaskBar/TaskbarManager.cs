@@ -1,42 +1,94 @@
-using UnityEngine;
-using System.Collections.Generic;
+ï»¿using UnityEngine;
 
 public class TaskbarManager : MonoBehaviour
 {
-    [Header("UI References")]
-    [SerializeField] private GameObject popupPanel;       // ¹öÆ°µéÀÌ ³ª¿­µÉ ºÎ¸ğ ÆĞ³Î
-    [SerializeField] private GameObject buttonPrefab;     // Window_Item_Button ÇÁ¸®ÆÕ
-    [SerializeField] private Transform buttonContainer;   // popupPanel°ú °°°Å³ª ±× ³»ºÎÀÇ LayoutGroupÀÌ ÀÖ´Â º¯¼ö
+    public static TaskbarManager Instance { get; private set; }
 
-    private List<GameObject> activeItems = new List<GameObject>();
-
-    void Start()
+    // ğŸŒŸ [ìˆ˜ì •] structë¥¼ classë¡œ ë³€ê²½í•˜ì—¬ ì°¸ì¡°í˜•ìœ¼ë¡œ ê´€ë¦¬í•©ë‹ˆë‹¤. (ì¸ìŠ¤í™í„° ê¼¬ì„ ì›ì²œ ì°¨ë‹¨)
+    [System.Serializable]
+    public class TaskbarSet
     {
-        // ½ÃÀÛÇÒ ¶§´Â ÆË¾÷Ã¢À» ´İ¾ÆµÓ´Ï´Ù.
-        popupPanel.SetActive(false);
+        public string groupName;
+        public GameObject mainButton;
+        public GameObject popupPanel;
+        public GameObject buttonPrefab;
+        public Transform buttonContainer;
     }
 
-    // '¾ÆÄ«ÀÌºê' ¸ŞÀÎ ¹öÆ°À» Å¬¸¯ÇßÀ» ¶§ ½ÇÇàÇÒ ÇÔ¼ö (ÀÎ½ºÆåÅÍ¿¡¼­ OnClick¿¡ ¿¬°á)
-    public void TogglePopupPanel()
+    [Header("ê¸°ëŠ¥ë³„ ì„¸íŒ…")]
+    [SerializeField] private TaskbarSet archiveSet = new TaskbarSet();
+    [SerializeField] private TaskbarSet newsSet = new TaskbarSet();
+
+    void Awake()
     {
-        popupPanel.SetActive(!popupPanel.activeSelf);
+        if (Instance == null) Instance = this;
+        else Destroy(gameObject);
+
+        InitSet(archiveSet);
+        InitSet(newsSet);
     }
 
-    // »õ·Î¿î ¾ÆÄ«ÀÌºê Ã¢ÀÌ ÄÑÁú ¶§ È£ÃâÇÒ ÇÔ¼ö
-    public void OnWindowOpened(string windowName, GameObject windowObject)
+    private void InitSet(TaskbarSet set)
     {
-        // 1. ÇÁ¸®ÆÕ »ı¼º
-        GameObject newButton = Instantiate(buttonPrefab, buttonContainer);
+        if (set == null) return;
+        if (set.mainButton != null) set.mainButton.SetActive(false);
+        if (set.popupPanel != null) set.popupPanel.SetActive(false);
+    }
 
-        // 2. ¹öÆ° µ¥ÀÌÅÍ ¼¼ÆÃ
-        TaskbarItem itemScript = newButton.GetComponent<TaskbarItem>();
-        itemScript.Setup(windowName, windowObject);
+    public void ToggleArchivePopup() => TogglePopup(archiveSet.popupPanel);
+    public void ToggleNewsPopup() => TogglePopup(newsSet.popupPanel);
 
-        // 3. ¸®½ºÆ® °ü¸® ¹× »ı¼º À§Ä¡ Á¶Á¤
-        // ÃÖ±Ù ÄÒ Ã¢ÀÌ ¾Æ·¡¿¡ ¿Àµµ·Ï ÇÏ·Á¸é, °èÃş ±¸Á¶»ó °¡Àå À§(Ã¹ ¹øÂ°)·Î ¿Ã·Á¾ß 
-        // Vertical Layout Group(Lower Alignment) ±âÁØ °¡Àå ¾Æ·¡¿¡ ¹èÄ¡µË´Ï´Ù.
-        newButton.transform.SetAsFirstSibling();
+    private void TogglePopup(GameObject panel)
+    {
+        if (panel != null) panel.SetActive(!panel.activeSelf);
+    }
 
-        activeItems.Add(newButton);
+    public void AddArchiveWindow(string windowName, GameObject windowObject) => SpawnItemButton(archiveSet, windowName, windowObject);
+    public void AddNewsWindow(string windowName, GameObject windowObject) => SpawnItemButton(newsSet, windowName, windowObject);
+
+    public void RemoveArchiveWindow(GameObject windowObject) => DestroyItemButton(archiveSet, windowObject);
+    public void RemoveNewsWindow(GameObject windowObject) => DestroyItemButton(newsSet, windowObject);
+
+    private void SpawnItemButton(TaskbarSet set, string name, GameObject winObj)
+    {
+        if (set == null || set.mainButton == null || set.buttonContainer == null || set.buttonPrefab == null) return;
+
+        if (!set.mainButton.activeSelf) set.mainButton.SetActive(true);
+
+        GameObject newBtn = Instantiate(set.buttonPrefab, set.buttonContainer);
+        TaskbarItem item = newBtn.GetComponent<TaskbarItem>();
+
+        if (item != null)
+        {
+            // ì§„ì§œ ì°½ ì´ë¦„ì„ ë²„íŠ¼ ë‚´ TMP í…ìŠ¤íŠ¸ì— ê½‚ì•„ì£¼ëŠ” í•µì‹¬ í•¨ìˆ˜ ì •ìƒ ë„ë‹¬ ìœ ë„
+            item.Setup(name, winObj);
+        }
+        else
+        {
+            Debug.LogError($"{set.buttonPrefab.name} í”„ë¦¬íŒ¹ì— TaskbarItem ìŠ¤í¬ë¦½íŠ¸ê°€ ëˆ„ë½ë˜ì—ˆìŠµë‹ˆë‹¤!");
+        }
+
+        newBtn.transform.SetAsFirstSibling();
+    }
+
+    private void DestroyItemButton(TaskbarSet set, GameObject winObj)
+    {
+        if (set == null || set.buttonContainer == null) return;
+
+        foreach (Transform child in set.buttonContainer)
+        {
+            TaskbarItem item = child.GetComponent<TaskbarItem>();
+            if (item != null && item.TargetWindow == winObj)
+            {
+                Destroy(child.gameObject);
+                break;
+            }
+        }
+
+        if (set.buttonContainer.childCount <= 1)
+        {
+            if (set.mainButton != null) set.mainButton.SetActive(false);
+            if (set.popupPanel != null) set.popupPanel.SetActive(false);
+        }
     }
 }
