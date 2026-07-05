@@ -8,12 +8,15 @@ public class SidebarController : MonoBehaviour
     [SerializeField] private RectTransform sidebarRect;      // 사이드바 전체 RectTransform
     [SerializeField] private RectTransform[] menuTextRects;  // 숨길 텍스트들의 RectTransform 배열
 
+    // ★ [버그 해결 핵심 추가] 제미나이 스타일 마스터 버튼들(Menu_Item_Archive 등)의 RectTransform 배열
+    [SerializeField] private RectTransform[] menuButtonRects;
+
     [Header("Overlay MiniIcon References")]
     [SerializeField] private RectTransform[] menuMiniIconRects;
 
     [Header("Button References")]
-    [SerializeField] private GameObject openButton;          // 사이드바를 '여는' 버튼
-    [SerializeField] private GameObject closeButton;         // 사이드바를 '닫는' 버튼
+    [SerializeField] private Button openButton;          // 사이드바를 '여는' 마스터 버튼
+    [SerializeField] private Button closeButton;         // 사이드바를 '닫는' 버튼
 
     [Header("Sidebar Animation Settings")]
     [SerializeField] private float slideSpeed = 15f;
@@ -45,10 +48,6 @@ public class SidebarController : MonoBehaviour
                 {
                     miniIconHeights[i] = menuMiniIconRects[i].rect.height;
                     miniIconImages[i] = menuMiniIconRects[i].GetComponent<Image>();
-
-                    // ★ [버그 해결 수정] 무조건 강제로 끄지 않고, 
-                    // 이 아이콘과 매칭된 메인 창들이 '현재 켜져 있는지 꺼져 있는지'를 판별해서 
-                    // 초기 활성화 상태를 아주 스마트하게 판단하여 셋팅해 둡니다.
                     menuMiniIconRects[i].gameObject.SetActive(false);
                 }
             }
@@ -57,7 +56,6 @@ public class SidebarController : MonoBehaviour
         SetSidebarStateImmediate(isOpen);
     }
 
-    // ★ [외부 창들이 호출할 마스터 관리 함수]
     public void UpdateTaskbarStatus(int index, int status)
     {
         if (menuMiniIconRects == null || index < 0 || index >= menuMiniIconRects.Length) return;
@@ -65,12 +63,10 @@ public class SidebarController : MonoBehaviour
 
         if (status == 0)
         {
-            // 0 : 완전히 꺼짐 -> 오버레이 오브젝트 자체를 완전히 숨깁니다.
             menuMiniIconRects[index].gameObject.SetActive(false);
         }
         else
         {
-            // 1, 2 : 최소화 또는 켜짐 -> 오버레이 오브젝트를 확실하게 켭니다.
             menuMiniIconRects[index].gameObject.SetActive(true);
 
             float targetAlpha = (status == 2) ? activeAlpha : minimizedAlpha;
@@ -96,11 +92,6 @@ public class SidebarController : MonoBehaviour
         else
         {
             ToggleTextObjects(false);
-
-            foreach (var textRect in menuTextRects)
-            {
-                if (textRect != null) textRect.sizeDelta = new Vector2(0f, textRect.sizeDelta.y);
-            }
         }
 
         if (currentCoroutine != null) StopCoroutine(currentCoroutine);
@@ -113,6 +104,16 @@ public class SidebarController : MonoBehaviour
         {
             float currentSidebarWidth = Mathf.Lerp(sidebarRect.sizeDelta.x, targetSidebarWidth, Time.deltaTime * slideSpeed);
             sidebarRect.sizeDelta = new Vector2(currentSidebarWidth, sidebarRect.sizeDelta.y);
+
+            // ★ [버그 해결 핵심] 마스터 버튼 컴포넌트들의 전체 클릭 범위(Width)도 사이드바 크기와 실시간 동기화
+            if (menuButtonRects != null)
+            {
+                foreach (var btnRect in menuButtonRects)
+                {
+                    if (btnRect != null)
+                        btnRect.sizeDelta = new Vector2(currentSidebarWidth, btnRect.sizeDelta.y);
+                }
+            }
 
             for (int i = 0; i < menuMiniIconRects.Length; i++)
             {
@@ -140,21 +141,51 @@ public class SidebarController : MonoBehaviour
     private void ToggleTextObjects(bool visible)
     {
         foreach (var textRect in menuTextRects)
-            if (textRect != null) textRect.gameObject.SetActive(visible);
+        {
+            if (textRect != null)
+            {
+                textRect.gameObject.SetActive(visible);
+
+                var tmpText = textRect.GetComponent<TMPro.TMP_Text>();
+                if (tmpText != null) tmpText.raycastTarget = visible;
+
+                var normalText = textRect.GetComponent<UnityEngine.UI.Text>();
+                if (normalText != null) normalText.raycastTarget = visible;
+            }
+        }
     }
 
     private void ToggleActionButtons(bool open)
     {
-        if (openButton != null) openButton.SetActive(!open);
-        if (closeButton != null) closeButton.SetActive(open);
+        if (openButton != null)
+        {
+            Image openBtnImage = openButton.GetComponent<Image>();
+            if (openBtnImage != null) openBtnImage.raycastTarget = !open;
+        }
+
+        if (closeButton != null)
+        {
+            closeButton.gameObject.SetActive(open);
+        }
     }
 
     private void SetSidebarStateImmediate(bool open)
     {
         float finalWidth = open ? openWidth : closedWidth;
         sidebarRect.sizeDelta = new Vector2(finalWidth, sidebarRect.sizeDelta.y);
+
         ToggleTextObjects(open);
         ToggleActionButtons(open);
+
+        // ★ [버그 해결 핵심] 즉시 상태가 변할 때도 버튼 범위를 최종 크기(70 또는 280)로 강제 고정
+        if (menuButtonRects != null)
+        {
+            foreach (var btnRect in menuButtonRects)
+            {
+                if (btnRect != null)
+                    btnRect.sizeDelta = new Vector2(finalWidth, btnRect.sizeDelta.y);
+            }
+        }
 
         foreach (var textRect in menuTextRects)
         {

@@ -1,51 +1,89 @@
 using UnityEngine;
-using TMPro; // ★ TextMeshPro 컴포넌트 제어를 위해 필수 추가!
+using TMPro;
 using System;
 
 public class HierarchySearchFilter : MonoBehaviour
 {
+    // ★ [핵심 추가] 창(Panel)과 그 창에 소속된 버튼들을 묶어주는 단일 그룹 구조체
+    [System.Serializable]
+    public struct SearchGroup
+    {
+        public string groupName;             // 인스펙터 확인용 이름 (예: 1번 창 그룹, 2번 창 그룹)
+        public GameObject parentPanel;       // 해당 창 (예: Window_01)
+        public GameObject[] itemButtons;     // 그 창 '내부'에 속한 실제 버튼(메뉴)들 배열
+    }
+
     [Header("Search Input")]
-    // ★ [수정] UnityEngine.UI.InputField 대신 TMP_InputField를 사용하여 금지 표시를 해결합니다.
     [SerializeField] private TMP_InputField searchInputField;
 
-    [Header("Target UI Panels")]
-    [SerializeField] private GameObject[] targetPanels;
+    [Header("Target UI Search Groups")]
+    // ★ 기존 GameObject[] targetPanels 대신, 그룹화된 구조체 배열을 사용합니다.
+    [SerializeField] private SearchGroup[] searchGroups;
 
     private void Start()
     {
         if (searchInputField != null)
         {
-            // TMP_InputField에 글자가 타이핑될 때마다 실시간으로 함수를 호출합니다.
             searchInputField.onValueChanged.AddListener(OnSearchTextChanged);
         }
     }
 
     public void OnSearchTextChanged(string keyword)
     {
+        // 1. 검색창이 비어있을 때의 처리
         if (string.IsNullOrEmpty(keyword))
         {
-            foreach (var panel in targetPanels)
+            foreach (var group in searchGroups)
             {
-                if (panel != null) panel.SetActive(true);
+                // 현재 활성화되어 있는(눈에 보이는) 창 내부의 버튼들만 다시 전부 켜줍니다.
+                if (group.parentPanel != null && group.parentPanel.activeSelf)
+                {
+                    foreach (var btn in group.itemButtons)
+                    {
+                        if (btn != null) btn.SetActive(true);
+                    }
+                }
             }
             return;
         }
 
-        string upperKeyword = keyword.ToUpper();
+        string upperKeyword = keyword.ToUpper().Replace(" ", "");
 
-        foreach (var panel in targetPanels)
+        // 2. 모든 그룹을 순회하며 필터링 진행
+        foreach (var group in searchGroups)
         {
-            if (panel != null)
-            {
-                string panelName = panel.name.ToUpper();
+            // 예외 방지 안전장치
+            if (group.parentPanel == null || group.itemButtons == null) continue;
 
-                if (panelName.Contains(upperKeyword))
+            // ★ [핵심 버그 해결 조건] 
+            // 현재 화면에 '켜져 있는 창(activeSelf == true)' 내부의 버튼들만 검색에 참여시킵니다!
+            // 화면에 꺼져있는 다른 창의 그룹은 아예 검사하지 않고 무시합니다.
+            if (group.parentPanel.activeSelf)
+            {
+                foreach (var btn in group.itemButtons)
                 {
-                    panel.SetActive(true);
+                    if (btn != null)
+                    {
+                        string btnName = btn.name.ToUpper().Replace(" ", "");
+
+                        if (btnName.Contains(upperKeyword))
+                        {
+                            btn.SetActive(true);
+                        }
+                        else
+                        {
+                            btn.SetActive(false);
+                        }
+                    }
                 }
-                else
+            }
+            else
+            {
+                // 꺼져있는 창의 버튼들은 검색어와 상관없이 기본적으로 손대지 않거나 
+                // 원하신다면 전부 활성화(초기화) 상태로 대기시켜 둡니다.
+                foreach (var btn in group.itemButtons)
                 {
-                    panel.SetActive(false);
+                    if (btn != null) btn.SetActive(true);
                 }
             }
         }
