@@ -2,6 +2,10 @@
 
 public class TaskbarManager : MonoBehaviour
 {
+    // --- TaskbarManager.cs 내부에 추가할 코드 ---
+    public bool IsArchivePanelActive() => archiveSet.popupPanel != null && archiveSet.popupPanel.activeSelf;
+    public bool IsNewsPanelActive() => newsSet.popupPanel != null && newsSet.popupPanel.activeSelf;
+
     public static TaskbarManager Instance { get; private set; }
 
     // 🌟 [수정] struct를 class로 변경하여 참조형으로 관리합니다. (인스펙터 꼬임 원천 차단)

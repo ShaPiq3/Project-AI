@@ -10,9 +10,6 @@ public class TaskbarItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
 
     public GameObject TargetWindow { get; private set; }
 
-    // 🌟 [추가] 이 버튼이 클릭되어 활성화 상태인지 기억하는 변수
-    private bool isWindowActive = false;
-
     public void Setup(string windowName, GameObject window)
     {
         if (titleText != null) titleText.text = windowName;
@@ -29,47 +26,27 @@ public class TaskbarItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
         UpdateHighlightState(false);
     }
 
-    private void Update()
-    {
-        // 🌟 [핵심] 실제 특정 창이 사용자에 의해 x 버튼 등으로 꺼졌는지 실시간 체크
-        if (TargetWindow != null)
-        {
-            // 창의 활성화 상태가 바뀌었다면 하이라이트도 같이 갱신
-            if (isWindowActive != TargetWindow.activeSelf)
-            {
-                isWindowActive = TargetWindow.activeSelf;
-                UpdateHighlightState(isWindowActive);
-            }
-        }
-    }
+    // ❌ 실시간으로 창 상태를 체크해서 하이라이트를 강제하던 Update 로직 삭제
 
-    // 🌟 마우스가 들어왔을 때 (Hover)
+    // 🌟 오직 마우스가 들어왔을 때만 하이라이트 켬
     public void OnPointerEnter(PointerEventData eventData)
     {
         UpdateHighlightState(true);
     }
 
-    // 🌟 마우스가 나갔을 때
+    // 🌟 마우스가 나가는 순간 예외 없이 무조건 하이라이트 끔
     public void OnPointerExit(PointerEventData eventData)
     {
-        // 마우스가 나가더라도, 이 버튼의 창이 켜져 있는 상태라면 하이라이트를 유지합니다.
-        if (!isWindowActive)
-        {
-            UpdateHighlightState(false);
-        }
+        UpdateHighlightState(false);
     }
 
-    // 🌟 버튼을 클릭했을 때
+    // 🌟 버튼을 클릭했을 때 창만 띄우고, 하이라이트는 마우스가 올라가 있으니 유지됨
     private void OnButtonClick()
     {
         if (TargetWindow != null)
         {
             TargetWindow.SetActive(true);
             TargetWindow.transform.SetAsLastSibling();
-
-            // 클릭했으므로 활성화 상태를 true로 만들고 하이라이트 유지
-            isWindowActive = true;
-            UpdateHighlightState(true);
         }
     }
 

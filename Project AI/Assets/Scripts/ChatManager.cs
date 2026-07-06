@@ -33,7 +33,7 @@ public class WindowManager : MonoBehaviour
     }
 
     // 창을 오른쪽으로 내보내기 (접기)
-    private void HideWindow()
+    public void HideWindow()
     {
         hideButton.interactable = false;
 
@@ -46,7 +46,7 @@ public class WindowManager : MonoBehaviour
     }
 
     // 창을 왼쪽으로 다시 가져오기 (펼치기)
-    private void ShowWindow()
+    public void ShowWindow()
     {
         showButton.gameObject.SetActive(false);
 
