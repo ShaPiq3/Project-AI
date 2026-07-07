@@ -50,7 +50,7 @@ public class ChatDialogueManager : MonoBehaviour
         if (topBarToggle != null)
         {
             topBarToggle.gameObject.SetActive(true);
-            topBarToggle.isOn = true; // 버튼 클릭 트리거
+            topBarToggle.isOn = true;
         }
 
         yield return new WaitForSeconds(0.5f);
@@ -61,15 +61,42 @@ public class ChatDialogueManager : MonoBehaviour
     {
         foreach (DialogueData data in dialogueList)
         {
-            GameObject selectedPrefab = (data.speakerType == "NPC") ? npcPrefab : userPrefab;
+            bool isUser = (data.speakerType == "USER"); // USER면 왼쪽, 아니면 오른쪽
+            GameObject selectedPrefab = isUser ? userPrefab : npcPrefab;
+
             if (selectedPrefab != null)
             {
                 GameObject go = Instantiate(selectedPrefab, chatContent);
+
+                // --- 위치 정렬 로직 추가 시작 ---
+                RectTransform rt = go.GetComponent<RectTransform>();
+                if (rt != null)
+                {
+                    if (isUser) // USER: 왼쪽 정렬
+                    {
+                        rt.anchorMin = new Vector2(0, 0.5f);
+                        rt.anchorMax = new Vector2(0, 0.5f);
+                        rt.pivot = new Vector2(0, 0.5f);
+                    }
+                    else // NPC: 오른쪽 정렬
+                    {
+                        rt.anchorMin = new Vector2(1, 0.5f);
+                        rt.anchorMax = new Vector2(1, 0.5f);
+                        rt.pivot = new Vector2(1, 0.5f);
+                    }
+                    rt.anchoredPosition = Vector2.zero;
+                }
+                // --- 위치 정렬 로직 추가 끝 ---
+
                 ChatBubbleController controller = go.GetComponent<ChatBubbleController>();
                 if (controller != null) controller.SetupBubble(data);
+
+                // 레이아웃이 꼬이는 것을 방지하기 위해 매번 갱신 요청
+                LayoutRebuilder.ForceRebuildLayoutImmediate(chatContent.GetComponent<RectTransform>());
+
                 yield return new WaitForSeconds(data.delayTime);
             }
         }
-        yield break; // 코루틴 명확한 종료
+        yield break;
     }
 }
