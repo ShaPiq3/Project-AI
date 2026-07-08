@@ -10,47 +10,57 @@ public class ChatBubbleController : MonoBehaviour
     public TextMeshProUGUI chatText;     // 대사 텍스트 컴포넌트
     public Image chatImage;               // 독립된 순수 Image 컴포넌트
 
+    [Header("말풍선 크기 제한")]
+    public LayoutElement chatTextLayoutElement;  // chatText 오브젝트에 붙은 LayoutElement 연결
+    public float maxWidth = 500f;
+
+
     public void SetupBubble(DialogueData data)
     {
-        // 1. 이름 표기 (유저 프리팹처럼 인스펙터에 nameText 슬롯이 연결되어 있는 경우에만 작동)
-        if (nameText != null)
-        {
-            nameText.text = data.speakerName; // 엑셀의 SpeakerName 데이터를 텍스트창에 주입
-        }
+        chatText.text = data.dialogueText;
 
-        // 2. 대사 처리 (엑셀 대사 칸이 비어있으면 말풍선 자체를 꺼버림)
-        if (string.IsNullOrEmpty(data.dialogueText))
+        // 이미지 제어 로직 추가
+        if (data.hasImage)
         {
-            bubbleBgObject.SetActive(false);
-        }
-        else
-        {
-            bubbleBgObject.SetActive(true);
-            chatText.text = data.dialogueText;
-        }
+            chatImage.gameObject.SetActive(true);
 
-        // 3. 독립 이미지 처리 (말풍선 없이 맹 이미지로만 출력)
-        if (data.hasImage && !string.IsNullOrEmpty(data.imagePath))
-        {
+            // 1. Resources 폴더 내 경로 설정 (Assets/Resources/ 폴더가 기준)
+            // 엑셀 imagePath가 "F_1"이라면, 아래는 "F_1"을 로드합니다.
             Sprite loadedSprite = Resources.Load<Sprite>(data.imagePath);
+
             if (loadedSprite != null)
             {
-                chatImage.gameObject.SetActive(true);
-                chatImage.sprite = loadedSprite;
+                chatImage.sprite = loadedSprite; // 여기서 실제 이미지로 교체합니다!
             }
             else
             {
-                chatImage.gameObject.SetActive(false);
+                Debug.LogError($"이미지를 찾을 수 없음: {data.imagePath}");
             }
         }
         else
         {
-            chatImage.gameObject.SetActive(false);
+            chatImage.gameObject.SetActive(false); // 이미지가 없는 대화면 이미지 숨김
         }
 
-        // 4. 자식들이 On/Off 됨에 따라 최상위 부모(프리팹 자체) 크기 즉시 강제 리빌드
-        // Content Size Fitter 버그를 방지하고 크기를 칼같이 맞춰줍니다.
-        RectTransform myRect = GetComponent<RectTransform>();
-        LayoutRebuilder.ForceRebuildLayoutImmediate(myRect);
+        // 1. 핵심 수정: GetPreferredValues에서 가로 제한(maxWidth)을 넣어 계산해야 합니다.
+        // 이렇게 하면 340을 넘는 순간 줄바꿈이 일어났을 때의 높이와 너비를 알려줍니다.
+        Vector2 preferredSize = chatText.GetPreferredValues(data.dialogueText, maxWidth, 0);
+
+        // 2. 만약 글자 너비가 maxWidth를 넘는다면
+        if (preferredSize.x >= maxWidth)
+        {
+            chatTextLayoutElement.preferredWidth = maxWidth;
+            chatText.textWrappingMode = TextWrappingModes.Normal;
+        }
+        else
+        {
+            // 3. 짧을 때는 글자만큼만 너비를 가지게 함
+            chatTextLayoutElement.preferredWidth = -1f;
+            chatText.textWrappingMode = TextWrappingModes.NoWrap;
+        }
+
+        // 4. 레이아웃 갱신
+        Canvas.ForceUpdateCanvases();
+        LayoutRebuilder.ForceRebuildLayoutImmediate(bubbleBgObject.GetComponent<RectTransform>());
     }
 }

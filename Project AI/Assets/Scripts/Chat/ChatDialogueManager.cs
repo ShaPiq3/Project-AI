@@ -3,17 +3,24 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
+
+
 public class ChatDialogueManager : MonoBehaviour
+
 {
     public TextAsset csvFile;
     public GameObject npcPrefab;
     public GameObject userPrefab;
     public Transform chatContent;
 
+
+
     [Header("상단바 토글 버튼 (Toggle 컴포넌트 필수)")]
     public Toggle topBarToggle;
 
     private List<DialogueData> dialogueList = new List<DialogueData>();
+
+
 
     void Start()
     {
@@ -22,6 +29,8 @@ public class ChatDialogueManager : MonoBehaviour
         StartCoroutine(StartTestRoutine());
     }
 
+
+
     void ParseCSV()
     {
         if (csvFile == null) return;
@@ -29,8 +38,8 @@ public class ChatDialogueManager : MonoBehaviour
         for (int i = 1; i < rows.Length; i++)
         {
             string[] columns = rows[i].Split(',');
-            if (columns.Length < 7) continue;
 
+            if (columns.Length < 7) continue;
             DialogueData data = new DialogueData();
             data.id = int.Parse(columns[0].Trim());
             data.speakerType = columns[1].Trim();
@@ -43,19 +52,21 @@ public class ChatDialogueManager : MonoBehaviour
         }
     }
 
+
+
     IEnumerator StartTestRoutine()
     {
         yield return new WaitForSeconds(5f);
-
         if (topBarToggle != null)
         {
             topBarToggle.gameObject.SetActive(true);
             topBarToggle.isOn = true;
         }
-
         yield return new WaitForSeconds(0.5f);
         yield return StartCoroutine(GenerateChatWithExcelDelay());
     }
+
+
 
     IEnumerator GenerateChatWithExcelDelay()
     {
@@ -63,40 +74,30 @@ public class ChatDialogueManager : MonoBehaviour
         {
             bool isUser = (data.speakerType == "USER"); // USER면 왼쪽, 아니면 오른쪽
             GameObject selectedPrefab = isUser ? userPrefab : npcPrefab;
-
             if (selectedPrefab != null)
             {
                 GameObject go = Instantiate(selectedPrefab, chatContent);
-
                 // --- 위치 정렬 로직 추가 시작 ---
                 RectTransform rt = go.GetComponent<RectTransform>();
+
                 if (rt != null)
                 {
-                    if (isUser) // USER: 왼쪽 정렬
-                    {
-                        rt.anchorMin = new Vector2(0, 0.5f);
-                        rt.anchorMax = new Vector2(0, 0.5f);
-                        rt.pivot = new Vector2(0, 0.5f);
-                    }
-                    else // NPC: 오른쪽 정렬
-                    {
-                        rt.anchorMin = new Vector2(1, 0.5f);
-                        rt.anchorMax = new Vector2(1, 0.5f);
-                        rt.pivot = new Vector2(1, 0.5f);
-                    }
-                    rt.anchoredPosition = Vector2.zero;
+                    // 부모의 VerticalLayoutGroup이 위치를 잡도록 앵커를 전체(Stretch)로 설정
+                    rt.anchorMin = new Vector2(0, 1);
+                    rt.anchorMax = new Vector2(1, 1);
+                    rt.pivot = new Vector2(0.5f, 1);
+                    rt.sizeDelta = new Vector2(0, rt.sizeDelta.y); // 너비는 부모에 맞춤
                 }
-                // --- 위치 정렬 로직 추가 끝 ---
 
+                // --- 위치 정렬 로직 추가 끝 ---
                 ChatBubbleController controller = go.GetComponent<ChatBubbleController>();
                 if (controller != null) controller.SetupBubble(data);
-
                 // 레이아웃이 꼬이는 것을 방지하기 위해 매번 갱신 요청
                 LayoutRebuilder.ForceRebuildLayoutImmediate(chatContent.GetComponent<RectTransform>());
-
                 yield return new WaitForSeconds(data.delayTime);
             }
         }
         yield break;
     }
 }
+
