@@ -13,6 +13,8 @@ public class ChatDialogueManager : MonoBehaviour
     public GameObject userPrefab;
     public Transform chatContent;
 
+    [Header("스크롤 설정")]
+    public ScrollRect chatScrollRect;
 
 
     [Header("상단바 토글 버튼 (Toggle 컴포넌트 필수)")]
@@ -72,32 +74,33 @@ public class ChatDialogueManager : MonoBehaviour
     {
         foreach (DialogueData data in dialogueList)
         {
-            bool isUser = (data.speakerType == "USER"); // USER면 왼쪽, 아니면 오른쪽
+            bool isUser = (data.speakerType == "USER");
             GameObject selectedPrefab = isUser ? userPrefab : npcPrefab;
+
             if (selectedPrefab != null)
             {
+                // [중요] targetParent를 container 분리 없이 chatContent로 통일합니다.
+                // 모든 대화가 하나의 줄에 시간순으로 쌓입니다.
                 GameObject go = Instantiate(selectedPrefab, chatContent);
-                // --- 위치 정렬 로직 추가 시작 ---
-                RectTransform rt = go.GetComponent<RectTransform>();
 
-                if (rt != null)
-                {
-                    // 부모의 VerticalLayoutGroup이 위치를 잡도록 앵커를 전체(Stretch)로 설정
-                    rt.anchorMin = new Vector2(0, 1);
-                    rt.anchorMax = new Vector2(1, 1);
-                    rt.pivot = new Vector2(0.5f, 1);
-                    rt.sizeDelta = new Vector2(0, rt.sizeDelta.y); // 너비는 부모에 맞춤
-                }
-
-                // --- 위치 정렬 로직 추가 끝 ---
+                // 말풍선 데이터 셋업
                 ChatBubbleController controller = go.GetComponent<ChatBubbleController>();
                 if (controller != null) controller.SetupBubble(data);
-                // 레이아웃이 꼬이는 것을 방지하기 위해 매번 갱신 요청
+
+                // [핵심] 전체 레이아웃 갱신
+                // 1. 말풍선 자체가 스스로 크기를 잡게 둡니다 (Content Size Fitter 활용)
+                // 2. 전체 부모만 갱신하면 순서대로 아래로 쌓입니다.
+                Canvas.ForceUpdateCanvases();
                 LayoutRebuilder.ForceRebuildLayoutImmediate(chatContent.GetComponent<RectTransform>());
+
+                if (chatScrollRect != null)
+                {
+                    chatScrollRect.verticalNormalizedPosition = 0f;
+                }
+
                 yield return new WaitForSeconds(data.delayTime);
             }
         }
-        yield break;
     }
 }
 

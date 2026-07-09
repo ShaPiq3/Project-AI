@@ -23,14 +23,10 @@ public class ChatBubbleController : MonoBehaviour
         if (data.hasImage)
         {
             chatImage.gameObject.SetActive(true);
-
-            // 1. Resources 폴더 내 경로 설정 (Assets/Resources/ 폴더가 기준)
-            // 엑셀 imagePath가 "F_1"이라면, 아래는 "F_1"을 로드합니다.
             Sprite loadedSprite = Resources.Load<Sprite>(data.imagePath);
-
             if (loadedSprite != null)
             {
-                chatImage.sprite = loadedSprite; // 여기서 실제 이미지로 교체합니다!
+                chatImage.sprite = loadedSprite;
             }
             else
             {
@@ -39,27 +35,44 @@ public class ChatBubbleController : MonoBehaviour
         }
         else
         {
-            chatImage.gameObject.SetActive(false); // 이미지가 없는 대화면 이미지 숨김
+            chatImage.gameObject.SetActive(false);
         }
+
+        // --- 수정: 배경 제어 로직 시작 ---
+        // 대사(text)가 비어있고 이미지만 있는 경우에만 배경 숨김
+        bool hasText = !string.IsNullOrEmpty(data.dialogueText);
+        bool hasImage = data.hasImage;
+
+        // 대사가 없거나 이미지가 있으면 배경을 끈다 (또는 조건에 맞게 조정)
+        // 텍스트가 있을 때만 배경을 보여주길 원하시면 아래와 같이 작성하세요:
+        bubbleBgObject.SetActive(hasText);
+        // --- 수정: 배경 제어 로직 끝 ---
 
         // 1. 핵심 수정: GetPreferredValues에서 가로 제한(maxWidth)을 넣어 계산해야 합니다.
-        // 이렇게 하면 340을 넘는 순간 줄바꿈이 일어났을 때의 높이와 너비를 알려줍니다.
-        Vector2 preferredSize = chatText.GetPreferredValues(data.dialogueText, maxWidth, 0);
-
-        // 2. 만약 글자 너비가 maxWidth를 넘는다면
-        if (preferredSize.x >= maxWidth)
+        if (hasText)
         {
-            chatTextLayoutElement.preferredWidth = maxWidth;
+            float targetMaxWidth = (data.speakerType == "USER") ? 468f : 328f;
+
+            // 1. 텍스트가 328을 넘는지 확인
+            if (chatText.preferredWidth > targetMaxWidth)
+            {
+                // 넘으면 328로 고정하여 줄바꿈 유도
+                chatTextLayoutElement.preferredWidth = targetMaxWidth;
+            }
+            else
+            {
+                // 안 넘으면 텍스트 크기만큼만 차지하도록 설정
+                chatTextLayoutElement.preferredWidth = -1;
+            }
+
             chatText.textWrappingMode = TextWrappingModes.Normal;
         }
-        else
-        {
-            // 3. 짧을 때는 글자만큼만 너비를 가지게 함
-            chatTextLayoutElement.preferredWidth = -1f;
-            chatText.textWrappingMode = TextWrappingModes.NoWrap;
-        }
+        StartCoroutine(RebuildLayoutNextFrame());
+    }
 
-        // 4. 레이아웃 갱신
+    private System.Collections.IEnumerator RebuildLayoutNextFrame()
+    {
+        yield return new WaitForEndOfFrame();
         Canvas.ForceUpdateCanvases();
         LayoutRebuilder.ForceRebuildLayoutImmediate(bubbleBgObject.GetComponent<RectTransform>());
     }

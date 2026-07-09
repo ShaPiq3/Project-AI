@@ -1,5 +1,0 @@
-﻿id,speakerType,speakerName,dialogueText,HasImage,imagePath,delayTime
-1,NPC,AD-001,안녕하세요,FALSE,,1.5
-2,NPC,AD-001,안녕하세요 지금 이 문장은 340픽셀을 넘어서 줄바꿈이 정상적으로 일어나는지 확인하기 위해 작성된 테스트 문장입니다. 만약 이 문장이 아래로 내려가지 않고 옆으로 계속 길어진다면 텍스트 설정이나 레이아웃 컴포넌트의 제약 사항을 다시 확인해봐야 합니다. 과연 줄바꿈이 잘 될까요?,TRUE,img_emoticon_1 1,1.5
-3,USER,AI assisant,좋네요,FALSE,,1.5
-4,USER,AI assisant,,TRUE,S_5,1.5
