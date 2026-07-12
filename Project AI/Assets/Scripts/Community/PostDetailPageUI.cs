@@ -25,6 +25,7 @@ public class PostDetailPageUI : MonoBehaviour
 
     public void DisplayPost(PostData data)
     {
+        transform.SetAsLastSibling();
         // 1. ①번 구역 세팅
         titleText.text = data.title;
         authorText.text = data.author;

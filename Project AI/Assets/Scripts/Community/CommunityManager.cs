@@ -24,34 +24,39 @@ public class CommunityManager : MonoBehaviour
 
     void ParseCSV(string csvText)
     {
-        string[] rows = csvText.Split(new char[] { '\n', '\r' }, System.StringSplitOptions.RemoveEmptyEntries);
+        // [수정] 윈도우(\r\n)와 맥(\n) 환경의 줄바꿈을 완벽히 분리하기 위해 정규식으로 줄바꿈 분할 ⭐
+        string[] rows = Regex.Split(csvText, @"\r\n|\n|\r");
         string csvParserPattern = ",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)";
 
         for (int i = 1; i < rows.Length; i++)
         {
-            // 정규식을 이용해 스마트하게 분할
+            // 빈 줄은 과감히 패스
+            if (string.IsNullOrWhiteSpace(rows[i])) continue;
+
             string[] columns = Regex.Split(rows[i], csvParserPattern);
 
-            // [조건 체크] 엑셀 열 개수가 충분한지 확인 (새 데이터 구조에 맞춰 확장)
+            // [안전장치] 혹시 모를 배열 길이 부족 예방 및 데이터 검증
             if (columns.Length >= 8)
             {
-                // 1. postID 먼저 읽기 (정수로 변환)
-                int.TryParse(columns[0].Trim().Trim('"'), out int id);
+                // postID 읽기 (앞뒤 공백 및 쌍따옴표 완전 제거)
+                int.TryParse(columns[0].Trim().Replace("\"", ""), out int id);
+                if (id == 0) continue; // ID 파싱 실패 시 건너뜀
 
-                // 2. 이미 등록한 게시글 상자가 리스트에 있는지 검사 (중복 처리의 핵심! ⭐)
+                // 중복 체크
                 PostData existingPost = postList.Find(p => p.postID == id);
 
                 if (existingPost == null)
                 {
-                    // 3. 처음 보는 postID라면 새로운 PostData 상자를 만들어서 정보 채우기
                     existingPost = new PostData();
                     existingPost.postID = id;
-                    existingPost.title = columns[1].Trim().Trim('"');
-                    existingPost.author = columns[2].Trim().Trim('"');
-                    existingPost.date = columns[3].Trim().Trim('"');
 
-                    int.TryParse(columns[4].Trim().Trim('"'), out existingPost.likes);
-                    int.TryParse(columns[5].Trim().Trim('"'), out existingPost.dislikes);
+                    // [수정] Trim('"') 대신 안전하게 Replace("\"","")로 쌍따옴표를 완전히 걷어냅니다. ⭐
+                    existingPost.title = columns[1].Trim().Replace("\"", "");
+                    existingPost.author = columns[2].Trim().Replace("\"", "");
+                    existingPost.date = columns[3].Trim().Replace("\"", "");
+
+                    int.TryParse(columns[4].Trim().Replace("\"", ""), out existingPost.likes);
+                    int.TryParse(columns[5].Trim().Replace("\"", ""), out existingPost.dislikes);
 
                     // 본문 내용 가공
                     string rawContent = columns[6].Trim();
@@ -62,26 +67,22 @@ public class CommunityManager : MonoBehaviour
                     existingPost.content = rawContent.Replace("\"\"", "\"").Replace("\\n", "\n");
 
                     // 본문 이미지 이름 세팅
-                    existingPost.imageName = columns[7].Trim().Trim('"');
+                    existingPost.imageName = columns[7].Trim().Replace("\"", "");
 
-                    // 완성된 게시글 상자를 메인 리스트에 보관
                     postList.Add(existingPost);
                 }
 
-                // 4. 게시글 등록 여부와 무관하게, 뒤쪽에 '댓글 데이터'가 존재하면 주머니에 무조건 추가하기! ⭐
-                // 엑셀 열에서 댓글 작성자(9번째 열)의 정보를 확인합니다.
-                if (columns.Length >= 12 && !string.IsNullOrEmpty(columns[8].Trim()))
+                // 댓글 데이터 처리 (12열까지 확보되었는지 안전하게 검사)
+                if (columns.Length >= 12 && !string.IsNullOrWhiteSpace(columns[8]))
                 {
                     CommentData comment = new CommentData();
                     comment.postID = id;
-                    comment.author = columns[8].Trim().Trim('"');
-                    comment.content = columns[9].Trim().Trim('"');
+                    comment.author = columns[8].Trim().Replace("\"", "");
+                    comment.content = columns[9].Trim().Replace("\"", "");
 
-                    // 이모티콘 여부 판단 (true / false)
-                    bool.TryParse(columns[10].Trim().Trim('"'), out comment.isEmoticon);
-                    comment.emoticonName = columns[11].Trim().Trim('"');
+                    bool.TryParse(columns[10].Trim().Replace("\"", ""), out comment.isEmoticon);
+                    comment.emoticonName = columns[11].Trim().Replace("\"", "");
 
-                    // 해당 게시글 주머니에 쏙 집어넣기
                     existingPost.comments.Add(comment);
                 }
             }
@@ -98,16 +99,13 @@ public class CommunityManager : MonoBehaviour
             PostItemUI itemUI = newItem.GetComponent<PostItemUI>();
             if (itemUI != null)
             {
-                // 자신(this = CommunityManager)도 같이 넘겨줍니다.
                 itemUI.Setup(post, this);
             }
         }
     }
 
-    // 프리팹 버튼이 클릭되면 이 함수가 실행됩니다!
     public void OpenDetailPage(PostData data)
     {
-        // 상세 페이지 UI에 데이터 전달 및 오픈 명령
         detailPageUI.DisplayPost(data);
     }
 }
