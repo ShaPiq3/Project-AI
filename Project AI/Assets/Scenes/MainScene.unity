@@ -14524,7 +14524,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 28}
+  m_SizeDelta: {x: -531, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &1526658920
 MonoBehaviour:
@@ -19363,7 +19363,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CommunityManager
   postItemPrefab: {fileID: 3736828219169242271, guid: 13b3b63a21ae94d47aed5f09d4aae281, type: 3}
   contentTransform: {fileID: 1526658919}
-  detailPageUI: {fileID: 0}
+  detailPageUI: {fileID: 1069406661022692004, guid: ce85ba289631e414392f1ff440268a9a, type: 3}
 --- !u!4 &2041849471
 Transform:
   m_ObjectHideFlags: 0
