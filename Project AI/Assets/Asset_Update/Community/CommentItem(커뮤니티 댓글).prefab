@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 1063812797559745329}
   - component: {fileID: 8592961870668195649}
   m_Layer: 5
-  m_Name: CommentItem
+  m_Name: "CommentItem(\uCEE4\uBBA4\uB2C8\uD2F0 \uB313\uAE00)"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

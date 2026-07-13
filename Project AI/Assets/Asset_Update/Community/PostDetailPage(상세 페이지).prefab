@@ -2320,7 +2320,7 @@ GameObject:
   - component: {fileID: 1069406661022692004}
   - component: {fileID: 7717921518863229491}
   m_Layer: 5
-  m_Name: PostDetailPage
+  m_Name: "PostDetailPage(\uC0C1\uC138 \uD398\uC774\uC9C0)"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
