@@ -14,12 +14,12 @@ public class NewsButton : MonoBehaviour
     [Header("Category Tag (기존 구조 유지)")]
     public string category;
 
-    private NewsData myData;
+    public NewsData MyData { get; private set; }
     private NewsListManager listManager;
 
     public void SetButton(NewsData data, NewsListManager manager)
     {
-        myData = data;
+        MyData = data;
         listManager = manager;
 
         // 카테고리 설정 및 오브젝트 이름 변경
@@ -72,6 +72,6 @@ public class NewsButton : MonoBehaviour
     private void OnButtonClick()
     {
         // 클릭 시 매니저를 통해 상세 팝업창을 띄움
-        listManager.OpenDetailPopup(myData);
+        listManager.OpenDetailPopup(MyData);
     }
 }

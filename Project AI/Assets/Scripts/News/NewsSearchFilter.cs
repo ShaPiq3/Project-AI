@@ -47,7 +47,7 @@ public class NewsSearchFilter : MonoBehaviour
         string upperKeyword = string.IsNullOrEmpty(keyword) ? "" : keyword.ToUpper().Replace(" ", "");
         string upperCategory = category.ToUpper().Replace(" ", "");
 
-        // 복잡하게 배열을 인스펙터에 수동으로 넣을 필요 없이, Content의 자식들을 자동으로 돕니다.
+        // Content의 자식 뉴스 버튼들을 자동으로 순회
         for (int i = 0; i < contentParent.childCount; i++)
         {
             Transform child = contentParent.GetChild(i);
@@ -68,27 +68,18 @@ public class NewsSearchFilter : MonoBehaviour
             }
             else
             {
-                // 💡 [질문하신 핵심 기능] 버튼 안에 심어져 있는 자식 TMP 컴포넌트를 찾아 제목과 본문 요약본을 대조합니다.
-                // NewsButton의 인펙터에 매핑해 두었던 텍스트를 직접 읽어옵니다.
-
-                // 기존 구조처럼 하위 텍스트 오브젝트들의 내용을 추출
-                string titleAndBodyText = "";
-
-                // 자식 오브젝트들을 돌며 모든 글자(제목, 본문 요약 등)를 다 이어붙여 하나의 검색 타겟으로 만듭니다.
-                TextMeshProUGUI[] textComponents = child.GetComponentsInChildren<TextMeshProUGUI>(true);
-                foreach (var tmp in textComponents)
+                // 💡 [수정완료] 무겁게 자식 오브젝트들을 돌며 텍스트를 다 더할 필요가 없어졌습니다!
+                // 뉴스 버튼이 품고 있는 엑셀 원본 데이터(제목 + 1~5번 문단 통짜 본문)를 한 번에 합쳐서 대조합니다.
+                if (newsBtn.MyData != null)
                 {
-                    if (tmp != null)
+                    // 제목과 본문을 다 합친 커다란 검색 풀(Pool)을 만듭니다.
+                    string searchPool = (newsBtn.MyData.title + newsBtn.MyData.body).ToUpper().Replace(" ", "");
+
+                    // 엑셀 통짜 본문에 사용자가 검색한 단어가 한 글자라도 있으면 매칭 성공! (2, 3번째 뒷문단까지 100% 탐색)
+                    if (searchPool.Contains(upperKeyword))
                     {
-                        titleAndBodyText += tmp.text;
+                        isKeywordMatch = true;
                     }
-                }
-
-                // 가공 후 일치 여부 확인
-                titleAndBodyText = titleAndBodyText.ToUpper().Replace(" ", "");
-                if (titleAndBodyText.Contains(upperKeyword))
-                {
-                    isKeywordMatch = true;
                 }
             }
 
