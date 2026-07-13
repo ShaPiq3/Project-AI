@@ -8,4 +8,5 @@ public class DialogueData
     public bool hasImage;
     public string imagePath;
     public float delayTime;
+    public string ipAddress;
 }
