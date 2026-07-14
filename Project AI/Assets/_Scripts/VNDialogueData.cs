@@ -14,6 +14,7 @@ public class DialogueRow
     public string standingRight;
     public string sfx;
     public string bgm;
+    public string ambience; // 앰비언스는 유지
     public string effect;
 
     public string choice1;
@@ -23,7 +24,6 @@ public class DialogueRow
     public string choice3;
     public string nextId3;
 
-    // 🌟 [자동 이동 장치] 선택지 없이 일반 대사 넘김 시 이동할 타겟 ID
     public string nextId;
 }
 

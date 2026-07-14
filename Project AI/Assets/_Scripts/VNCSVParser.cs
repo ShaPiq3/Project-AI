@@ -49,6 +49,7 @@ public static class VNCSVParser
             row.standingRight = GetField(fields, cleanHeaders, "standing_right");
             row.sfx = GetField(fields, cleanHeaders, "sfx");
             row.bgm = GetField(fields, cleanHeaders, "bgm");
+            row.ambience = GetField(fields, cleanHeaders, "ambience");
             row.effect = GetField(fields, cleanHeaders, "effect");
 
             row.choice1 = GetField(fields, cleanHeaders, "choice_1");
@@ -58,7 +59,6 @@ public static class VNCSVParser
             row.choice3 = GetField(fields, cleanHeaders, "choice_3");
             row.nextId3 = GetField(fields, cleanHeaders, "next_id_3");
 
-            // 🌟 [자동 이동 장치 데이터 파싱]
             row.nextId = GetField(fields, cleanHeaders, "next_id");
 
             if (row != null && !string.IsNullOrEmpty(row.id))

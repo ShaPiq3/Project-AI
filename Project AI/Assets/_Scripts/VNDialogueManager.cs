@@ -17,9 +17,13 @@ public class VNDialogueManager : MonoBehaviour
     [SerializeField] private Image standingMidImage;
     [SerializeField] private Image standingRightImage;
 
+    [Tooltip("선택지가 뜰 때 비활성화(숨김) 처리할 대사창(말상자) 부모 오브젝트를 드래그 앤 드롭해 주세요.")]
+    [SerializeField] private GameObject dialogueWindow;
+
     [Header("Audio References")]
     [SerializeField] private AudioSource bgmSource;
     [SerializeField] private AudioSource sfxSource;
+    [SerializeField] private AudioSource ambienceSource;
 
     [Header("Choice Settings")]
     [SerializeField] private GameObject choiceContainer;
@@ -38,6 +42,7 @@ public class VNDialogueManager : MonoBehaviour
     private List<DialogueRow> dialogueRows;
     private int currentLineIndex = 0;
     private string currentBgmName = "";
+    private string currentAmbienceName = "";
 
     private Coroutine typingCoroutine;
     private Coroutine fadeCoroutine;
@@ -128,6 +133,8 @@ public class VNDialogueManager : MonoBehaviour
         if (choiceContainer == null) Debug.LogError("[인스펙터 누락] 'Choice Container' 슬롯이 비어있습니다! 오브젝트를 연결해주세요.");
         if (choiceButtons == null || choiceButtons.Length == 0) Debug.LogError("[인스펙터 누락] 'Choice Buttons' 배열이 비어있거나 세팅되지 않았습니다.");
         if (choiceTexts == null || choiceTexts.Length == 0) Debug.LogError("[인스펙터 누락] 'Choice Texts' 배열이 비어있거나 세팅되지 않았습니다.");
+        if (ambienceSource == null) Debug.LogWarning("[인스펙터 권장] 'Ambience Source'가 연결되지 않았습니다. 인스펙터에 오디오소스를 넣어주세요.");
+        if (dialogueWindow == null) Debug.LogWarning("[인스펙터 권장] 'Dialogue Window' 슬롯이 비어있습니다. 선택지 출현 시 숨길 대사창(말상자) 부모 오브젝트를 꽂아주세요.");
     }
 
     private void CreateFullScreenFadeObject(Transform parentCanvas)
@@ -208,7 +215,6 @@ public class VNDialogueManager : MonoBehaviour
         }
     }
 
-    // 🌟 [핵심 변경] 대사 넘김 버튼을 눌렀을 때 작동하는 자동 이동 및 자동 종료 판정 로직
     public void OnNextTarget()
     {
         if (currentLineIndex >= 0 && currentLineIndex < dialogueRows.Count)
@@ -218,14 +224,12 @@ public class VNDialogueManager : MonoBehaviour
 
             if (!string.IsNullOrEmpty(autoNextID))
             {
-                // ① 만약 next_id 칸에 QUIT 라고 적혀있다면 즉시 시스템 종료 처리
                 if (autoNextID.Equals("QUIT", System.StringComparison.OrdinalIgnoreCase))
                 {
                     TriggerExitVisualNovel();
                     return;
                 }
 
-                // ② 특정 ID 주소가 적혀있다면 해당 행을 찾아서 다이렉트 자동 점프(합치기)
                 int targetIndex = dialogueRows.FindIndex(row => row != null && row.id.Trim() == autoNextID);
                 if (targetIndex >= 0)
                 {
@@ -241,7 +245,6 @@ public class VNDialogueManager : MonoBehaviour
             }
         }
 
-        // 별다른 자동 이동 규칙이 없다면 평소처럼 다음 행(+1)으로 순차 진행
         currentLineIndex++;
 
         if (currentLineIndex < dialogueRows.Count)
@@ -254,15 +257,15 @@ public class VNDialogueManager : MonoBehaviour
         }
     }
 
-    // 🌟 비주얼 노벨 종료 연출 공통 모듈화
     private void TriggerExitVisualNovel()
     {
-        Debug.Log("비주얼 노벨 시스템 연출 종료");
-        if (speakerText != null) speakerText.text = "";
-        if (dialogueText != null) dialogueText.text = "이야기가 끝났습니다.";
+        Debug.Log("[시스템] 비주얼 노벨 시나리오 종료 -> 작동 정지 및 종료 처리");
 
-        // 💡 나레이션 멈춤 후 타이틀 화면으로 완전히 씬 전환을 시키고 싶다면 
-        // 여기에 UnityEngine.SceneManagement.SceneManager.LoadScene("TitleScene"); 코드를 넣으면 됩니다.
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#else
+        Application.Quit();
+#endif
     }
 
     private void PlayLine(int index)
@@ -276,11 +279,31 @@ public class VNDialogueManager : MonoBehaviour
         isChoiceActive = false;
         if (choiceContainer != null) choiceContainer.SetActive(false);
 
-        string effectKey = !string.IsNullOrEmpty(dialogueRows[index].effect) ? dialogueRows[index].effect.Trim() : "";
+        DialogueRow row = dialogueRows[index];
+
+        // 🌟 [핵심 변경] 재생 직전, 이번 행에 선택지가 있는지 "선행 검사"합니다.
+        bool hasChoice = !string.IsNullOrEmpty(row.choice1);
+
+        if (dialogueWindow != null)
+        {
+            // 선택지가 있으면 처음부터 대사창을 켜지 않고 완전히 꺼둡니다. 텀이 생기지 않습니다.
+            dialogueWindow.SetActive(!hasChoice);
+        }
+
+        string effectRaw = !string.IsNullOrEmpty(row.effect) ? row.effect.Trim() : "";
+        List<string> activeEffects = new List<string>();
+        if (!string.IsNullOrEmpty(effectRaw))
+        {
+            string[] splitEffects = effectRaw.Split(new char[] { ',', '/' }, System.StringSplitOptions.RemoveEmptyEntries);
+            foreach (var fx in splitEffects)
+            {
+                activeEffects.Add(fx.Trim().ToLower());
+            }
+        }
+
         if (fadeCoroutine != null) StopCoroutine(fadeCoroutine);
 
-        if (!effectKey.Equals("Whitein_BG", System.StringComparison.OrdinalIgnoreCase) &&
-            !effectKey.Equals("Fadein_BG", System.StringComparison.OrdinalIgnoreCase))
+        if (!activeEffects.Contains("whitein_bg") && !activeEffects.Contains("fadein_bg"))
         {
             if (bgEffectOverlayImage != null) bgEffectOverlayImage.color = new Color(0, 0, 0, 0f);
         }
@@ -288,17 +311,26 @@ public class VNDialogueManager : MonoBehaviour
         if (backgroundImage != null) backgroundImage.color = Color.white;
         if (bgDissolveTemp != null) bgDissolveTemp.gameObject.SetActive(false);
 
-        DialogueRow row = dialogueRows[index];
-
         if (speakerText != null && !string.IsNullOrEmpty(row.speaker)) speakerText.text = row.speaker;
         else if (speakerText != null) speakerText.text = "";
 
         completeDialogue = !string.IsNullOrEmpty(row.dialogue) ? row.dialogue : "";
         if (typingCoroutine != null) StopCoroutine(typingCoroutine);
-        typingCoroutine = StartCoroutine(TypeTextCoroutine(completeDialogue, row));
 
-        bool isFadeBG = effectKey.Equals("Fadein_BG", System.StringComparison.OrdinalIgnoreCase);
-        bool isDissolveBG = effectKey.Equals("Dissolve_BG", System.StringComparison.OrdinalIgnoreCase);
+        // 🌟 선택지가 없을 때만 타이핑 연출을 시작합니다.
+        if (!hasChoice)
+        {
+            typingCoroutine = StartCoroutine(TypeTextCoroutine(completeDialogue, row));
+        }
+        else
+        {
+            // 선택지가 있다면 텍스트 처리 단계를 즉시 통과시키고 선택지 버튼을 바로 출력합니다.
+            if (dialogueText != null) dialogueText.text = "";
+            CheckAndShowChoices(row);
+        }
+
+        bool isFadeBG = activeEffects.Contains("fadein_bg");
+        bool isDissolveBG = activeEffects.Contains("dissolve_bg");
 
         if (!string.IsNullOrEmpty(row.background) && backgroundImage != null)
         {
@@ -315,13 +347,13 @@ public class VNDialogueManager : MonoBehaviour
             }
         }
 
-        bool isFadeLeft = effectKey.Equals("Fadein_Left", System.StringComparison.OrdinalIgnoreCase);
-        bool isFadeMid = effectKey.Equals("Fadein_Mid", System.StringComparison.OrdinalIgnoreCase);
-        bool isFadeRight = effectKey.Equals("Fadein_Right", System.StringComparison.OrdinalIgnoreCase);
+        bool isFadeLeft = activeEffects.Contains("fadein_left");
+        bool isFadeMid = activeEffects.Contains("fadein_mid");
+        bool isFadeRight = activeEffects.Contains("fadein_right");
 
-        bool isDissolveLeft = effectKey.Equals("Dissolve_Left", System.StringComparison.OrdinalIgnoreCase);
-        bool isDissolveMid = effectKey.Equals("Dissolve_Mid", System.StringComparison.OrdinalIgnoreCase);
-        bool isDissolveRight = effectKey.Equals("Dissolve_Right", System.StringComparison.OrdinalIgnoreCase);
+        bool isDissolveLeft = activeEffects.Contains("dissolve_left");
+        bool isDissolveMid = activeEffects.Contains("dissolve_mid");
+        bool isDissolveRight = activeEffects.Contains("dissolve_right");
 
         UpdateStandingCharacter(row.standingLeft, standingLeftImage, leftDissolveTemp, isFadeLeft, isDissolveLeft, dissolveStandingDuration);
         UpdateStandingCharacter(row.standingMid, standingMidImage, midDissolveTemp, isFadeMid, isDissolveMid, dissolveStandingDuration);
@@ -347,15 +379,35 @@ public class VNDialogueManager : MonoBehaviour
             }
         }
 
+        if (!string.IsNullOrEmpty(row.ambience) && ambienceSource != null)
+        {
+            if (row.ambience.Equals("StopAmbience", System.StringComparison.OrdinalIgnoreCase))
+            {
+                ambienceSource.Stop();
+                currentAmbienceName = "";
+            }
+            else if (row.ambience != currentAmbienceName)
+            {
+                AudioClip ambClip = Resources.Load<AudioClip>($"Audio/Ambience/{row.ambience}");
+                if (ambClip != null)
+                {
+                    currentAmbienceName = row.ambience;
+                    ambienceSource.clip = ambClip;
+                    ambienceSource.loop = true;
+                    ambienceSource.Play();
+                }
+            }
+        }
+
         if (!string.IsNullOrEmpty(row.sfx) && sfxSource != null)
         {
             AudioClip sfxClip = Resources.Load<AudioClip>($"Audio/SFX/{row.sfx}");
             if (sfxClip != null) sfxSource.PlayOneShot(sfxClip);
         }
 
-        if (!string.IsNullOrEmpty(effectKey))
+        if (activeEffects.Count > 0)
         {
-            if (effectKey.Equals("Fadein_BG", System.StringComparison.OrdinalIgnoreCase))
+            if (activeEffects.Contains("fadein_bg"))
             {
                 if (bgEffectOverlayImage != null)
                 {
@@ -363,15 +415,18 @@ public class VNDialogueManager : MonoBehaviour
                     fadeCoroutine = StartCoroutine(OverlayFadeInCoroutine(bgEffectOverlayImage, Color.black, fadeOutDuration));
                 }
             }
-            else if (effectKey.Equals("FadeIn_Target", System.StringComparison.OrdinalIgnoreCase))
+
+            if (activeEffects.Contains("fadein_target"))
             {
                 if (backgroundImage != null) fadeCoroutine = StartCoroutine(FadeInTargetCoroutine(backgroundImage));
             }
-            else if (effectKey.Equals("Whiteout_BG", System.StringComparison.OrdinalIgnoreCase))
+
+            if (activeEffects.Contains("whiteout_bg"))
             {
                 if (bgEffectOverlayImage != null) fadeCoroutine = StartCoroutine(OverlayFadeCoroutine(bgEffectOverlayImage, Color.white, whiteoutDuration));
             }
-            else if (effectKey.Equals("Whitein_BG", System.StringComparison.OrdinalIgnoreCase))
+
+            if (activeEffects.Contains("whitein_bg"))
             {
                 if (bgEffectOverlayImage != null)
                 {
@@ -379,13 +434,15 @@ public class VNDialogueManager : MonoBehaviour
                     fadeCoroutine = StartCoroutine(OverlayFadeInCoroutine(bgEffectOverlayImage, Color.white, whiteinDuration));
                 }
             }
-            else if (effectKey.Equals("Fadeout_BG", System.StringComparison.OrdinalIgnoreCase))
+
+            if (activeEffects.Contains("fadeout_bg"))
             {
                 if (bgEffectOverlayImage != null) fadeCoroutine = StartCoroutine(OverlayFadeCoroutine(bgEffectOverlayImage, Color.black, fadeOutDuration));
             }
-            else if (isFadeLeft && standingLeftImage != null) fadeCoroutine = StartCoroutine(FadeInTargetCoroutine(standingLeftImage));
-            else if (isFadeMid && standingMidImage != null) fadeCoroutine = StartCoroutine(FadeInTargetCoroutine(standingMidImage));
-            else if (isFadeRight && standingRightImage != null) fadeCoroutine = StartCoroutine(FadeInTargetCoroutine(standingRightImage));
+
+            if (isFadeLeft && standingLeftImage != null) fadeCoroutine = StartCoroutine(FadeInTargetCoroutine(standingLeftImage));
+            if (isFadeMid && standingMidImage != null) fadeCoroutine = StartCoroutine(FadeInTargetCoroutine(standingMidImage));
+            if (isFadeRight && standingRightImage != null) fadeCoroutine = StartCoroutine(FadeInTargetCoroutine(standingRightImage));
         }
     }
 
@@ -397,6 +454,9 @@ public class VNDialogueManager : MonoBehaviour
         {
             isChoiceActive = true;
             choiceContainer.SetActive(true);
+
+            if (dialogueWindow != null) dialogueWindow.SetActive(false);
+
             SetButtonActive(0, row.choice1);
             SetButtonActive(1, row.choice2);
             SetButtonActive(2, row.choice3);
@@ -445,6 +505,9 @@ public class VNDialogueManager : MonoBehaviour
             {
                 choiceContainer.SetActive(false);
                 isChoiceActive = false;
+
+                if (dialogueWindow != null) dialogueWindow.SetActive(true);
+
                 currentLineIndex = targetIndex;
                 PlayLine(currentLineIndex);
             }
@@ -452,6 +515,7 @@ public class VNDialogueManager : MonoBehaviour
             {
                 choiceContainer.SetActive(false);
                 isChoiceActive = false;
+                if (dialogueWindow != null) dialogueWindow.SetActive(true);
                 OnNextTarget();
             }
         }
@@ -459,6 +523,7 @@ public class VNDialogueManager : MonoBehaviour
         {
             choiceContainer.SetActive(false);
             isChoiceActive = false;
+            if (dialogueWindow != null) dialogueWindow.SetActive(true);
             OnNextTarget();
         }
     }
@@ -483,6 +548,7 @@ public class VNDialogueManager : MonoBehaviour
                     mainImage.gameObject.SetActive(true);
                     mainImage.sprite = nextSprite;
                     mainImage.color = new Color(1f, 1f, 1f, isFade ? 0f : 1f);
+                    mainImage.material = null;
                 }
             }
             else mainImage.gameObject.SetActive(false);
@@ -547,7 +613,7 @@ public class VNDialogueManager : MonoBehaviour
         {
             elapsed += Time.deltaTime;
             float alpha = Mathf.Clamp01(elapsed / fadeDuration);
-            targetImage.color = new Color(baseColor.r, baseColor.g, baseColor.b, alpha);
+            targetImage.color = new Color(baseColor.r, baseColor.b, baseColor.g, alpha);
             yield return null;
         }
         targetImage.color = new Color(baseColor.r, baseColor.g, baseColor.b, 1f);
