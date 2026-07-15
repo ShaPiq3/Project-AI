@@ -30,7 +30,12 @@ public class ChatDialogueManager : MonoBehaviour
     // 시작할 때 또는 숨길 때 나갈 오른쪽 화면 밖 X 좌표 (예: 500 또는 800)
     [SerializeField] private float hidePositionX = 600f;
 
-    private List<DialogueData> dialogueList = new List<DialogueData>();
+    // --- 선택지 동적 생성용 프리팹 설정 ---
+    [Header("선택지 프리팹 설정")]
+    public GameObject branchGroupPrefab; // Project 뷰에 있는 선택지 패널 프리팹 할당
+
+    // 순차 리스트 대신 ID 분기(Jump) 탐색을 위해 딕셔너리로 대화 데이터를 관리합니다.
+    private Dictionary<int, DialogueData> dialogueDictionary = new Dictionary<int, DialogueData>();
 
     // 상태 체크 변수들
     private bool isChatWindowOpened = false;
@@ -38,10 +43,18 @@ public class ChatDialogueManager : MonoBehaviour
     private bool isDialogueStarted = false;
     private bool isClosedByPlayer = false;
 
+    // --- 동적 선택지 인스턴스 제어용 변수 ---
+    private GameObject activeBranchInstance; // 현재 대화창에 생성된 선택지 오브젝트
+    private Button[] activeBranchButtons;     // 생성된 오브젝트 내부에 바인딩할 버튼 배열
+    private bool isWaitingForBranchSelection = false;
+    private int selectedNextId = -1;
+    private string selectedUserText = "";
+
     private CanvasGroup dialogueCanvasGroup;
 
     void Start()
     {
+        // 1. CSV 파싱 및 딕셔너리 구축
         ParseCSV();
 
         if (dialoguePanelRect != null)
@@ -75,24 +88,58 @@ public class ChatDialogueManager : MonoBehaviour
     void ParseCSV()
     {
         if (csvFile == null) return;
-        string[] rows = csvFile.text.Split(new char[] { '\n' }, System.StringSplitOptions.RemoveEmptyEntries);
+
+        // 줄바꿈 단위로 파싱 (맥/윈도우 호환을 위해 \n과 \r 제거 고려)
+        string[] rows = csvFile.text.Replace("\r", "").Split(new char[] { '\n' }, System.StringSplitOptions.RemoveEmptyEntries);
+
         for (int i = 1; i < rows.Length; i++)
         {
             string[] columns = rows[i].Split(',');
 
+            // 새로 확장된 CSV는 최소 8개 이상의 열을 가집니다.
             if (columns.Length < 8) continue;
+
             DialogueData data = new DialogueData();
-            data.id = int.Parse(columns[0].Trim());
+
+            // TryParse를 사용하여 파싱 에러(FormatException)를 원천 차단합니다.
+            int.TryParse(columns[0].Trim(), out data.id);
             data.speakerType = columns[1].Trim();
             data.speakerName = columns[2].Trim();
             data.dialogueText = columns[3].Trim().Replace("\"", "");
-            data.hasImage = bool.Parse(columns[4].Trim().ToUpper());
-            data.imagePath = columns[5].Trim();
-            data.delayTime = float.Parse(columns[6].Trim());
-            data.ipAddress = columns[7].Trim();
-            
-            dialogueList.Add(data);
 
+            bool.TryParse(columns[4].Trim(), out data.hasImage);
+            data.imagePath = columns[5].Trim();
+            float.TryParse(columns[6].Trim(), out data.delayTime);
+            data.ipAddress = columns[7].Trim();
+
+            // --- 선택지 및 분기 데이터 파싱 ---
+            if (columns.Length >= 15)
+            {
+                bool.TryParse(columns[8].Trim(), out data.isBranch);
+                data.branchText1 = columns[9].Trim().Replace("\"", "");
+                int.TryParse(columns[10].Trim(), out data.nextId1);
+                data.branchText2 = columns[11].Trim().Replace("\"", "");
+                int.TryParse(columns[12].Trim(), out data.nextId2);
+                data.branchText3 = columns[13].Trim().Replace("\"", "");
+                int.TryParse(columns[14].Trim(), out data.nextId3);
+            }
+            else
+            {
+                data.isBranch = false;
+                data.branchText1 = ""; data.nextId1 = 0;
+                data.branchText2 = ""; data.nextId2 = 0;
+                data.branchText3 = ""; data.nextId3 = 0;
+            }
+
+            if (!dialogueDictionary.ContainsKey(data.id))
+            {
+                dialogueDictionary.Add(data.id, data);
+            }
+            else
+            {
+                Debug.LogWarning($"중복된 ID 발견: {data.id}. 덮어씁니다.");
+                dialogueDictionary[data.id] = data;
+            }
         }
     }
 
@@ -106,7 +153,6 @@ public class ChatDialogueManager : MonoBehaviour
         TriggerOpenChat();
     }
 
-    // 시스템에 의해 자동으로 창이 열릴 때
     public void TriggerOpenChat()
     {
         if (isClosedByPlayer) return;
@@ -141,10 +187,9 @@ public class ChatDialogueManager : MonoBehaviour
         }
     }
 
-    // 플레이어가 다시 켜기 버튼을 눌렀을 때
     public void OpenChatWindowByPlayer()
     {
-        isClosedByPlayer = false; // ⭐ 일시정지 해제!
+        isClosedByPlayer = false;
         isChatWindowOpened = true;
 
         if (showButton != null) showButton.gameObject.SetActive(false);
@@ -164,17 +209,21 @@ public class ChatDialogueManager : MonoBehaviour
             dialoguePanelRect.DOAnchorPosX(targetPositionX, tweenDuration).SetEase(Ease.OutQuad);
         }
 
-        // 대화 코루틴이 이미 실행 중일 테니 중복 실행하지 않고 냅둡니다.
         TryStartDialogue();
     }
 
-    // 우측 퇴장 버튼을 누르면 호출되는 함수
     public void CloseChatWindow()
     {
         if (dialoguePanelRect == null) return;
 
-        isClosedByPlayer = true; // ⭐ 일시정지 활성화!
+        isClosedByPlayer = true;
         isChatWindowOpened = false;
+
+        // 파괴되지 않고 유효한 객체일 때만 SetActive 제어
+        if (activeBranchInstance != null && !activeBranchInstance.Equals(null))
+        {
+            activeBranchInstance.SetActive(false);
+        }
 
         if (closeButton != null) closeButton.interactable = false;
 
@@ -200,8 +249,15 @@ public class ChatDialogueManager : MonoBehaviour
 
     private void TryStartDialogue()
     {
-        // 이제 닫혀있어도 이미 시작된 적이 있다면 코루틴을 중복 생성하지 않습니다.
-        if (isDialogueStarted) return;
+        if (isDialogueStarted)
+        {
+            // 복구 시 MissingReferenceException 방지 필터링
+            if (isWaitingForBranchSelection && activeBranchInstance != null && !activeBranchInstance.Equals(null))
+            {
+                activeBranchInstance.SetActive(true);
+            }
+            return;
+        }
         isDialogueStarted = true;
 
         StartCoroutine(StartChatGenerationWithDelay());
@@ -215,13 +271,16 @@ public class ChatDialogueManager : MonoBehaviour
 
     IEnumerator GenerateChatWithExcelDelay()
     {
-        foreach (DialogueData data in dialogueList)
+        int currentId = 1;
+
+        while (dialogueDictionary.ContainsKey(currentId))
         {
-            // ⭐ [핵심 추가] 플레이어가 수동으로 창을 닫았다면, 다시 열릴 때까지 이 자리에서 멈춰 대기합니다!
             while (isClosedByPlayer)
             {
-                yield return null; // 다음 프레임까지 대기 (무한 루프 방지 및 일시정지 구현)
+                yield return null;
             }
+
+            DialogueData data = dialogueDictionary[currentId];
 
             if (topIPText != null)
             {
@@ -235,26 +294,140 @@ public class ChatDialogueManager : MonoBehaviour
                 }
             }
 
-            bool isUser = (data.speakerType == "USER");
-            GameObject selectedPrefab = isUser ? userPrefab : npcPrefab;
-
-            if (selectedPrefab != null)
+            // 만약 현재 ID 대사가 '선택지 분기 전용 껍데기 대사'가 아니고 출력할 내용이 있다면 말풍선 생성
+            if (!data.isBranch || !string.IsNullOrEmpty(data.dialogueText))
             {
-                GameObject go = Instantiate(selectedPrefab, chatContent);
+                bool isUser = (data.speakerType == "USER");
+                GameObject selectedPrefab = isUser ? userPrefab : npcPrefab;
 
-                ChatBubbleController controller = go.GetComponent<ChatBubbleController>();
-                if (controller != null) controller.SetupBubble(data);
-
-                Canvas.ForceUpdateCanvases();
-                LayoutRebuilder.ForceRebuildLayoutImmediate(chatContent.GetComponent<RectTransform>());
-
-                if (chatScrollRect != null)
+                if (selectedPrefab != null)
                 {
-                    chatScrollRect.verticalNormalizedPosition = 0f;
+                    GameObject go = Instantiate(selectedPrefab, chatContent);
+
+                    ChatBubbleController controller = go.GetComponent<ChatBubbleController>();
+                    if (controller != null) controller.SetupBubble(data);
+
+                    Canvas.ForceUpdateCanvases();
+                    LayoutRebuilder.ForceRebuildLayoutImmediate(chatContent.GetComponent<RectTransform>());
+
+                    if (chatScrollRect != null)
+                    {
+                        chatScrollRect.verticalNormalizedPosition = 0f;
+                    }
                 }
 
+                // 대사가 출력되었다면 기획된 딜레이만큼 대기
                 yield return new WaitForSeconds(data.delayTime);
             }
+
+            // --- 선택지 분기 판정 로직 ---
+            if (data.isBranch)
+            {
+                ShowBranchUI(data);
+
+                isWaitingForBranchSelection = true;
+                while (isWaitingForBranchSelection)
+                {
+                    yield return null;
+                }
+
+                // 플레이어가 선택지를 누르면, 플레이어가 고른 대사를 채팅창에 말풍선으로 직접 띄워줍니다.
+                if (userPrefab != null && !string.IsNullOrEmpty(selectedUserText))
+                {
+                    GameObject userSpeechGo = Instantiate(userPrefab, chatContent);
+                    ChatBubbleController controller = userSpeechGo.GetComponent<ChatBubbleController>();
+                    if (controller != null)
+                    {
+                        DialogueData userSelectionData = new DialogueData();
+                        userSelectionData.speakerType = "USER";
+                        userSelectionData.speakerName = "AI assistant"; // "USER" 대신 화자명 매핑
+                        userSelectionData.dialogueText = selectedUserText;
+                        userSelectionData.hasImage = false;
+                        controller.SetupBubble(userSelectionData);
+                    }
+
+                    Canvas.ForceUpdateCanvases();
+                    LayoutRebuilder.ForceRebuildLayoutImmediate(chatContent.GetComponent<RectTransform>());
+                    if (chatScrollRect != null)
+                    {
+                        chatScrollRect.verticalNormalizedPosition = 0f;
+                    }
+
+                    // 전송 연출 딜레이
+                    yield return new WaitForSeconds(0.8f);
+                }
+
+                // 선택된 분기 ID로 다이렉트 점프합니다.
+                currentId = selectedNextId;
+            }
+            else
+            {
+                // 일반 대사 흐름일 때만 루프 ID 1 증가
+                currentId++;
+            }
         }
+    }
+
+    private void ShowBranchUI(DialogueData data)
+    {
+        if (branchGroupPrefab == null) return;
+
+        if (activeBranchInstance != null && !activeBranchInstance.Equals(null))
+        {
+            Destroy(activeBranchInstance);
+        }
+
+        activeBranchInstance = Instantiate(branchGroupPrefab, chatContent);
+        activeBranchButtons = activeBranchInstance.GetComponentsInChildren<Button>(true);
+
+        SetBranchButton(0, data.branchText1, data.nextId1);
+        SetBranchButton(1, data.branchText2, data.nextId2);
+        SetBranchButton(2, data.branchText3, data.nextId3);
+
+        Canvas.ForceUpdateCanvases();
+        LayoutRebuilder.ForceRebuildLayoutImmediate(chatContent.GetComponent<RectTransform>());
+        if (chatScrollRect != null)
+        {
+            chatScrollRect.verticalNormalizedPosition = 0f;
+        }
+    }
+
+    private void SetBranchButton(int index, string text, int nextId)
+    {
+        if (activeBranchButtons == null || index >= activeBranchButtons.Length) return;
+        Button targetButton = activeBranchButtons[index];
+
+        if (targetButton == null) return;
+
+        if (!string.IsNullOrEmpty(text) && nextId != 0)
+        {
+            targetButton.gameObject.SetActive(true);
+
+            TMP_Text buttonText = targetButton.GetComponentInChildren<TMP_Text>();
+            if (buttonText != null)
+            {
+                buttonText.text = text;
+            }
+
+            targetButton.onClick.RemoveAllListeners();
+            targetButton.onClick.AddListener(() => OnBranchSelected(nextId, text));
+        }
+        else
+        {
+            targetButton.gameObject.SetActive(false);
+        }
+    }
+
+    private void OnBranchSelected(int nextId, string text)
+    {
+        selectedNextId = nextId;
+        selectedUserText = text;
+
+        if (activeBranchInstance != null && !activeBranchInstance.Equals(null))
+        {
+            Destroy(activeBranchInstance);
+        }
+
+        isWaitingForBranchSelection = false;
     }
 }

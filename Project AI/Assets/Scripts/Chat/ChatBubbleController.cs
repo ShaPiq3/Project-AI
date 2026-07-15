@@ -17,6 +17,12 @@ public class ChatBubbleController : MonoBehaviour
 
     public void SetupBubble(DialogueData data)
     {
+        // --- [수정] 보낸 사람의 이름을 텍스트 컴포넌트에 반영 ---
+        if (nameText != null)
+        {
+            nameText.text = data.speakerName;
+        }
+
         chatText.text = data.dialogueText;
 
         // 이미지 제어 로직 추가
@@ -38,25 +44,21 @@ public class ChatBubbleController : MonoBehaviour
             chatImage.gameObject.SetActive(false);
         }
 
-        // --- 수정: 배경 제어 로직 시작 ---
         // 대사(text)가 비어있고 이미지만 있는 경우에만 배경 숨김
         bool hasText = !string.IsNullOrEmpty(data.dialogueText);
         bool hasImage = data.hasImage;
 
-        // 대사가 없거나 이미지가 있으면 배경을 끈다 (또는 조건에 맞게 조정)
-        // 텍스트가 있을 때만 배경을 보여주길 원하시면 아래와 같이 작성하세요:
         bubbleBgObject.SetActive(hasText);
-        // --- 수정: 배경 제어 로직 끝 ---
 
-        // 1. 핵심 수정: GetPreferredValues에서 가로 제한(maxWidth)을 넣어 계산해야 합니다.
+        // GetPreferredValues에서 가로 제한(maxWidth)을 넣어 계산
         if (hasText)
         {
             float targetMaxWidth = (data.speakerType == "USER") ? 468f : 328f;
 
-            // 1. 텍스트가 328을 넘는지 확인
+            // 1. 텍스트가 targetMaxWidth를 넘는지 확인
             if (chatText.preferredWidth > targetMaxWidth)
             {
-                // 넘으면 328로 고정하여 줄바꿈 유도
+                // 넘으면 targetMaxWidth로 고정하여 줄바꿈 유도
                 chatTextLayoutElement.preferredWidth = targetMaxWidth;
             }
             else

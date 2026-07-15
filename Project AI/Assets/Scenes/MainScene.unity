@@ -508,6 +508,7 @@ MonoBehaviour:
   tweenDuration: 0.5
   targetPositionX: -249.9999
   hidePositionX: 600
+  branchGroupPrefab: {fileID: 8426259376245413950, guid: 925c0ab96b4f68c45b6a16dbf35a2b03, type: 3}
 --- !u!1 &31172979
 GameObject:
   m_ObjectHideFlags: 0
@@ -9213,7 +9214,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &968512883
 MonoBehaviour:
   m_ObjectHideFlags: 0
