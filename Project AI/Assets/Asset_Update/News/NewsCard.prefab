@@ -308,7 +308,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Title
+  m_text: "\u201C\uAE30\uC77C\uB9C8\uB2E4 \uB0A8\uACA8\uC9C4 \uBAA9\uC18C\uB9AC \uD655\uC778\u201D\u2026PROMES
+    \uCD94\uBAA8 \uC544\uCE74\uC774\uBE0C \uC774\uC6A9 \uC548\uC815\uC138"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 314185bd028abb84ea83affd3ebb1ddc, type: 2}
   m_sharedMaterial: {fileID: -7265446773360362794, guid: 314185bd028abb84ea83affd3ebb1ddc, type: 2}
@@ -397,7 +398,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &3576061610078207320
 RectTransform:
   m_ObjectHideFlags: 0
@@ -706,7 +707,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &6303504829303564590
 RectTransform:
   m_ObjectHideFlags: 0
@@ -994,7 +995,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &247992716433226771
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1372,7 +1373,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uC5B8\uB860\uC0AC/\uB0A0\uC9DC"
+  m_text: "\uC911\uC559\uC77C\uBCF4 2026.07.26"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 314185bd028abb84ea83affd3ebb1ddc, type: 2}
   m_sharedMaterial: {fileID: -7265446773360362794, guid: 314185bd028abb84ea83affd3ebb1ddc, type: 2}

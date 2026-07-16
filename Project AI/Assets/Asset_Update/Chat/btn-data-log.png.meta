@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: e6869a361cd500e4e96084c6399a75b1
+guid: d1b659e92077e104886319dc314e5983
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -7990268356222464859
-    second: img_emoticon_01_0
+      213: -4836984699056352549
+    second: btn-data-log_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -113,13 +113,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: img_emoticon_01_0
+      name: btn-data-log_0
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 1254
-        height: 1254
+        width: 114
+        height: 34
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -128,8 +128,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 5acc057a34ddc1190800000000000000
-      internalID: -7990268356222464859
+      spriteID: bd21fbc2b049fdcb0800000000000000
+      internalID: -4836984699056352549
       vertices: []
       indices: 
       edges: []
@@ -148,7 +148,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      img_emoticon_01_0: -7990268356222464859
+      btn-data-log_0: -4836984699056352549
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

@@ -1,60 +1,138 @@
-using UnityEngine;
-using UnityEngine.UI;
+ï»¿using UnityEngine;
 using DG.Tweening;
 
 public class WindowManager : MonoBehaviour
 {
     [Header("UI References")]
-    [SerializeField] private RectTransform windowRect;
-    [SerializeField] private Button hideButton;
-    [SerializeField] private Button showButton;
+    [SerializeField] private RectTransform chatWindowRect;    // ì˜¤ë¥¸ìª½ ê³ ì • ì±„íŒ…ì°½(Chat_Panel)
+    [SerializeField] private RectTransform datalogWindowRect; // ë…ë¦½ëœ DATALOG ì°½
 
-    [Header("Settings")]
-    [SerializeField] private float duration = 0.5f;
-    [SerializeField] private float hidePositionX = 500f;
+    [Header("Slide Settings")]
+    [SerializeField] private float slideDuration = 0.4f;      // ìŠ¬ë¼ì´ë“œ ì• ë‹ˆë©”ì´ì…˜ ì‹œê°„
 
-    private Vector2 originPosition;
+    [Header("Target Position Settings (ì—´ë ¸ì„ ë•Œ ì •ì§€ ìœ„ì¹˜)")]
+    [SerializeField] private Vector2 targetPosition = new Vector2(-460f, -137f); // ì •ì§€ ì¢Œí‘œ
+
+    private bool isDatalogOpen = false;
+    private Vector2 initialHidePosition; // í™”ë©´ ìš°ì¸¡ ë°–(ê¸°ë³¸ ìˆ¨ê¹€ ìœ„ì¹˜)
 
     void Start()
     {
-        // 1. ±âÁØÀÌ µÇ´Â ¿ø·¡ À§Ä¡(ÁÂÃø µîÀå »óÅÂ)¸¦ ±â¾ï
-        originPosition = windowRect.anchoredPosition;
+        if (datalogWindowRect != null)
+        {
+            // ì´ˆê¸° ìˆ¨ê¹€ ìœ„ì¹˜ ì§€ì •
+            initialHidePosition = new Vector2(500f, targetPosition.y);
+            datalogWindowRect.anchoredPosition = initialHidePosition;
 
-        // 2. [½ÃÀÛ »óÅÂ º¯°æ] Ã¢À» Ã³À½ºÎÅÍ ¿À¸¥ÂÊ ¹Û(¼û±è À§Ä¡)À¸·Î °­Á¦ ÀÌµ¿
-        windowRect.anchoredPosition = new Vector2(hidePositionX, originPosition.y);
+            datalogWindowRect.gameObject.SetActive(true);
 
-        // 3. [½ÃÀÛ »óÅÂ º¯°æ] »õ ¹öÆ°Àº º¸ÀÌ°Ô, ¿ø·¡ ¼û±â±â ¹öÆ°Àº ºñÈ°¼ºÈ­
-        showButton.gameObject.SetActive(true);
-        hideButton.interactable = false;
-
-        // 4. ¹öÆ° ¸®½º³Ê ¿¬°á
-        hideButton.onClick.AddListener(HideWindow);
-        showButton.onClick.AddListener(ShowWindow);
-    }
-
-    // Ã¢À» ¿À¸¥ÂÊÀ¸·Î ³»º¸³»±â (Á¢±â)
-    public void HideWindow()
-    {
-        hideButton.interactable = false;
-
-        windowRect.DOAnchorPosX(hidePositionX, duration)
-            .SetEase(Ease.OutQuad)
-            .OnComplete(() =>
+            // íˆ¬ëª…ë„ ì¡°ì ˆë¡œ ì½”ë£¨í‹´ ì—ëŸ¬ ë°©ì§€
+            CanvasGroup canvasGroup = datalogWindowRect.GetComponent<CanvasGroup>();
+            if (canvasGroup == null)
             {
-                showButton.gameObject.SetActive(true);
-            });
+                canvasGroup = datalogWindowRect.gameObject.AddComponent<CanvasGroup>();
+            }
+            canvasGroup.alpha = 0f;
+            canvasGroup.blocksRaycasts = false;
+            isDatalogOpen = false; // ì‹œì‘ ìƒíƒœëŠ” í™•ì‹¤í•˜ê²Œ ë‹«í˜ìœ¼ë¡œ ì´ˆê¸°í™”
+        }
     }
 
-    // Ã¢À» ¿ŞÂÊÀ¸·Î ´Ù½Ã °¡Á®¿À±â (ÆîÄ¡±â)
-    public void ShowWindow()
+    /// <summary>
+    /// ë²„íŠ¼ í´ë¦­ ì‹œ ìë™ìœ¼ë¡œ ì—´ê³  ë‹«ì•„ì£¼ëŠ” í† ê¸€ í•¨ìˆ˜ (ì¸ìŠ¤í™í„° ë²„íŠ¼ On Clickìš©)
+    /// </summary>
+    public void ToggleDatalogWindow()
     {
-        showButton.gameObject.SetActive(false);
+        if (datalogWindowRect == null) return;
+        if (DOTween.IsTweening(datalogWindowRect)) return;
 
-        windowRect.DOAnchorPosX(originPosition.x, duration)
-            .SetEase(Ease.OutQuad)
-            .OnComplete(() =>
-            {
-                hideButton.interactable = true;
-            });
+        isDatalogOpen = !isDatalogOpen;
+
+        if (isDatalogOpen)
+        {
+            OpenDatalogDirect();
+        }
+        else
+        {
+            CloseDatalogDirect();
+        }
     }
+
+    /// <summary>
+    /// ê°•ì œ ì—´ê¸° í•µì‹¬ ë¡œì§
+    /// </summary>
+    private void OpenDatalogDirect()
+    {
+        datalogWindowRect.DOKill();
+        CanvasGroup canvasGroup = datalogWindowRect.GetComponent<CanvasGroup>();
+
+        if (canvasGroup != null)
+        {
+            canvasGroup.DOKill();
+            canvasGroup.DOFade(1f, slideDuration);
+            canvasGroup.blocksRaycasts = true;
+        }
+
+        datalogWindowRect.DOAnchorPos(targetPosition, slideDuration)
+            .SetEase(Ease.OutQuad);
+    }
+
+    /// <summary>
+    /// [ìˆ˜ì •] publicìœ¼ë¡œ ë³€ê²½í•˜ì—¬ ì¸ìŠ¤í™í„° ë²„íŠ¼ì—ì„œ ì§ì ‘ ë“±ë¡ì´ ê°€ëŠ¥í•˜ë„ë¡ ìˆ˜ì •í–ˆìŠµë‹ˆë‹¤.
+    /// ì±„íŒ…ì°½ì„ ë„ëŠ” ë…ë¦½ ë²„íŠ¼ì— ì—°ê²°í•˜ì‹œë©´ ë©ë‹ˆë‹¤.
+    /// </summary>
+    public void CloseDatalogDirect()
+    {
+        if (datalogWindowRect == null) return;
+
+        datalogWindowRect.DOKill();
+        isDatalogOpen = false; // ìˆ˜ë™ìœ¼ë¡œ ëŒ ë•Œ í† ê¸€ ìƒíƒœë„ ì™„ì „íˆ ë‹«í˜ ìƒíƒœë¡œ ë™ê¸°í™”
+
+        CanvasGroup canvasGroup = datalogWindowRect.GetComponent<CanvasGroup>();
+        if (canvasGroup != null)
+        {
+            canvasGroup.DOKill();
+            canvasGroup.DOFade(0f, slideDuration);
+            canvasGroup.blocksRaycasts = false;
+        }
+
+        datalogWindowRect.DOAnchorPos(initialHidePosition, slideDuration)
+            .SetEase(Ease.OutQuad);
+    }
+
+    // ì—‘ì…€ ë™ì  ìƒì„± ë“± ê¸°ì¡´ í˜¸í™˜ì„± ìœ ì§€ë¥¼ ìœ„í•œ ë³´ì¡° í•¨ìˆ˜
+    public void RepositionWindow(RectTransform targetWindow)
+    {
+        if (targetWindow == datalogWindowRect)
+        {
+            OpenDatalogDirect();
+            isDatalogOpen = true;
+        }
+    }
+
+    #region ChatTab ì—°ë™ìš© í•¨ìˆ˜ (ì—ëŸ¬ ë°©ì§€ìš© ê¸°ì¡´ êµ¬ì¡° ìœ ì§€)
+
+    public void PushWindowsLeft(float pushAmount, float duration) { }
+
+    public void PullWindowsRight(float pushAmount, float duration)
+    {
+        if (isDatalogOpen)
+        {
+            isDatalogOpen = false;
+            datalogWindowRect.DOKill();
+            CanvasGroup canvasGroup = datalogWindowRect.GetComponent<CanvasGroup>();
+
+            if (canvasGroup != null)
+            {
+                canvasGroup.DOKill();
+                canvasGroup.DOFade(0f, duration);
+                canvasGroup.blocksRaycasts = false;
+            }
+
+            datalogWindowRect.DOAnchorPos(initialHidePosition, duration)
+                .SetEase(Ease.OutQuad);
+        }
+    }
+
+    #endregion
 }

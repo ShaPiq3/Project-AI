@@ -1,5 +1,6 @@
-using System.Collections.Generic;
+ï»¿using System.Collections.Generic;
 using UnityEngine;
+using System.Text;
 
 public class NewsListManager : MonoBehaviour
 {
@@ -7,44 +8,51 @@ public class NewsListManager : MonoBehaviour
     [SerializeField] private TextAsset csvFile;
 
     [Header("Prefabs & Parents")]
-    [SerializeField] private GameObject newsButtonPrefab; // 2¹ø¿¡¼­ ¸¸µç NewsButton ÇÁ¸®ÆÕ
-    [SerializeField] private Transform contentParent;     // ScrollViewÀÇ Content ¿ÀºêÁ§Æ®
+    [SerializeField] private GameObject newsButtonPrefab;
+    [SerializeField] private Transform contentParent;
 
     [Header("Detail Popup Reference")]
-    [SerializeField] private NewsCard detailPopup;        // ¸Ç Ã³À½ ¸¸µé¾ú´ø »ó¼¼È­¸é DB_News ÇÁ¸®ÆÕ ±â±â
+    [SerializeField] private NewsCard detailPopup;
 
     private void Start()
     {
         if (detailPopup != null) detailPopup.gameObject.SetActive(false);
 
         ParseExcelAndGenerateButtons();
-        SelectCategory("ALL"); // ½ÃÀÛ ½Ã ÀüÃ¼ ±â»ç ³ëÃâ
+        SelectCategory("ALL");
     }
 
-    // 1. ¿¢¼¿ ÆÄ½Ì ¹× ¸®½ºÆ® ¹öÆ° µ¿Àû »ı¼º
+    // 1. ì—‘ì…€ íŒŒì‹± ë° ë¦¬ìŠ¤íŠ¸ ë²„íŠ¼ ë™ì  ìƒì„± (ì •ë°€ ìŠ¤ìº” ë°©ì‹)
     private void ParseExcelAndGenerateButtons()
     {
         if (csvFile == null || newsButtonPrefab == null || contentParent == null) return;
 
-        string[] lines = csvFile.text.Split(new char[] { '\n', '\r' }, System.StringSplitOptions.RemoveEmptyEntries);
+        List<List<string>> csvData = ParseCSV(csvFile.text);
 
-        // i = 1 ºÎÅÍ ½ÃÀÛ (Ã¹ ÁÙÀº Çì´õ: ID, Category, Title...)
-        for (int i = 1; i < lines.Length; i++)
+        // i = 1 ë¶€í„° ì‹œì‘ (ì²« ì¤„ì€ í—¤ë”: ID, Category, Title... ì œì™¸)
+        for (int i = 1; i < csvData.Count; i++)
         {
-            string[] row = lines[i].Split(',');
-            if (row.Length < 6) continue;
+            List<string> row = csvData[i];
+            if (row.Count < 6) continue;
+
+            // ID ë³€í™˜ ì˜ˆì™¸ ì²˜ë¦¬
+            if (!int.TryParse(row[0], out int idResult))
+            {
+                Debug.LogWarning($"[CSV íŒŒì‹± íŒ¨ìŠ¤] {i}ë²ˆì§¸ ì¤„ì˜ ID í˜•ì‹ì´ ì˜¬ë°”ë¥´ì§€ ì•ŠìŠµë‹ˆë‹¤: '{row[0]}'");
+                continue;
+            }
 
             NewsData data = new NewsData
             {
-                id = int.Parse(row[0].Trim()),
-                category = row[1].Trim(),
-                title = row[2].Trim(),
-                info = row[3].Trim(),
-                body = row[4].Trim(),
-                imageName = row[5].Trim()
+                id = idResult,
+                category = row[1],
+                title = row[2],
+                info = row[3],
+                body = row[4],       // ë¬¸ë‹¨ êµ¬ë¶„ì„ ìœ„í•œ '|'ê°€ ê¹¨ì§€ì§€ ì•Šê³  ì•ˆì „í•˜ê²Œ ë³´ì¡´ë©ë‹ˆë‹¤.
+                imageName = row[5]
             };
 
-            // ¸ñ·Ï ¹öÆ° »ı¼º ¹× µ¥ÀÌÅÍ ÁÖÀÔ
+            // ëª©ë¡ ë²„íŠ¼ ìƒì„± ë° ë°ì´í„° ì£¼ì…
             GameObject btnGo = Instantiate(newsButtonPrefab, contentParent);
             NewsButton newsBtn = btnGo.GetComponent<NewsButton>();
             if (newsBtn != null)
@@ -54,15 +62,89 @@ public class NewsListManager : MonoBehaviour
         }
     }
 
-    // 2. Ä«Å×°í¸® ¼±ÅÃ ¸¶½ºÅÍ ÇÔ¼ö (±âÁ¸ º¸³»ÁÖ½Å ·ÎÁ÷ÀÇ ÀåÁ¡ ÅëÇÕ)
+    // ğŸ’¡ ìŒë”°ì˜´í‘œ ë‚´ë¶€ì˜ ì¤„ë°”ê¿ˆê³¼ ì‰¼í‘œë¥¼ ì™„ë²½í•˜ê²Œ íŒë³„í•´ë‚´ëŠ” í•˜ë“œì½”ì–´ CSV íŒŒì„œ
+    private List<List<string>> ParseCSV(string csvText)
+    {
+        List<List<string>> result = new List<List<string>>();
+        List<string> currentLine = new List<string>();
+        StringBuilder cell = new StringBuilder();
+        bool inQuotes = false;
+
+        for (int i = 0; i < csvText.Length; i++)
+        {
+            char c = csvText[i];
+
+            if (inQuotes)
+            {
+                if (c == '"')
+                {
+                    // ìŒë”°ì˜´í‘œ ì—°ì† ë‘ ê°œ("")ëŠ” ì§„ì§œ ìŒë”°ì˜´í‘œ ë¬¸ì í•˜ë‚˜ë¡œ ì²˜ë¦¬
+                    if (i + 1 < csvText.Length && csvText[i + 1] == '"')
+                    {
+                        cell.Append('"');
+                        i++;
+                    }
+                    else
+                    {
+                        inQuotes = false; // ë‹«ëŠ” ìŒë”°ì˜´í‘œ ì²˜ë¦¬
+                    }
+                }
+                else
+                {
+                    cell.Append(c); // ìŒë”°ì˜´í‘œ ë‚´ë¶€ì˜ ê¸€ì(ì‰¼í‘œ, ì¤„ë°”ê¿ˆ í¬í•¨)ëŠ” ê·¸ëŒ€ë¡œ ë³´ì¡´
+                }
+            }
+            else
+            {
+                if (c == '"')
+                {
+                    inQuotes = true; // ì—¬ëŠ” ìŒë”°ì˜´í‘œ ê°ì§€
+                }
+                else if (c == ',')
+                {
+                    currentLine.Add(cell.ToString().Trim());
+                    cell.Clear();
+                }
+                else if (c == '\n' || c == '\r')
+                {
+                    // í–‰ì˜ ë ì²˜ë¦¬ (\r\n ëŒ€ì‘)
+                    if (c == '\r' && i + 1 < csvText.Length && csvText[i + 1] == '\n')
+                    {
+                        i++;
+                    }
+                    currentLine.Add(cell.ToString().Trim());
+                    cell.Clear();
+
+                    if (currentLine.Count > 0 && !string.IsNullOrWhiteSpace(currentLine[0]))
+                    {
+                        result.Add(new List<string>(currentLine));
+                    }
+                    currentLine.Clear();
+                }
+                else
+                {
+                    cell.Append(c);
+                }
+            }
+        }
+
+        // ë§ˆì§€ë§‰ ë‚¨ì€ ë°ì´í„° ì²˜ë¦¬
+        if (cell.Length > 0 || currentLine.Count > 0)
+        {
+            currentLine.Add(cell.ToString().Trim());
+            result.Add(currentLine);
+        }
+
+        return result;
+    }
+
+    // 2. ì¹´í…Œê³ ë¦¬ ì„ íƒ ë§ˆìŠ¤í„° í•¨ìˆ˜
     public void SelectCategory(string categoryKeyword)
     {
         if (contentParent == null) return;
 
-        // °ø¹é Á¦°Å ¹× ´ë¹®ÀÚ º¯È¯À¸·Î ºñ±³ Á¤È®µµ Çâ»ó
         string cleanKeyword = categoryKeyword.Replace(" ", "").ToUpper();
-
-        bool isAll = string.IsNullOrEmpty(cleanKeyword) || cleanKeyword == "ALL" || cleanKeyword == "ÀüÃ¼";
+        bool isAll = string.IsNullOrEmpty(cleanKeyword) || cleanKeyword == "ALL" || cleanKeyword == "ì „ì²´";
 
         for (int i = 0; i < contentParent.childCount; i++)
         {
@@ -75,13 +157,11 @@ public class NewsListManager : MonoBehaviour
             }
             else
             {
-                // Component¿¡¼­ Á÷Á¢ Ä«Å×°í¸®¸¦ °¡Á®¿À°Å³ª ¿ÀºêÁ§Æ® ÀÌ¸§¿¡¼­ °Ë»ç °¡´É
                 NewsButton btnComponent = child.GetComponent<NewsButton>();
                 if (btnComponent != null)
                 {
                     string cleanTargetCategory = btnComponent.category.Replace(" ", "").ToUpper();
 
-                    // ±âÁ¸ ÄÚµåÃ³·³ Å°¿öµå°¡ Æ÷ÇÔµÇ¾î ÀÖ´ÂÁö °Ë»ç (Contains)
                     if (cleanTargetCategory.Contains(cleanKeyword))
                     {
                         child.gameObject.SetActive(true);
@@ -95,13 +175,13 @@ public class NewsListManager : MonoBehaviour
         }
     }
 
-    // 3. ¹öÆ°À» ´­·¶À» ¶§ »ó¼¼ ÆË¾÷À» ¿­¾îÁÖ´Â Áß°è ÇÔ¼ö
+    // 3. ë²„íŠ¼ì„ ëˆŒë €ì„ ë•Œ ìƒì„¸ íŒì—…ì„ ì—´ì–´ì£¼ëŠ” ì¤‘ê³„ í•¨ìˆ˜
     public void OpenDetailPopup(NewsData data)
     {
         if (detailPopup != null)
         {
             detailPopup.gameObject.SetActive(true);
-            detailPopup.SetNewsData(data); // ÀÌÀü ´äº¯ÀÇ SetNewsData È£Ãâ
+            detailPopup.SetNewsData(data);
         }
     }
 }

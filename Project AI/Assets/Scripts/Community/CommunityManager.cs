@@ -35,8 +35,8 @@ public class CommunityManager : MonoBehaviour
 
             string[] columns = Regex.Split(rows[i], csvParserPattern);
 
-            // [안전장치] 혹시 모를 배열 길이 부족 예방 및 데이터 검증
-            if (columns.Length >= 8)
+            // [💡 수정] 단서 열 2개가 추가되어 인덱스 13(14번째 열)까지 안전하게 읽기 위해 조건을 >= 14로 확장
+            if (columns.Length >= 14)
             {
                 // postID 읽기 (앞뒤 공백 및 쌍따옴표 완전 제거)
                 int.TryParse(columns[0].Trim().Replace("\"", ""), out int id);
@@ -69,7 +69,15 @@ public class CommunityManager : MonoBehaviour
                     // 본문 이미지 이름 세팅
                     existingPost.imageName = columns[7].Trim().Replace("\"", "");
 
+                    // 💡 [추가] 13번째 열(인덱스 12)에서 게시글 본문 단서 ID 추출
+                    existingPost.clueID = columns[12].Trim().Replace("\"", "");
+
                     postList.Add(existingPost);
+                }
+                // 💡 [추가] 기존에 생성된 글이라도, 다른 행에 본문 단서가 새로 적혀있다면 채워줌 (예외방지)
+                else if (string.IsNullOrEmpty(existingPost.clueID) && !string.IsNullOrWhiteSpace(columns[12]))
+                {
+                    existingPost.clueID = columns[12].Trim().Replace("\"", "");
                 }
 
                 // 댓글 데이터 처리 (12열까지 확보되었는지 안전하게 검사)
@@ -82,6 +90,9 @@ public class CommunityManager : MonoBehaviour
 
                     bool.TryParse(columns[10].Trim().Replace("\"", ""), out comment.isEmoticon);
                     comment.emoticonName = columns[11].Trim().Replace("\"", "");
+
+                    // 💡 [추가] 14번째 열(인덱스 13)에서 댓글 단서 ID 추출
+                    comment.clueID = columns[13].Trim().Replace("\"", "");
 
                     existingPost.comments.Add(comment);
                 }

@@ -25,14 +25,14 @@ public class ChatTab : MonoBehaviour
         if (isOn)
         {
             // 이 버튼이 On 되면 연결된 채팅창을 열어줌
-            windowManager.ShowWindow();
+     
         }
         else
         {
             // 다른 버튼이 On 되면서 이 버튼이 Off 되면 연결된 채팅창을 닫아줌
             if (windowManager.gameObject.activeSelf)
             {
-                windowManager.HideWindow(); // 유저님의 닫기 함수 호출
+     
             }
         }
     }

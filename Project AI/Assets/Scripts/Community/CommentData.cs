@@ -1,9 +1,11 @@
-[System.Serializable]
+ï»¿[System.Serializable]
 public class CommentData
 {
     public int postID;
     public string author;
     public string content;
-    public bool isEmoticon;     // ¿¢¼¿ÀÇ IsEmoticon (TRUE/FALSE)
-    public string emoticonName; // ¿¢¼¿ÀÇ EmoticonName (ÀÌ¹ÌÁö ÆÄÀÏ ÀÌ¸§)
+    public bool isEmoticon;
+    public string emoticonName;
+    // ğŸ’¡ [ì¶”ê°€] íŠ¹ì • ëŒ“ê¸€ì„ í´ë¦­í–ˆì„ ë•Œ ìˆ˜ì§‘í•  ë‹¨ì„œ ID (ì—†ìœ¼ë©´ ë¹ˆ ê°’)
+    public string clueID;
 }

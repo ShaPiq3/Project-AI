@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: be556b0bd7891d24984e2fdaa325e9d6
+guid: 6eb746cbb8af4a445a797fe7f8cc5101
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 5307374743168030068
-    second: img_emoticon_1_0
+      213: 5391654099556178300
+    second: F_5_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -113,13 +113,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: img_emoticon_1_0
+      name: F_5_0
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 500
-        height: 500
+        width: 250
+        height: 200
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -128,8 +128,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 4751960953597a940800000000000000
-      internalID: 5307374743168030068
+      spriteID: c7913db56d003da40800000000000000
+      internalID: 5391654099556178300
       vertices: []
       indices: 
       edges: []
@@ -148,7 +148,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      img_emoticon_1_0: 5307374743168030068
+      F_5_0: 5391654099556178300
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

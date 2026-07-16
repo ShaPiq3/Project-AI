@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 [System.Serializable]
 public class PostData
@@ -11,7 +11,7 @@ public class PostData
     public int dislikes;
     public string content;
     public string imageName;
-
-    // �� �ָӴϰ� �۵��Ϸ��� CommentData�� �ݵ�� �ʿ��մϴ�!
-    public System.Collections.Generic.List<CommentData> comments = new System.Collections.Generic.List<CommentData>();
+    // 💡 [추가] 게시글 자체를 클릭하거나 읽었을 때 수집할 단서 ID (없으면 빈 값)
+    public string clueID;
+    public List<CommentData> comments = new List<CommentData>();
 }

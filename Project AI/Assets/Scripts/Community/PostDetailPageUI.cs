@@ -19,6 +19,11 @@ public class PostDetailPageUI : MonoBehaviour
     public Image postImage;
     public TMP_Text contentText;
 
+    // 💡 [추가] 본문 전체 영역을 클릭했을 때 단서를 수집할 수 있도록 버튼 컴포넌트 연결
+    // 만약 이미 본문 오브젝트에 버튼이 붙어있다면 인스펙터에서 드래그하여 연결해 주시면 됩니다.
+    [Header("③번 구역 단서 수집용")]
+    public Button postContentButton;
+
     [Header("④번 구역 (댓글 리스트 영역)")]
     public Transform commentListTransform;
     public GameObject commentPrefab;
@@ -59,6 +64,26 @@ public class PostDetailPageUI : MonoBehaviour
             postImage.gameObject.SetActive(false);
         }
 
+        // 💡 [추가] 게시글 본문 자체에 단서 ID(clueID)가 들어있는지 검사하고 클릭 이벤트 연결
+        if (postContentButton != null)
+        {
+            postContentButton.onClick.RemoveAllListeners();
+            if (!string.IsNullOrEmpty(data.clueID) && DataLogManager.Instance != null)
+            {
+                postContentButton.onClick.AddListener(() => {
+                    ClueData clue = new ClueData
+                    {
+                        clueID = data.clueID,
+                        sourceType = "커뮤니티",
+                        sourceTitle = data.title,
+                        contentText = data.content,
+                        imageName = data.imageName
+                    };
+                    DataLogManager.Instance.AddClue(clue);
+                });
+            }
+        }
+
         // 3. ⑤번 구역 댓글 생성 처리
         foreach (Transform child in commentListTransform)
         {
@@ -71,6 +96,27 @@ public class PostDetailPageUI : MonoBehaviour
             {
                 GameObject cItem = Instantiate(commentPrefab, commentListTransform);
                 cItem.GetComponent<CommentItemUI>().Setup(cData);
+
+                // 💡 [추가] 해당 댓글에 단서 ID(clueID)가 매핑되어 있다면 클릭 시 단서 수집 처리
+                // 댓글 프리팹 자체에 Button 컴포넌트가 부착되어 있거나 동적으로 추가하여 연동합니다.
+                if (!string.IsNullOrEmpty(cData.clueID) && DataLogManager.Instance != null)
+                {
+                    Button commentBtn = cItem.GetComponent<Button>();
+                    if (commentBtn == null) commentBtn = cItem.AddComponent<Button>();
+
+                    commentBtn.onClick.RemoveAllListeners();
+                    commentBtn.onClick.AddListener(() => {
+                        ClueData clue = new ClueData
+                        {
+                            clueID = cData.clueID,
+                            sourceType = "댓글",
+                            sourceTitle = $"{data.title} ({cData.author})",
+                            contentText = cData.content,
+                            imageName = ""
+                        };
+                        DataLogManager.Instance.AddClue(clue);
+                    });
+                }
             }
         }
 
