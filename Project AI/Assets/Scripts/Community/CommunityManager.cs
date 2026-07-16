@@ -10,6 +10,11 @@ public class CommunityManager : MonoBehaviour
 
     [Header("상세 페이지 UI 스크립트 연결")]
     public PostDetailPageUI detailPageUI;
+
+    // 🌟 [오늘 추가] 매니저와 연동하여 창을 안 겹치게 배치하기 위한 변수 선언
+    [Header("WindowManager 연동")]
+    [SerializeField] private WindowManager windowManager;
+
     private List<PostData> postList = new List<PostData>();
 
     void Start()
@@ -24,25 +29,20 @@ public class CommunityManager : MonoBehaviour
 
     void ParseCSV(string csvText)
     {
-        // [수정] 윈도우(\r\n)와 맥(\n) 환경의 줄바꿈을 완벽히 분리하기 위해 정규식으로 줄바꿈 분할 ⭐
         string[] rows = Regex.Split(csvText, @"\r\n|\n|\r");
         string csvParserPattern = ",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)";
 
         for (int i = 1; i < rows.Length; i++)
         {
-            // 빈 줄은 과감히 패스
             if (string.IsNullOrWhiteSpace(rows[i])) continue;
 
             string[] columns = Regex.Split(rows[i], csvParserPattern);
 
-            // [💡 수정] 단서 열 2개가 추가되어 인덱스 13(14번째 열)까지 안전하게 읽기 위해 조건을 >= 14로 확장
             if (columns.Length >= 14)
             {
-                // postID 읽기 (앞뒤 공백 및 쌍따옴표 완전 제거)
                 int.TryParse(columns[0].Trim().Replace("\"", ""), out int id);
-                if (id == 0) continue; // ID 파싱 실패 시 건너뜀
+                if (id == 0) continue;
 
-                // 중복 체크
                 PostData existingPost = postList.Find(p => p.postID == id);
 
                 if (existingPost == null)
@@ -50,7 +50,6 @@ public class CommunityManager : MonoBehaviour
                     existingPost = new PostData();
                     existingPost.postID = id;
 
-                    // [수정] Trim('"') 대신 안전하게 Replace("\"","")로 쌍따옴표를 완전히 걷어냅니다. ⭐
                     existingPost.title = columns[1].Trim().Replace("\"", "");
                     existingPost.author = columns[2].Trim().Replace("\"", "");
                     existingPost.date = columns[3].Trim().Replace("\"", "");
@@ -58,7 +57,6 @@ public class CommunityManager : MonoBehaviour
                     int.TryParse(columns[4].Trim().Replace("\"", ""), out existingPost.likes);
                     int.TryParse(columns[5].Trim().Replace("\"", ""), out existingPost.dislikes);
 
-                    // 본문 내용 가공
                     string rawContent = columns[6].Trim();
                     if (rawContent.StartsWith("\"") && rawContent.EndsWith("\""))
                     {
@@ -66,21 +64,16 @@ public class CommunityManager : MonoBehaviour
                     }
                     existingPost.content = rawContent.Replace("\"\"", "\"").Replace("\\n", "\n");
 
-                    // 본문 이미지 이름 세팅
                     existingPost.imageName = columns[7].Trim().Replace("\"", "");
-
-                    // 💡 [추가] 13번째 열(인덱스 12)에서 게시글 본문 단서 ID 추출
                     existingPost.clueID = columns[12].Trim().Replace("\"", "");
 
                     postList.Add(existingPost);
                 }
-                // 💡 [추가] 기존에 생성된 글이라도, 다른 행에 본문 단서가 새로 적혀있다면 채워줌 (예외방지)
                 else if (string.IsNullOrEmpty(existingPost.clueID) && !string.IsNullOrWhiteSpace(columns[12]))
                 {
                     existingPost.clueID = columns[12].Trim().Replace("\"", "");
                 }
 
-                // 댓글 데이터 처리 (12열까지 확보되었는지 안전하게 검사)
                 if (columns.Length >= 12 && !string.IsNullOrWhiteSpace(columns[8]))
                 {
                     CommentData comment = new CommentData();
@@ -90,8 +83,6 @@ public class CommunityManager : MonoBehaviour
 
                     bool.TryParse(columns[10].Trim().Replace("\"", ""), out comment.isEmoticon);
                     comment.emoticonName = columns[11].Trim().Replace("\"", "");
-
-                    // 💡 [추가] 14번째 열(인덱스 13)에서 댓글 단서 ID 추출
                     comment.clueID = columns[13].Trim().Replace("\"", "");
 
                     existingPost.comments.Add(comment);
@@ -117,6 +108,14 @@ public class CommunityManager : MonoBehaviour
 
     public void OpenDetailPage(PostData data)
     {
+        // 1. 기존의 커뮤니티 상세 페이지 화면 출력 로직
         detailPageUI.DisplayPost(data);
+
+        // 🌟 [오늘 추가] 상세 페이지 창 오브젝트의 RectTransform을 추출하여 랜덤 배치 지시!
+        if (windowManager != null && detailPageUI != null)
+        {
+            RectTransform detailRect = detailPageUI.GetComponent<RectTransform>();
+            windowManager.RepositionPopupWindow(detailRect);
+        }
     }
 }

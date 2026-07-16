@@ -14,6 +14,10 @@ public class NewsListManager : MonoBehaviour
     [Header("Detail Popup Reference")]
     [SerializeField] private NewsCard detailPopup;
 
+    // 🌟 [추가] 뉴스 카드가 열릴 때 맨 앞으로 끌어올리기 위한 WindowManager 참조
+    [Header("WindowManager 연동")]
+    [SerializeField] private WindowManager windowManager;
+
     private void Start()
     {
         if (detailPopup != null) detailPopup.gameObject.SetActive(false);
@@ -182,6 +186,12 @@ public class NewsListManager : MonoBehaviour
         {
             detailPopup.gameObject.SetActive(true);
             detailPopup.SetNewsData(data);
+
+            if (windowManager != null)
+            {
+                RectTransform cardRect = detailPopup.GetComponent<RectTransform>();
+                windowManager.RepositionPopupWindow(cardRect);
+            }
         }
     }
 }

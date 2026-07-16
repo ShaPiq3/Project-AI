@@ -34,6 +34,9 @@ public class ChatDialogueManager : MonoBehaviour
     [Header("선택지 프리팹 설정")]
     public GameObject branchGroupPrefab; // Project 뷰에 있는 선택지 패널 프리팹 할당
 
+    [Header("WindowManager 연동")]
+    [SerializeField] private WindowManager windowManager;
+
     // 순차 리스트 대신 ID 분기(Jump) 탐색을 위해 딕셔너리로 대화 데이터를 관리합니다.
     private Dictionary<int, DialogueData> dialogueDictionary = new Dictionary<int, DialogueData>();
 
@@ -179,6 +182,12 @@ public class ChatDialogueManager : MonoBehaviour
             }
 
             dialoguePanelRect.DOAnchorPosX(targetPositionX, tweenDuration).SetEase(Ease.OutQuad);
+
+            // 🌟 [2구역 추가] 채팅창이 자동으로 열릴 때 상태 연동 및 방어용 알림
+            if (windowManager != null)
+            {
+                windowManager.PushWindowsLeft(0f, tweenDuration);
+            }
         }
 
         if (isTimerFinished)
@@ -207,6 +216,12 @@ public class ChatDialogueManager : MonoBehaviour
             if (closeButton != null) closeButton.interactable = true;
 
             dialoguePanelRect.DOAnchorPosX(targetPositionX, tweenDuration).SetEase(Ease.OutQuad);
+
+            // 🌟 [2구역 추가] 플레이어가 수동으로 버튼을 눌러 채팅창을 열 때도 상태 동기화
+            if (windowManager != null)
+            {
+                windowManager.PushWindowsLeft(0f, tweenDuration);
+            }
         }
 
         TryStartDialogue();
