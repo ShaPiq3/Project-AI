@@ -19,4 +19,6 @@ public class SNSPostData
     public string content;
     public string postImageName;
     public List<SNSCommentData> comments = new List<SNSCommentData>();
+    public string clueID;         // 본문 클릭 시 수집할 단서 ID
+    public string imageClueID;    // 이미지 클릭 시 수집할 단서 ID
 }

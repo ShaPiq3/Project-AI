@@ -6,6 +6,7 @@ public class UIDragHandler : MonoBehaviour, IPointerDownHandler, IDragHandler
 {
     private RectTransform rectTransform;
     private Canvas canvas;
+    private WindowManager windowManager; // 🌟 1. WindowManager 참조 변수 추가
 
     void Awake()
     {
@@ -18,6 +19,9 @@ public class UIDragHandler : MonoBehaviour, IPointerDownHandler, IDragHandler
         {
             Debug.LogError("UIDragHandler: 부모 오브젝트 중 Canvas를 찾을 수 없습니다!");
         }
+
+        // 🌟 2. 씬에 배치된 WindowManager를 자동으로 찾아 연결합니다.
+        windowManager = FindAnyObjectByType<WindowManager>();
     }
 
     // 1. 패널을 마우스로 딱 클릭한 순간
@@ -32,7 +36,16 @@ public class UIDragHandler : MonoBehaviour, IPointerDownHandler, IDragHandler
     {
         if (canvas == null) return;
 
-        // 💡 핵심: 마우스가 패널을 벗어나도 캔버스 전체 화면 기준 좌표로 계산하여 절대 멈추지 않습니다.
-        rectTransform.anchoredPosition += eventData.delta / canvas.scaleFactor;
+        // 🌟 3. 마우스 움직임에 따른 '다음 이동 예정 좌표'를 먼저 계산합니다.
+        Vector2 nextPosition = rectTransform.anchoredPosition + (eventData.delta / canvas.scaleFactor);
+
+        // 🌟 4. WindowManager가 존재한다면, 계산된 좌표를 '벽 영역 제한' 함수에 통과시킵니다.
+        if (windowManager != null)
+        {
+            nextPosition = windowManager.ClampWindowPosition(rectTransform, nextPosition);
+        }
+
+        // 🌟 5. 최종적으로 제한된 안전한 좌표만 반영합니다.
+        rectTransform.anchoredPosition = nextPosition;
     }
 }

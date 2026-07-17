@@ -45,6 +45,8 @@ public class ChatDialogueManager : MonoBehaviour
     private bool isTimerFinished = false;
     private bool isDialogueStarted = false;
     private bool isClosedByPlayer = false;
+    
+
 
     // --- 동적 선택지 인스턴스 제어용 변수 ---
     private GameObject activeBranchInstance; // 현재 대화창에 생성된 선택지 오브젝트
@@ -186,7 +188,8 @@ public class ChatDialogueManager : MonoBehaviour
             // 🌟 [2구역 추가] 채팅창이 자동으로 열릴 때 상태 연동 및 방어용 알림
             if (windowManager != null)
             {
-                windowManager.PushWindowsLeft(0f, tweenDuration);
+                WindowManager.Instance.isChatOpen = true;
+                WindowManager.Instance.RefreshAllWindows();
             }
         }
 
@@ -220,13 +223,13 @@ public class ChatDialogueManager : MonoBehaviour
             // 🌟 [2구역 추가] 플레이어가 수동으로 버튼을 눌러 채팅창을 열 때도 상태 동기화
             if (windowManager != null)
             {
-                windowManager.PushWindowsLeft(0f, tweenDuration);
+                WindowManager.Instance.isChatOpen = true;
+                WindowManager.Instance.RefreshAllWindows();
             }
         }
 
         TryStartDialogue();
     }
-
     public void CloseChatWindow()
     {
         if (dialoguePanelRect == null) return;

@@ -7,4 +7,5 @@ public class NewsData
     public string info;
     public string body;
     public string imageName;
+    public string imageClueID;
 }

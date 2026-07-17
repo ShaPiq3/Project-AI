@@ -1,66 +1,138 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
-using TMPro; // TextMeshPro 사용을 위해 추가
+using TMPro;
 
 public class SNSPost : MonoBehaviour
 {
     [Header("Layout References")]
     [SerializeField] private RectTransform contentGroupRect; // Content_Group의 RectTransform
     [SerializeField] private RectTransform profileRect;      // 본문_프로필
-    [SerializeField] private RectTransform textRect;         // 본문_글
+    [SerializeField] private RectTransform textRect;           // 본문_글
     [SerializeField] private RectTransform imageRect;        // 본문_이미지
     [SerializeField] private RectTransform commentRect;      // 댓글창
 
     [Header("UI Component References (실제 데이터가 주입될 컴포넌트들)")]
     [SerializeField] private TMP_Text authorText;            // 본문 작성자 텍스트
-    [SerializeField] private TMP_Text contentText;           // 본문 글 텍스트
+    [SerializeField] private TMP_Text contentText;           // 본문 글 텍스트 (Rich Text가 켜져 있어야 함)
     [SerializeField] private Image profileImage;             // 프로필 이미지 컴포넌트
     [SerializeField] private Image postImage;                // 본문 이미지 컴포넌트
 
     [Header("Comment Spawner Settings")]
-    [SerializeField] private GameObject commentPrefab;       // 👈 새로 만든 댓글 프리팹(SNSCommentItem 부착된 것)
-    [SerializeField] private Transform commentContentParent; // 👈 댓글들이 생성되어 담길 부모 (commentRect 내부의 Content)
+    [SerializeField] private GameObject commentPrefab;       // 새로 만든 댓글 프리팹
+    [SerializeField] private Transform commentContentParent; // 댓글들이 생성되어 담길 부모
 
     /// <summary>
-    /// [🌟 핵심 추가] SNSManager가 생성 직후 엑셀 데이터를 밀어 넣어주는 함수
+    /// SNSManager가 생성 직후 엑셀 데이터를 밀어 넣어주는 함수
     /// </summary>
     public void Setup(SNSPostData data)
     {
-        // 1. 본문 텍스트 데이터 주입
+        // 1. 본문 작성자 주입
         if (authorText != null) authorText.text = data.author;
-        if (contentText != null) contentText.text = data.content;
 
-        // 2. 프로필 이미지 로드
+        // 2. 본문 텍스트 주입 및 클릭 단서 처리
+        if (contentText != null)
+        {
+            string rawContent = data.content;
+
+            // 💡 본문 텍스트 안에 [CLUE:ID]가 포함되어 있는 경우
+            if (rawContent.StartsWith("[CLUE:"))
+            {
+                int closeBracketIndex = rawContent.IndexOf(']');
+                string tagClueID = rawContent.Substring(6, closeBracketIndex - 6);
+                string realContent = rawContent.Substring(closeBracketIndex + 1);
+
+                contentText.text = realContent;
+
+                // 텍스트를 클릭 가능한 버튼으로 전환
+                Button textBtn = contentText.gameObject.GetComponent<Button>();
+                if (textBtn == null) textBtn = contentText.gameObject.AddComponent<Button>();
+
+                textBtn.transition = Selectable.Transition.ColorTint;
+                textBtn.onClick.RemoveAllListeners();
+                textBtn.onClick.AddListener(() =>
+                {
+                    CollectClue(tagClueID);
+                });
+            }
+            // 💡 본문에 [CLUE:ID]는 없지만 별도의 clueID 필드로 단서를 수집하는 경우
+            else if (!string.IsNullOrEmpty(data.clueID) && data.clueID.ToLower() != "none")
+            {
+                contentText.text = rawContent;
+
+                Button textBtn = contentText.gameObject.GetComponent<Button>();
+                if (textBtn == null) textBtn = contentText.gameObject.AddComponent<Button>();
+
+                textBtn.transition = Selectable.Transition.ColorTint;
+                textBtn.onClick.RemoveAllListeners();
+                textBtn.onClick.AddListener(() =>
+                {
+                    CollectClue(data.clueID);
+                });
+            }
+            else
+            {
+                // 일반 본문일 때는 버튼 비활성화/제거
+                contentText.text = rawContent;
+                Button textBtn = contentText.gameObject.GetComponent<Button>();
+                if (textBtn != null) Destroy(textBtn);
+            }
+        }
+
+        // 3. 프로필 이미지 로드
         if (profileImage != null && !string.IsNullOrEmpty(data.profileImageName))
         {
             Sprite profSprite = Resources.Load<Sprite>("SNSImages/" + data.profileImageName);
             if (profSprite != null) profileImage.sprite = profSprite;
         }
 
-        // 3. 본문 첨부 이미지 가공 (기획자가 빈칸으로 두었을 때의 방어 코드)
+        // 4. 본문 첨부 이미지 가공 및 클릭 단서 처리
         if (postImage != null && imageRect != null)
         {
-            if (!string.IsNullOrEmpty(data.postImageName))
+            if (!string.IsNullOrEmpty(data.postImageName) && data.postImageName.ToLower() != "none")
             {
                 imageRect.gameObject.SetActive(true); // 이미지 구역 켜기
                 Sprite loadedSprite = Resources.Load<Sprite>("SNSImages/" + data.postImageName);
-                if (loadedSprite != null) postImage.sprite = loadedSprite;
+                if (loadedSprite != null)
+                {
+                    postImage.sprite = loadedSprite;
+
+                    // 💡 이미지 클릭 단서 수집 로직 추가
+                    Button imgBtn = postImage.gameObject.GetComponent<Button>();
+
+                    // 엑셀에 ImageClueID가 존재하고 none이 아니면 버튼 처리
+                    if (!string.IsNullOrEmpty(data.imageClueID) && data.imageClueID.ToLower() != "none")
+                    {
+                        if (imgBtn == null) imgBtn = postImage.gameObject.AddComponent<Button>();
+
+                        imgBtn.transition = Selectable.Transition.ColorTint;
+                        imgBtn.onClick.RemoveAllListeners();
+                        imgBtn.onClick.AddListener(() =>
+                        {
+                            CollectClue(data.imageClueID);
+                        });
+                    }
+                    else
+                    {
+                        // 단서 수집이 안 되는 일반 이미지라면 버튼 컴포넌트 제거
+                        if (imgBtn != null) Destroy(imgBtn);
+                    }
+                }
             }
             else
             {
-                // 엑셀 칸이 비어있었다면 이미지 구역을 완전히 꺼서 여백 감옥 방지!
+                // 이미지 구역을 완전히 꺼서 여백 감옥 방지!
                 imageRect.gameObject.SetActive(false);
             }
         }
 
-        // 4. 댓글 동적 생성 구역
+        // 5. 댓글 동적 생성 구역
         if (commentPrefab != null && commentContentParent != null)
         {
-            // 혹시 기존 찌꺼기가 있다면 청소
+            // 기존 찌꺼기 청소
             foreach (Transform child in commentContentParent) Destroy(child.gameObject);
 
-            // 엑셀에서 이 게시글(postID) 앞으로 차곡차곡 누적된 댓글 개수만큼 프리팹 찍어내기
+            // 댓글 리스트 생성
             foreach (SNSCommentData commentData in data.comments)
             {
                 GameObject newComment = Instantiate(commentPrefab, commentContentParent);
@@ -72,35 +144,58 @@ public class SNSPost : MonoBehaviour
             }
         }
 
-        // 5. 텍스트 주입과 댓글 생성이 "완전히 끝난 최종 크기"를 기준으로 레이아웃 높이 강제 갱신!!
+        // 6. 텍스트 주입과 댓글 생성이 "완전히 끝난 최종 크기"를 기준으로 레이아웃 높이 강제 갱신!!
         RefreshLayoutForce();
     }
 
     /// <summary>
-    /// 엑셀에서 받아온 텍스트/이미지 크기에 맞추어 UI 박스 높이를 강제로 재계산하는 핵심 최적화 함수
+    /// 💡 단서 수집 통신을 담당하는 안전한 내부 함수
+    /// </summary>
+
+
+    /// <summary>
+    /// UI 박스 높이를 강제로 재계산하는 최적화 함수
     /// </summary>
     public void RefreshLayoutForce()
     {
-        // 1. 유니티가 텍스트나 댓글 생성된 크기를 일단 계산하게 만듦
         Canvas.ForceUpdateCanvases();
 
-        // 2. 이미지가 켜져있을 때만 이미지 높이를 더하기 위한 변수
         float imageHeight = imageRect.gameObject.activeSelf ? imageRect.rect.height : 0f;
 
-        // 3. 자식들의 '진짜 실제 높이'를 수동으로 다 더해버립니다. (여백 20씩 추가)
         float totalHeight = profileRect.rect.height +
                             textRect.rect.height +
                             imageHeight +
                             commentRect.rect.height + 80f; // 간격 여백
 
-        // 4. Content_Group의 높이를 코드로 강제 주입!! (840 감옥 부수기)
         contentGroupRect.sizeDelta = new Vector2(contentGroupRect.sizeDelta.x, totalHeight);
 
-        // 5. 내 부모인 SNS_Template과 최상위 스크롤뷰 Content도 갱신
         LayoutRebuilder.ForceRebuildLayoutImmediate(GetComponent<RectTransform>());
         if (transform.parent != null)
         {
             LayoutRebuilder.ForceRebuildLayoutImmediate(transform.parent.GetComponent<RectTransform>());
+        }
+    }
+
+    private void CollectClue(string targetClueID)
+    {
+        if (string.IsNullOrEmpty(targetClueID) || targetClueID.ToLower() == "none") return;
+
+        // 단서 수집 모드가 켜져 있을 때만 수집 가능하게 제한
+        if (DataLogManager.Instance != null && !DataLogManager.Instance.IsClueSearchModeActive)
+        {
+            Debug.Log("현재 단서 수집 모드가 비활성화되어 있어 수집할 수 없습니다.");
+            return;
+        }
+
+        Debug.Log($"[SNS] 단서 수집 요청: {targetClueID}");
+
+        if (DataLogManager.Instance != null)
+        {
+            DataLogManager.Instance.AcquireClue(targetClueID);
+        }
+        else
+        {
+            Debug.LogError("DataLogManager 인스턴스를 씬에서 찾을 수 없습니다!");
         }
     }
 }

@@ -87,6 +87,31 @@ public class NewsCard : MonoBehaviour
             {
                 newsImage.sprite = loadedSprite;
                 newsImage.gameObject.SetActive(true);
+
+                // 💡 [추가] 이미지에 버튼 컴포넌트 처리
+                Button imgBtn = newsImage.gameObject.GetComponent<Button>();
+
+                // 만약 엑셀의 ImageClueID가 존재하고, "none"이 아니라면 버튼 기능 활성화
+                if (!string.IsNullOrEmpty(data.imageClueID) && data.imageClueID.ToLower() != "none")
+                {
+                    // 버튼이 없으면 붙여줌
+                    if (imgBtn == null) imgBtn = newsImage.gameObject.AddComponent<Button>();
+
+                    imgBtn.transition = Selectable.Transition.ColorTint; // 클릭 피드백 효과
+                    imgBtn.onClick.RemoveAllListeners();
+
+                    // 💡 클릭 시 엑셀에 적어둔 ImageClueID를 수집창으로 전송!
+                    imgBtn.onClick.AddListener(() =>
+                    {
+                        Debug.Log($"이미지 클릭으로 단서 수집 요청: {data.imageClueID}");
+                        DataLogManager.Instance.AcquireClue(data.imageClueID);
+                    });
+                }
+                else
+                {
+                    // 수집할 단서가 없는 일반 이미지라면 버튼 컴포넌트를 비활성화하거나 지움
+                    if (imgBtn != null) Destroy(imgBtn);
+                }
             }
             else newsImage.gameObject.SetActive(false);
         }
@@ -96,19 +121,25 @@ public class NewsCard : MonoBehaviour
     // 💡 단서 클릭 시 실행될 함수 (독립된 위치로 올바르게 수정)
     private void CollectClue(ClueData clue)
     {
+        if (clue == null) return;
+
+        // 단서 수집 모드가 활성화되어 있을 때만 수집 가능하도록 예외 처리
+        if (DataLogManager.Instance != null && !DataLogManager.Instance.IsClueSearchModeActive)
+        {
+            Debug.Log("현재 단서 수집 모드가 비활성화되어 있어 수집할 수 없습니다.");
+            return;
+        }
+
         Debug.Log($"단서 수집됨: {clue.clueID}");
 
-        // 데이터로그 매니저에게 단서 전달
         if (DataLogManager.Instance != null)
         {
-            DataLogManager.Instance.AddClue(clue);
+            DataLogManager.Instance.AcquireClue(clue.clueID);
         }
         else
         {
             Debug.LogError("DataLogManager 씬에 인스턴스가 존재하지 않습니다!");
         }
-
-        // 수집 완료 이펙트나 사운드 연출을 여기 넣으시면 좋습니다.
     }
 
     private void ClearSpawnedTexts()

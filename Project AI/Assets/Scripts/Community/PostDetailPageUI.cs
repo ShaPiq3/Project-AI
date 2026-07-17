@@ -46,22 +46,34 @@ public class PostDetailPageUI : MonoBehaviour
 
         // 2. ②번 구역 세팅
         contentText.text = data.content;
+        // PostDetailPageUI.cs 내부의 이미지 렌더링 함수 예시
         if (!string.IsNullOrEmpty(data.imageName))
         {
-            Sprite loadedSprite = Resources.Load<Sprite>($"PostImages/{data.imageName}");
+            Sprite loadedSprite = Resources.Load<Sprite>($"CommunityImages/{data.imageName}");
             if (loadedSprite != null)
             {
-                postImage.gameObject.SetActive(true);
                 postImage.sprite = loadedSprite;
+                postImage.gameObject.SetActive(true);
+
+                // 💡 이미지 클릭 단서 수집 세팅
+                Button imgBtn = postImage.gameObject.GetComponent<Button>();
+
+                if (!string.IsNullOrEmpty(data.imageClueID) && data.imageClueID.ToLower() != "none")
+                {
+                    if (imgBtn == null) imgBtn = postImage.gameObject.AddComponent<Button>();
+
+                    imgBtn.transition = Selectable.Transition.ColorTint;
+                    imgBtn.onClick.RemoveAllListeners();
+                    imgBtn.onClick.AddListener(() => {
+                        Debug.Log($"커뮤니티 이미지 클릭으로 단서 수집: {data.imageClueID}");
+                        DataLogManager.Instance.AcquireClue(data.imageClueID);
+                    });
+                }
+                else
+                {
+                    if (imgBtn != null) Destroy(imgBtn); // 단서가 없는 이미지는 버튼 기능 제거
+                }
             }
-            else
-            {
-                postImage.gameObject.SetActive(false);
-            }
-        }
-        else
-        {
-            postImage.gameObject.SetActive(false);
         }
 
         // 💡 [추가] 게시글 본문 자체에 단서 ID(clueID)가 들어있는지 검사하고 클릭 이벤트 연결
@@ -79,7 +91,7 @@ public class PostDetailPageUI : MonoBehaviour
                         contentText = data.content,
                         imageName = data.imageName
                     };
-                    DataLogManager.Instance.AddClue(clue);
+                    DataLogManager.Instance.AcquireClue("COMMUNITY_POST_01");
                 });
             }
         }
@@ -114,13 +126,32 @@ public class PostDetailPageUI : MonoBehaviour
                             contentText = cData.content,
                             imageName = ""
                         };
-                        DataLogManager.Instance.AddClue(clue);
+                        DataLogManager.Instance.AcquireClue("COMMUNITY_POST_01");
                     });
                 }
             }
         }
 
         gameObject.SetActive(true);
+    }
+
+    private void CollectClue(string targetClueID)
+    {
+        if (string.IsNullOrEmpty(targetClueID) || targetClueID.ToLower() == "none") return;
+
+        // 💡 [추가] 수집 모드가 꺼져 있다면 클릭해도 단서를 수집하지 않고 리턴시킵니다!
+        if (DataLogManager.Instance != null && !DataLogManager.Instance.IsClueSearchModeActive)
+        {
+            Debug.Log("현재 단서 수집 모드가 비활성화되어 있어 수집할 수 없습니다.");
+            return;
+        }
+
+        Debug.Log($"[SNS] 단서 수집 요청: {targetClueID}");
+
+        if (DataLogManager.Instance != null)
+        {
+            DataLogManager.Instance.AcquireClue(targetClueID);
+        }
     }
 
     public void ClosePage()

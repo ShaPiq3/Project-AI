@@ -1,9 +1,11 @@
 ﻿using UnityEngine;
-using System.Collections.Generic;
+using System.Collections.Generic; // 👈 이 부분이 표준 List 사용을 위해 꼭 필요합니다.
 using DG.Tweening;
 
 public class WindowManager : MonoBehaviour
 {
+    public static WindowManager Instance { get; private set; }
+
     [Header("UI References")]
     [SerializeField] private RectTransform chatWindowRect;    // 오른쪽 고정 채팅창(Chat_Panel)
     [SerializeField] private RectTransform datalogWindowRect; // 독립된 DATALOG 창
@@ -20,8 +22,8 @@ public class WindowManager : MonoBehaviour
     [SerializeField] private float padding = 30f;         // 화면 경계면과의 최소 여백
 
     [Header("Sidebar Settings (사이드바 너비 설정)")]
-    [SerializeField] private float sidebarClosedWidth = 88f;  // 👈 닫혔을 때 기본 너비 (항상 보장됨)
-    [SerializeField] private float sidebarOpenWidth = 250f;   // 👈 사이드바가 완전히 열렸을 때 전체 너비
+    [SerializeField] private float sidebarClosedWidth = 88f;  // 닫혔을 때 기본 너비 (항상 보장됨)
+    [SerializeField] private float sidebarOpenWidth = 250f;   // 사이드바가 완전히 열렸을 때 전체 너비
 
     [Header("Chat Dynamic Move Settings (채팅창 연동 밀기)")]
     [SerializeField] private float chatPanelWidth = 350f;  // 오른쪽 채팅창이 차지하는 실제 가로 너비
@@ -31,13 +33,31 @@ public class WindowManager : MonoBehaviour
 
     private bool isDatalogOpen = false;
     private bool isSidebarOpen = false;                   // 시작할 때는 기본(닫힌 상태, 88)으로 가정
-    private bool isChatOpen = false;                      // 현재 채팅창이 열려있는지 상태 기억
+    public bool isChatOpen = false;                      // 현재 채팅창이 열려있는지 상태 기억
     private Vector2 initialHidePosition;                  // 화면 우측 밖(기본 숨김 위치)
+
+    // ⭐ [CS0122 해결] ChatDialogueManager에서 접근 가능하도록 public 프로퍼티를 제공합니다.
+    public bool IsChatOpen => isChatOpen;
+
+    private void Awake()
+    {
+        if (Instance == null)
+        {
+            Instance = this;
+        }
+        else
+        {
+            Destroy(gameObject); // 중복 방지
+        }
+    }
 
     void Start()
     {
         if (datalogWindowRect != null)
         {
+            // Datalog 창의 가로 너비(+ 여백 20)를 자동으로 Push Amount로 설정
+            datalogPushAmount = datalogWindowRect.rect.width + 20f;
+
             initialHidePosition = new Vector2(500f, targetPosition.y);
             datalogWindowRect.anchoredPosition = initialHidePosition;
             datalogWindowRect.gameObject.SetActive(true);
@@ -50,6 +70,23 @@ public class WindowManager : MonoBehaviour
             canvasGroup.alpha = 0f;
             canvasGroup.blocksRaycasts = false;
             isDatalogOpen = false;
+        }
+    }
+
+    // ⭐ [CS1061 해결] ChatDialogueManager에서 호출하는 갱신 메서드를 추가합니다.
+    // 현재 활성화된 모든 팝업 창들이 변경된 화면 벽(사이드바, 채팅창 등) 안으로 들어오도록 위치를 제한(Clamp)해 주는 역할을 합니다.
+    public void RefreshAllWindows()
+    {
+        List<RectTransform> activePopups = GetActivePopupWindows();
+        foreach (var win in activePopups)
+        {
+            if (win == null) continue;
+
+            // 현재 위치를 기준으로 제한 영역 내에 가둬둡니다.
+            Vector2 clampedPos = ClampWindowPosition(win, win.anchoredPosition);
+
+            win.DOKill();
+            win.DOAnchorPos(clampedPos, slideDuration).SetEase(Ease.OutQuad);
         }
     }
 
@@ -130,14 +167,13 @@ public class WindowManager : MonoBehaviour
     {
         isChatOpen = true;
 
-        List<RectTransform> activePopups = GetActivePopupWindows();
+        System.Collections.Generic.List<RectTransform> activePopups = GetActivePopupWindows();
         foreach (var win in activePopups)
         {
             if (win == null) continue;
 
             float targetX = win.anchoredPosition.x - chatPanelWidth;
 
-            // 현재 사이드바 상태(열림/닫힘)에 맞춰 안전 좌측 한계선 설정
             float currentSidebar = isSidebarOpen ? sidebarOpenWidth : sidebarClosedWidth;
             float minX = -spawnArea.rect.width / 2f + currentSidebar + (win.rect.width * win.pivot.x) + padding;
 
@@ -167,7 +203,7 @@ public class WindowManager : MonoBehaviour
             datalogWindowRect.DOAnchorPos(initialHidePosition, duration).SetEase(Ease.OutQuad);
         }
 
-        List<RectTransform> activePopups = GetActivePopupWindows();
+        System.Collections.Generic.List<RectTransform> activePopups = GetActivePopupWindows();
         foreach (var win in activePopups)
         {
             if (win == null) continue;
@@ -183,7 +219,7 @@ public class WindowManager : MonoBehaviour
 
     private void PushWindowsLeftOnDatalog(float amount, float duration)
     {
-        List<RectTransform> activePopups = GetActivePopupWindows();
+        System.Collections.Generic.List<RectTransform> activePopups = GetActivePopupWindows();
         foreach (var win in activePopups)
         {
             if (win == null) continue;
@@ -202,7 +238,7 @@ public class WindowManager : MonoBehaviour
 
     private void PullWindowsRightOnDatalog(float amount, float duration)
     {
-        List<RectTransform> activePopups = GetActivePopupWindows();
+        System.Collections.Generic.List<RectTransform> activePopups = GetActivePopupWindows();
         foreach (var win in activePopups)
         {
             if (win == null) continue;
@@ -225,7 +261,7 @@ public class WindowManager : MonoBehaviour
     public void PushWindowsRightOnSidebarOpen(float duration)
     {
         isSidebarOpen = true;
-        List<RectTransform> activePopups = GetActivePopupWindows();
+        System.Collections.Generic.List<RectTransform> activePopups = GetActivePopupWindows();
 
         foreach (var win in activePopups)
         {
@@ -234,7 +270,6 @@ public class WindowManager : MonoBehaviour
             float winLeftX = win.anchoredPosition.x - (win.rect.width * win.pivot.x);
             float spawnAreaLeftBoundary = -spawnArea.rect.width / 2f;
 
-            // 사이드바가 열렸을 때 영역(sidebarOpenWidth)을 침범하는 창들만 오른쪽으로 밀어내기
             float dangerZoneX = spawnAreaLeftBoundary + sidebarOpenWidth + padding;
             if (winLeftX < dangerZoneX)
             {
@@ -248,9 +283,8 @@ public class WindowManager : MonoBehaviour
     public void PullWindowsLeftOnSidebarClose(float duration)
     {
         isSidebarOpen = false;
-        List<RectTransform> activePopups = GetActivePopupWindows();
+        System.Collections.Generic.List<RectTransform> activePopups = GetActivePopupWindows();
 
-        // 열린 너비와 닫힌 너비의 차이만큼만 당겨줍니다.
         float shiftWidth = sidebarOpenWidth - sidebarClosedWidth;
 
         foreach (var win in activePopups)
@@ -258,7 +292,6 @@ public class WindowManager : MonoBehaviour
             if (win == null) continue;
 
             float spawnAreaLeftBoundary = -spawnArea.rect.width / 2f;
-            // 닫혔을 때 안전 한계선 (88 + 여백)
             float safeMinX = spawnAreaLeftBoundary + sidebarClosedWidth + (win.rect.width * win.pivot.x) + padding;
 
             if (win.anchoredPosition.x > safeMinX + shiftWidth)
@@ -274,11 +307,49 @@ public class WindowManager : MonoBehaviour
 
     #endregion
 
+    #region 드래그 및 배치 시 영역을 벽처럼 가두는 제한 함수 (Clamp)
+
+    public Vector2 ClampWindowPosition(RectTransform targetWin, Vector2 currentPos)
+    {
+        if (targetWin == null || spawnArea == null) return currentPos;
+
+        float spawnAreaLeftBoundary = -spawnArea.rect.width / 2f;
+        float sizeX = targetWin.rect.width;
+        float sizeY = targetWin.rect.height;
+
+        float currentSidebarWidth = isSidebarOpen ? sidebarOpenWidth : sidebarClosedWidth;
+
+        float minX = spawnAreaLeftBoundary + currentSidebarWidth + (sizeX * targetWin.pivot.x) + padding;
+        float maxX = spawnArea.rect.width / 2f - (sizeX * (1f - targetWin.pivot.x)) - padding;
+
+        if (isChatOpen)
+        {
+            maxX -= chatPanelWidth;
+        }
+
+        if (isDatalogOpen)
+        {
+            maxX -= datalogPushAmount;
+        }
+
+        float minY = -spawnArea.rect.height / 2f + (sizeY * targetWin.pivot.y) + padding;
+        float maxY = spawnArea.rect.height / 2f - (sizeY * (1f - targetWin.pivot.y)) - padding;
+
+        if (minX > maxX) minX = maxX;
+
+        float clampedX = Mathf.Clamp(currentPos.x, minX, maxX);
+        float clampedY = Mathf.Clamp(currentPos.y, minY, maxY);
+
+        return new Vector2(clampedX, clampedY);
+    }
+
+    #endregion
+
     #region 일반 UIObject 내부 창들 랜덤 배치 기능
 
-    private List<RectTransform> GetActivePopupWindows()
+    private System.Collections.Generic.List<RectTransform> GetActivePopupWindows()
     {
-        List<RectTransform> activeList = new List<RectTransform>();
+        System.Collections.Generic.List<RectTransform> activeList = new System.Collections.Generic.List<RectTransform>();
         if (spawnArea == null) return activeList;
 
         for (int i = 0; i < spawnArea.childCount; i++)
@@ -305,8 +376,6 @@ public class WindowManager : MonoBehaviour
     private Vector2 GetValidRandomPosition(RectTransform targetWin, Vector2 size)
     {
         float spawnAreaLeftBoundary = -spawnArea.rect.width / 2f;
-
-        // 사이드바 상태(열림/닫힘)에 따라 왼쪽 한계선을 다이내믹하게 처리 (닫혔을 때도 무조건 88 보장)
         float currentSidebarWidth = isSidebarOpen ? sidebarOpenWidth : sidebarClosedWidth;
 
         float minX = spawnAreaLeftBoundary + currentSidebarWidth + (size.x * targetWin.pivot.x) + padding;
@@ -324,7 +393,6 @@ public class WindowManager : MonoBehaviour
             maxX -= datalogPushAmount;
         }
 
-        // 예외 방어 (minX가 maxX보다 큰 경우 값 강제 조율)
         if (minX > maxX)
         {
             minX = maxX;
@@ -352,8 +420,7 @@ public class WindowManager : MonoBehaviour
         Vector2 targetPivotOffset = new Vector2(size.x * targetWin.pivot.x, size.y * targetWin.pivot.y);
         Rect newRect = new Rect(targetPos - targetPivotOffset, size);
 
-        // 🌟 제네릭 인수 <RectTransform> 누락을 수정하여 컴파일 에러 근본 해결!
-        List<RectTransform> activePopups = GetActivePopupWindows();
+        System.Collections.Generic.List<RectTransform> activePopups = GetActivePopupWindows();
         foreach (var win in activePopups)
         {
             if (win == null || win == targetWin) continue;
