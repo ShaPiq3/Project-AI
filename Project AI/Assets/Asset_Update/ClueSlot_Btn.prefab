@@ -338,7 +338,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 943451851371281343}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 7564050893579764614}
+        m_TargetAssemblyTypeName: ClueSlot, Assembly-CSharp
+        m_MethodName: OnClickSlot
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &5435188044897408747
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -414,6 +426,14 @@ MonoBehaviour:
   sourceText: {fileID: 1278073144411212487}
   contentText: {fileID: 2437175858649831154}
   clueImage: {fileID: 8350326083296568887}
+  clueData:
+    clueID: 
+    sourceType: 
+    sourceTitle: 
+    contentText: 
+    imageName: 
+    questID: 
+    isCorrect: 0
 --- !u!1 &8410801080652504201
 GameObject:
   m_ObjectHideFlags: 0

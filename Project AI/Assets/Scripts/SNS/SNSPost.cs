@@ -11,6 +11,7 @@ public class SNSPost : MonoBehaviour
     [SerializeField] private RectTransform textRect;           // 본문_글
     [SerializeField] private RectTransform imageRect;        // 본문_이미지
     [SerializeField] private RectTransform commentRect;      // 댓글창
+    [SerializeField] private string questID;
 
     [Header("UI Component References (실제 데이터가 주입될 컴포넌트들)")]
     [SerializeField] private TMP_Text authorText;            // 본문 작성자 텍스트
@@ -21,7 +22,7 @@ public class SNSPost : MonoBehaviour
     [Header("Comment Spawner Settings")]
     [SerializeField] private GameObject commentPrefab;       // 새로 만든 댓글 프리팹
     [SerializeField] private Transform commentContentParent; // 댓글들이 생성되어 담길 부모
-
+    
     /// <summary>
     /// SNSManager가 생성 직후 엑셀 데이터를 밀어 넣어주는 함수
     /// </summary>
@@ -191,7 +192,7 @@ public class SNSPost : MonoBehaviour
 
         if (DataLogManager.Instance != null)
         {
-            DataLogManager.Instance.AcquireClue(targetClueID);
+            DataLogManager.Instance.AcquireClue(this.questID, targetClueID);
         }
         else
         {

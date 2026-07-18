@@ -1,5 +1,5 @@
-﻿id,speakerType,speakerName,dialogueText,HasImage,imagePath,delayTime,ipAddress,isBranch,branchText1,nextId1,branchText2,nextId2,branchText3,nextId3
-1,NPC,AD-001,안녕하세요,FALSE,,1.5,38.2.7.174,,,,,,,
-2,NPC,AD-001,제 사진 어떤가요 ,TRUE,img_emoticon_1 1,1.5,38.2.7.174,,,,,,,
-3,NPC,AD-001,말풍선 크기말풍선 크기말풍선 크기말풍선 크기말풍선 크기말풍선 크기말풍선 크기말풍선 크기말풍선 크기말풍선 크기말풍선 크기말풍선 크기말풍선 크기말풍선 크기말풍선 크기말풍선 크기말풍선 크기말풍선 크기말풍선 크기말풍선 크기말풍선 크기말풍선 크기,FALSE,,1.5,38.2.7.174,TRUE,godddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddod,4,,0,,0
-4,USER,AI assisant,좋네요,FALSE,,1.5,38.2.7.174,,,,,,,
+﻿id,speakerType,speakerName,dialogueText,HasImage,imagePath,delayTime,ipAddress,isBranch,branchText1,nextId1,branchText2,nextId2,branchText3,nextId3,isTrigger,questID,targetCount
+1,NPC,AD-001,안녕하세요,FALSE,,1.5,38.2.7.174,,,,,,,,,,
+2,NPC,AD-001,제 사진 어떤가요 ,TRUE,img_emoticon_1 1,1.5,38.2.7.174,,,,,,,,,,
+3,NPC,AD-001,퀘스트를 시작하시겠습니까?,FALSE,,1.5,38.2.7.174,TRUE,예,4,,0,,0,,,
+4,NPC,AD-001,퀘스트 시작,FALSE,,1.5,38.2.7.174,,,,,,,,TRUE,Q1,3

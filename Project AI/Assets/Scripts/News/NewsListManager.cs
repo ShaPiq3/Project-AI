@@ -14,7 +14,6 @@ public class NewsListManager : MonoBehaviour
     [Header("Detail Popup Reference")]
     [SerializeField] private NewsCard detailPopup;
 
-    // 🌟 [추가] 뉴스 카드가 열릴 때 맨 앞으로 끌어올리기 위한 WindowManager 참조
     [Header("WindowManager 연동")]
     [SerializeField] private WindowManager windowManager;
 
@@ -26,17 +25,19 @@ public class NewsListManager : MonoBehaviour
         SelectCategory("ALL");
     }
 
-    // 1. 엑셀 파싱 및 리스트 버튼 동적 생성 (정밀 스캔 방식)
+    // 1. 엑셀 파싱 및 리스트 버튼 동적 생성
     private void ParseExcelAndGenerateButtons()
     {
         if (csvFile == null || newsButtonPrefab == null || contentParent == null) return;
 
         List<List<string>> csvData = ParseCSV(csvFile.text);
 
-        // i = 1 부터 시작 (첫 줄은 헤더: ID, Category, Title... 제외)
+        // i = 1 부터 시작 (첫 줄 헤더 제외)
         for (int i = 1; i < csvData.Count; i++)
         {
             List<string> row = csvData[i];
+
+            // ⚠️ 최소한 기본 정보(ID~imageName)까지는 제대로 적혀있는지 체크 (최소 6열 필요)
             if (row.Count < 6) continue;
 
             // ID 변환 예외 처리
@@ -46,14 +47,29 @@ public class NewsListManager : MonoBehaviour
                 continue;
             }
 
+            // ⚠️ 엑셀 빈 칸이나 데이터 부족으로 인한 에러 방지를 위해 삼항 연산자로 안전하게 파싱
+            string imgClue = (row.Count > 6) ? row[6] : "";
+
+            int paragraphIdx = 0;
+            if (row.Count > 7)
+            {
+                int.TryParse(row[7], out paragraphIdx);
+            }
+
+            string bodyClue = (row.Count > 8) ? row[8] : "";
+
+            // 새로 약속한 데이터 구조에 맞추어 변수를 최종 주입합니다.
             NewsData data = new NewsData
             {
                 id = idResult,
                 category = row[1],
                 title = row[2],
                 info = row[3],
-                body = row[4],       // 문단 구분을 위한 '|'가 깨지지 않고 안전하게 보존됩니다.
-                imageName = row[5]
+                body = row[4],
+                imageName = row[5],
+                imageClueID = imgClue,                // [추가] 이미지 클릭 시 획득할 단서 ID
+                clueParagraphIndex = paragraphIdx,    // [추가] 단서가 숨겨진 본문 문단 번호 (0이면 없음)
+                bodyClueID = bodyClue                 // [추가] 본문 문단 클릭 시 획득할 단서 ID
             };
 
             // 목록 버튼 생성 및 데이터 주입
@@ -66,7 +82,7 @@ public class NewsListManager : MonoBehaviour
         }
     }
 
-    // 💡 쌍따옴표 내부의 줄바꿈과 쉼표를 완벽하게 판별해내는 하드코어 CSV 파서
+    // 💡 쌍따옴표 내부의 줄바꿈과 쉼표를 완벽하게 판별해내는 CSV 파서 (기존 코드 유지)
     private List<List<string>> ParseCSV(string csvText)
     {
         List<List<string>> result = new List<List<string>>();
@@ -82,7 +98,6 @@ public class NewsListManager : MonoBehaviour
             {
                 if (c == '"')
                 {
-                    // 쌍따옴표 연속 두 개("")는 진짜 쌍따옴표 문자 하나로 처리
                     if (i + 1 < csvText.Length && csvText[i + 1] == '"')
                     {
                         cell.Append('"');
@@ -90,19 +105,19 @@ public class NewsListManager : MonoBehaviour
                     }
                     else
                     {
-                        inQuotes = false; // 닫는 쌍따옴표 처리
+                        inQuotes = false;
                     }
                 }
                 else
                 {
-                    cell.Append(c); // 쌍따옴표 내부의 글자(쉼표, 줄바꿈 포함)는 그대로 보존
+                    cell.Append(c);
                 }
             }
             else
             {
                 if (c == '"')
                 {
-                    inQuotes = true; // 여는 쌍따옴표 감지
+                    inQuotes = true;
                 }
                 else if (c == ',')
                 {
@@ -111,7 +126,6 @@ public class NewsListManager : MonoBehaviour
                 }
                 else if (c == '\n' || c == '\r')
                 {
-                    // 행의 끝 처리 (\r\n 대응)
                     if (c == '\r' && i + 1 < csvText.Length && csvText[i + 1] == '\n')
                     {
                         i++;
@@ -132,7 +146,6 @@ public class NewsListManager : MonoBehaviour
             }
         }
 
-        // 마지막 남은 데이터 처리
         if (cell.Length > 0 || currentLine.Count > 0)
         {
             currentLine.Add(cell.ToString().Trim());
@@ -142,7 +155,7 @@ public class NewsListManager : MonoBehaviour
         return result;
     }
 
-    // 2. 카테고리 선택 마스터 함수
+    // 2. 카테고리 선택 마스터 함수 (기존 코드 유지)
     public void SelectCategory(string categoryKeyword)
     {
         if (contentParent == null) return;
@@ -179,7 +192,7 @@ public class NewsListManager : MonoBehaviour
         }
     }
 
-    // 3. 버튼을 눌렀을 때 상세 팝업을 열어주는 중계 함수
+    // 3. 버튼을 눌렀을 때 상세 팝업을 열어주는 중계 함수 (기존 코드 유지)
     public void OpenDetailPopup(NewsData data)
     {
         if (detailPopup != null)

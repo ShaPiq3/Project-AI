@@ -23,6 +23,7 @@ public class PostDetailPageUI : MonoBehaviour
     // 만약 이미 본문 오브젝트에 버튼이 붙어있다면 인스펙터에서 드래그하여 연결해 주시면 됩니다.
     [Header("③번 구역 단서 수집용")]
     public Button postContentButton;
+    [SerializeField] private string questID;
 
     [Header("④번 구역 (댓글 리스트 영역)")]
     public Transform commentListTransform;
@@ -66,7 +67,7 @@ public class PostDetailPageUI : MonoBehaviour
                     imgBtn.onClick.RemoveAllListeners();
                     imgBtn.onClick.AddListener(() => {
                         Debug.Log($"커뮤니티 이미지 클릭으로 단서 수집: {data.imageClueID}");
-                        DataLogManager.Instance.AcquireClue(data.imageClueID);
+                        DataLogManager.Instance.AcquireClue(data.imageQuestID, data.imageClueID);
                     });
                 }
                 else
@@ -91,7 +92,7 @@ public class PostDetailPageUI : MonoBehaviour
                         contentText = data.content,
                         imageName = data.imageName
                     };
-                    DataLogManager.Instance.AcquireClue("COMMUNITY_POST_01");
+                    DataLogManager.Instance.AcquireClue(data.imageQuestID, data.imageClueID);
                 });
             }
         }
@@ -126,7 +127,7 @@ public class PostDetailPageUI : MonoBehaviour
                             contentText = cData.content,
                             imageName = ""
                         };
-                        DataLogManager.Instance.AcquireClue("COMMUNITY_POST_01");
+                        DataLogManager.Instance.AcquireClue(data.imageQuestID, data.imageClueID);
                     });
                 }
             }
@@ -150,7 +151,7 @@ public class PostDetailPageUI : MonoBehaviour
 
         if (DataLogManager.Instance != null)
         {
-            DataLogManager.Instance.AcquireClue(targetClueID);
+            DataLogManager.Instance.AcquireClue(questID, targetClueID);
         }
     }
 

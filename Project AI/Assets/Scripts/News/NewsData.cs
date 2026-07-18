@@ -8,4 +8,6 @@ public class NewsData
     public string body;
     public string imageName;
     public string imageClueID;
+    public int clueParagraphIndex;
+    public string bodyClueID;
 }

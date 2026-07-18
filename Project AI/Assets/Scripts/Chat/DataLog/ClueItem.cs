@@ -1,12 +1,15 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 
 public class ClueItem : MonoBehaviour
 {
-    public string clueID; // ¿©±â¿¡ ¿¢¼¿ÀÇ 'ClueID'¸¦ ÀûÀ¸¼¼¿ä. ¿¹: "CLUE_01"
+    [SerializeField] private string questID;       // ğŸ’¡ ì¸ìŠ¤í™í„°ì—ì„œ ì…ë ¥í•  í€˜ìŠ¤íŠ¸ ID
+    [SerializeField] private string clueID;
 
     public void OnClick()
     {
-        // Å¬¸¯ÇÏ¸é ¸Å´ÏÀú¿¡°Ô ID¸¦ º¸³»¼­ ¼öÁı ½ÃÀÛ!
-        DataLogManager.Instance.AcquireClue(clueID);
+        if (DataLogManager.Instance != null)
+        {
+            DataLogManager.Instance.AcquireClue(this.questID, this.clueID);
+        }
     }
 }

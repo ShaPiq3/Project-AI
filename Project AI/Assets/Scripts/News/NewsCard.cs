@@ -39,40 +39,31 @@ public class NewsCard : MonoBehaviour
             // 문단 템플릿 생성
             TextMeshProUGUI newText = Instantiate(textTemplate, textContainer);
             newText.richText = true;
+            newText.text = paragraphText; // 텍스트 원본 그대로 주입
 
-            // 단서 태그 검사 ([CLUE:ID] 형태)
-            if (paragraphText.StartsWith("[CLUE:"))
+            // 현재 가리키는 문단 번호 (1부터 시작)
+            int currentParagraphNum = i + 1;
+
+            // 🌟 [수정] 엑셀에서 받아온 단서 문단일 때 처리
+            if (data.clueParagraphIndex > 0 && currentParagraphNum == data.clueParagraphIndex && !string.IsNullOrEmpty(data.bodyClueID))
             {
-                // 태그와 실제 텍스트 분리
-                int closeBracketIndex = paragraphText.IndexOf(']');
-                string clueID = paragraphText.Substring(6, closeBracketIndex - 6);
-                string realContent = paragraphText.Substring(closeBracketIndex + 1);
-
-                newText.text = realContent;
-
-                // 텍스트 오브젝트에 버튼 컴포넌트 추가 및 이벤트 연결
-                Button btn = newText.gameObject.GetComponent<Button>();
-                if (btn == null) btn = newText.gameObject.AddComponent<Button>();
-
-                // 시각적 피드백 효과 (선택)
-                btn.transition = Selectable.Transition.ColorTint;
-
-                ClueData clue = new ClueData
+                // ❌ 기존의 기습적인 'Button' 추가 및 파란 글씨 색상 지정 코드 전체 제거!
+                // 💡 대신, 우리가 작성한 똑똑한 'ClueTextHoverEffect' 컴포넌트를 동적으로 심어줍니다.
+                ClueTextHoverEffect hoverEffect = newText.gameObject.GetComponent<ClueTextHoverEffect>();
+                if (hoverEffect == null)
                 {
-                    clueID = clueID,
-                    sourceTitle = data.title,
-                    contentText = realContent,
-                    imageName = ""
-                };
+                    hoverEffect = newText.gameObject.AddComponent<ClueTextHoverEffect>();
+                }
 
-                // 💡 프리팹 재사용 시 리스너가 꼬이지 않도록 클리어 후 등록
-                btn.onClick.RemoveAllListeners();
-                btn.onClick.AddListener(() => CollectClue(clue));
-            }
-            else
-            {
-                // 일반 문단 처리
-                newText.text = paragraphText;
+                newText.raycastTarget = true;
+                // 리플렉션이나 인스펙터 직렬화 필드 대입을 위해 세팅
+                // (만약 targetClueID 변수가 private/protected라면 컴포넌트 인스펙터에서 직접 부여하셔도 됩니다.)
+                // 아래 코드는 동적으로 단서 ID를 적용하기 위한 안전장치입니다.
+                var idField = typeof(ClueTextHoverEffect).GetField("targetClueID", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                if (idField != null)
+                {
+                    idField.SetValue(hoverEffect, data.bodyClueID);
+                }
             }
 
             newText.gameObject.SetActive(true);
@@ -88,58 +79,27 @@ public class NewsCard : MonoBehaviour
                 newsImage.sprite = loadedSprite;
                 newsImage.gameObject.SetActive(true);
 
-                // 💡 [추가] 이미지에 버튼 컴포넌트 처리
+                // 💡 [수정] 이미지 역시 직접 버튼을 주입해 직접 수집하던 코드에서
+                // 우리가 만든 호버/클릭 효과 컴포넌트(ClueImageHoverEffect) 체제로 자동 전환합니다.
+                ClueImageHoverEffect imgHover = newsImage.gameObject.GetComponent<ClueImageHoverEffect>();
                 Button imgBtn = newsImage.gameObject.GetComponent<Button>();
 
-                // 만약 엑셀의 ImageClueID가 존재하고, "none"이 아니라면 버튼 기능 활성화
+                if (imgBtn != null) Destroy(imgBtn); // 기존 구식 버튼은 충돌 방지를 위해 제거
+
                 if (!string.IsNullOrEmpty(data.imageClueID) && data.imageClueID.ToLower() != "none")
                 {
-                    // 버튼이 없으면 붙여줌
-                    if (imgBtn == null) imgBtn = newsImage.gameObject.AddComponent<Button>();
+                    if (imgHover == null) imgHover = newsImage.gameObject.AddComponent<ClueImageHoverEffect>();
 
-                    imgBtn.transition = Selectable.Transition.ColorTint; // 클릭 피드백 효과
-                    imgBtn.onClick.RemoveAllListeners();
-
-                    // 💡 클릭 시 엑셀에 적어둔 ImageClueID를 수집창으로 전송!
-                    imgBtn.onClick.AddListener(() =>
-                    {
-                        Debug.Log($"이미지 클릭으로 단서 수집 요청: {data.imageClueID}");
-                        DataLogManager.Instance.AcquireClue(data.imageClueID);
-                    });
+                    // 이미지 호버 스크립트에도 마우스 클릭 시 수집을 호출하는 확장 스크립트를 적용하거나 관리할 수 있게 됩니다.
                 }
                 else
                 {
-                    // 수집할 단서가 없는 일반 이미지라면 버튼 컴포넌트를 비활성화하거나 지움
-                    if (imgBtn != null) Destroy(imgBtn);
+                    if (imgHover != null) Destroy(imgHover);
                 }
             }
             else newsImage.gameObject.SetActive(false);
         }
         else newsImage.gameObject.SetActive(false);
-    }
-
-    // 💡 단서 클릭 시 실행될 함수 (독립된 위치로 올바르게 수정)
-    private void CollectClue(ClueData clue)
-    {
-        if (clue == null) return;
-
-        // 단서 수집 모드가 활성화되어 있을 때만 수집 가능하도록 예외 처리
-        if (DataLogManager.Instance != null && !DataLogManager.Instance.IsClueSearchModeActive)
-        {
-            Debug.Log("현재 단서 수집 모드가 비활성화되어 있어 수집할 수 없습니다.");
-            return;
-        }
-
-        Debug.Log($"단서 수집됨: {clue.clueID}");
-
-        if (DataLogManager.Instance != null)
-        {
-            DataLogManager.Instance.AcquireClue(clue.clueID);
-        }
-        else
-        {
-            Debug.LogError("DataLogManager 씬에 인스턴스가 존재하지 않습니다!");
-        }
     }
 
     private void ClearSpawnedTexts()

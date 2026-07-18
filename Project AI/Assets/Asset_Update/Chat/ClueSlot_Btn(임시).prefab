@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: 3195422407890456956}
   - component: {fileID: 3380793292638171463}
   m_Layer: 5
-  m_Name: ClueSlot_Btn
+  m_Name: "ClueSlot_Btn(\uC784\uC2DC)"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

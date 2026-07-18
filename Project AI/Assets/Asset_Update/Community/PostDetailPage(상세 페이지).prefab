@@ -595,6 +595,7 @@ GameObject:
   - component: {fileID: 6714702727706325331}
   - component: {fileID: 1323690470314110907}
   - component: {fileID: 9172457781305444752}
+  - component: {fileID: 2043245217108231568}
   m_Layer: 5
   m_Name: PostContentText
   m_TagString: Untagged
@@ -791,6 +792,20 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+--- !u!114 &2043245217108231568
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3877097817366500197}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c13ab4659cc293043952f652d89070bb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ClueTextHoverEffect
+  targetClueWord: 
+  hexHighlightColor: '#FFFF00AA'
 --- !u!1 &3880568826419465644
 GameObject:
   m_ObjectHideFlags: 0
@@ -2643,6 +2658,7 @@ GameObject:
   - component: {fileID: 6585378044517593498}
   - component: {fileID: 2206538425747484818}
   - component: {fileID: 6566127023542857981}
+  - component: {fileID: 8429228653597644768}
   m_Layer: 5
   m_Name: PostImage
   m_TagString: Untagged
@@ -2763,6 +2779,19 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+--- !u!114 &8429228653597644768
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7648215850646463373}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d4fa8e44fe750324dacccb6b4cb94995, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ClueImageHoverEffect
+  highlightColor: {r: 1, g: 1, b: 0.6, a: 1}
 --- !u!1 &7748747384059201970
 GameObject:
   m_ObjectHideFlags: 0
