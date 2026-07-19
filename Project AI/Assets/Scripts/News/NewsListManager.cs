@@ -4,6 +4,9 @@ using System.Text;
 
 public class NewsListManager : MonoBehaviour
 {
+    // 💡 [추가] 다른 스크립트(DataLogManager)에서 접근할 수 있도록 싱글톤 인스턴스 추가
+    public static NewsListManager Instance { get; private set; }
+
     [Header("Data (Excel CSV)")]
     [SerializeField] private TextAsset csvFile;
 
@@ -16,6 +19,19 @@ public class NewsListManager : MonoBehaviour
 
     [Header("WindowManager 연동")]
     [SerializeField] private WindowManager windowManager;
+
+    [Header("이 뉴스 창 자체를 여닫는 InGameWindowManager (선택 사항)")]
+    [Tooltip("사이드바 등에서 이 뉴스 창을 최소화/복원하는 InGameWindowManager가 따로 있다면 연결하세요. " +
+             "원본 보기를 눌렀을 때 창이 닫혀 있어도 자동으로 복원됩니다.")]
+    [SerializeField] private InGameWindowManager newsWindowManager;
+
+    // 💡 [추가] 파싱된 모든 뉴스 데이터를 보관 (clueID로 역참조 검색하기 위함)
+    private List<NewsData> allNewsData = new List<NewsData>();
+
+    private void Awake()
+    {
+        if (Instance == null) Instance = this;
+    }
 
     private void Start()
     {
@@ -37,17 +53,14 @@ public class NewsListManager : MonoBehaviour
         {
             List<string> row = csvData[i];
 
-            // ⚠️ 최소한 기본 정보(ID~imageName)까지는 제대로 적혀있는지 체크 (최소 6열 필요)
             if (row.Count < 6) continue;
 
-            // ID 변환 예외 처리
             if (!int.TryParse(row[0], out int idResult))
             {
                 Debug.LogWarning($"[CSV 파싱 패스] {i}번째 줄의 ID 형식이 올바르지 않습니다: '{row[0]}'");
                 continue;
             }
 
-            // ⚠️ 엑셀 빈 칸이나 데이터 부족으로 인한 에러 방지를 위해 삼항 연산자로 안전하게 파싱
             string imgClue = (row.Count > 6) ? row[6] : "";
 
             int paragraphIdx = 0;
@@ -58,7 +71,6 @@ public class NewsListManager : MonoBehaviour
 
             string bodyClue = (row.Count > 8) ? row[8] : "";
 
-            // 새로 약속한 데이터 구조에 맞추어 변수를 최종 주입합니다.
             NewsData data = new NewsData
             {
                 id = idResult,
@@ -67,12 +79,14 @@ public class NewsListManager : MonoBehaviour
                 info = row[3],
                 body = row[4],
                 imageName = row[5],
-                imageClueID = imgClue,                // [추가] 이미지 클릭 시 획득할 단서 ID
-                clueParagraphIndex = paragraphIdx,    // [추가] 단서가 숨겨진 본문 문단 번호 (0이면 없음)
-                bodyClueID = bodyClue                 // [추가] 본문 문단 클릭 시 획득할 단서 ID
+                imageClueID = imgClue,
+                clueParagraphIndex = paragraphIdx,
+                bodyClueID = bodyClue
             };
 
-            // 목록 버튼 생성 및 데이터 주입
+            // 💡 [추가] 나중에 clueID로 검색할 수 있도록 저장
+            allNewsData.Add(data);
+
             GameObject btnGo = Instantiate(newsButtonPrefab, contentParent);
             NewsButton newsBtn = btnGo.GetComponent<NewsButton>();
             if (newsBtn != null)
@@ -82,7 +96,6 @@ public class NewsListManager : MonoBehaviour
         }
     }
 
-    // 💡 쌍따옴표 내부의 줄바꿈과 쉼표를 완벽하게 판별해내는 CSV 파서 (기존 코드 유지)
     private List<List<string>> ParseCSV(string csvText)
     {
         List<List<string>> result = new List<List<string>>();
@@ -155,7 +168,7 @@ public class NewsListManager : MonoBehaviour
         return result;
     }
 
-    // 2. 카테고리 선택 마스터 함수 (기존 코드 유지)
+    // 2. 카테고리 선택 마스터 함수
     public void SelectCategory(string categoryKeyword)
     {
         if (contentParent == null) return;
@@ -192,7 +205,7 @@ public class NewsListManager : MonoBehaviour
         }
     }
 
-    // 3. 버튼을 눌렀을 때 상세 팝업을 열어주는 중계 함수 (기존 코드 유지)
+    // 3. 버튼을 눌렀을 때 상세 팝업을 열어주는 중계 함수
     public void OpenDetailPopup(NewsData data)
     {
         if (detailPopup != null)
@@ -206,5 +219,36 @@ public class NewsListManager : MonoBehaviour
                 windowManager.RepositionPopupWindow(cardRect);
             }
         }
+    }
+
+    /// <summary>
+    /// 💡 [추가] DataLogManager가 "원본 보기"를 요청할 때 호출하는 함수.
+    /// clueID로 어느 기사(본문 문단 또는 이미지)에서 나온 단서인지 찾아서
+    /// 해당 기사의 상세 팝업을 열어줍니다.
+    /// </summary>
+    /// <returns>원본을 찾아서 열었으면 true, 못 찾았으면 false</returns>
+    public bool TryOpenClueSource(string clueID)
+    {
+        if (string.IsNullOrEmpty(clueID)) return false;
+
+        foreach (var data in allNewsData)
+        {
+            bool isBodyMatch = !string.IsNullOrEmpty(data.bodyClueID) && data.bodyClueID == clueID;
+            bool isImageMatch = !string.IsNullOrEmpty(data.imageClueID) && data.imageClueID == clueID;
+
+            if (isBodyMatch || isImageMatch)
+            {
+                // 뉴스 창 자체가 최소화되어 있었다면 먼저 복원
+                if (newsWindowManager != null)
+                {
+                    newsWindowManager.RestoreWindow();
+                }
+
+                OpenDetailPopup(data);
+                return true;
+            }
+        }
+
+        return false;
     }
 }

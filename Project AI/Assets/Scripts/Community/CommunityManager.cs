@@ -5,17 +5,28 @@ using System.Text.RegularExpressions;
 
 public class CommunityManager : MonoBehaviour
 {
+    // 💡 [추가] 싱글톤 인스턴스
+    public static CommunityManager Instance { get; private set; }
+
     public GameObject postItemPrefab;
     public Transform contentTransform;
 
     [Header("상세 페이지 UI 스크립트 연결")]
     public PostDetailPageUI detailPageUI;
 
-    // 🌟 [오늘 추가] 매니저와 연동하여 창을 안 겹치게 배치하기 위한 변수 선언
     [Header("WindowManager 연동")]
     [SerializeField] private WindowManager windowManager;
 
+    [Header("이 커뮤니티 창 자체를 여닫는 InGameWindowManager (선택 사항)")]
+    [Tooltip("사이드바 등에서 이 커뮤니티 창을 최소화/복원하는 InGameWindowManager가 따로 있다면 연결하세요.")]
+    [SerializeField] private InGameWindowManager communityWindowManager;
+
     private List<PostData> postList = new List<PostData>();
+
+    private void Awake()
+    {
+        if (Instance == null) Instance = this;
+    }
 
     void Start()
     {
@@ -108,14 +119,41 @@ public class CommunityManager : MonoBehaviour
 
     public void OpenDetailPage(PostData data)
     {
-        // 1. 기존의 커뮤니티 상세 페이지 화면 출력 로직
         detailPageUI.DisplayPost(data);
 
-        // 🌟 [오늘 추가] 상세 페이지 창 오브젝트의 RectTransform을 추출하여 랜덤 배치 지시!
         if (windowManager != null && detailPageUI != null)
         {
             RectTransform detailRect = detailPageUI.GetComponent<RectTransform>();
             windowManager.RepositionPopupWindow(detailRect);
         }
+    }
+
+    /// <summary>
+    /// 💡 [추가] DataLogManager가 "원본 보기"를 요청할 때 호출.
+    /// 게시글 본문의 clueID든, 댓글의 clueID든 일치하는 걸 찾아
+    /// 해당 게시글의 상세 페이지를 열어줍니다.
+    /// </summary>
+    public bool TryOpenClueSource(string clueID)
+    {
+        if (string.IsNullOrEmpty(clueID)) return false;
+
+        foreach (var post in postList)
+        {
+            bool isPostMatch = !string.IsNullOrEmpty(post.clueID) && post.clueID == clueID;
+            bool isCommentMatch = post.comments.Exists(c => !string.IsNullOrEmpty(c.clueID) && c.clueID == clueID);
+
+            if (isPostMatch || isCommentMatch)
+            {
+                if (communityWindowManager != null)
+                {
+                    communityWindowManager.RestoreWindow();
+                }
+
+                OpenDetailPage(post);
+                return true;
+            }
+        }
+
+        return false;
     }
 }

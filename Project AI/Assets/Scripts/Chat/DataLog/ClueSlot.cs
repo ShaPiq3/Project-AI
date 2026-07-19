@@ -1,42 +1,48 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using static UnityEditor.Tilemaps.RuleTileTemplate;
 
 public class ClueSlot : MonoBehaviour
 {
     [Header("단서 슬롯 UI 컴포넌트들")]
-    // 💡 sourceText 변수는 하이어라키 연결 해제를 위해 남겨두거나 주석 처리해도 됩니다.
     [SerializeField] private TextMeshProUGUI sourceText;
     [SerializeField] private TextMeshProUGUI contentText; // 수집된 단서 본문 내용
     [SerializeField] private Image clueImage;             // 단서 이미지 (있을 경우)
 
-    // 💡 DataLogManager가 단서를 생성할 때 이 함수를 호출하여 화면에 값을 채눕니다.
+    [Header("다중 선택용 체크박스")]
+    [Tooltip("파일 탐색기처럼 개별 체크 후 삭제할 때 쓰는 체크박스입니다.")]
+    [SerializeField] private Toggle selectionToggle;
 
     public ClueData clueData;
+
+    private void Awake()
+    {
+        // 체크박스 리스너는 한 번만 등록 (Awake에서), SetClueUI가 여러 번 호출돼도 중복 등록 방지
+        if (selectionToggle != null)
+        {
+            selectionToggle.onValueChanged.AddListener(OnToggleChanged);
+        }
+    }
+
     public void SetClueUI(ClueData data)
     {
         this.clueData = data;
-        // 1. 출처 텍스트 채우기 제거 (버튼 내 표시 불필요)     
+
         if (sourceText != null)
         {
             sourceText.text = string.IsNullOrEmpty(data.sourceType) ?
                 data.sourceTitle : $"[{data.sourceType}] {data.sourceTitle}";
         }
-        
 
-        // 2. 내용 텍스트 채우기
         if (contentText != null)
         {
             contentText.text = data.contentText;
         }
 
-        // 3. 이미지 처리
         if (clueImage != null)
         {
             if (!string.IsNullOrEmpty(data.imageName))
             {
-                // Resources/NewsImages/ 경로 또는 지정된 폴더에서 이미지 로드
                 Sprite loadedSprite = Resources.Load<Sprite>($"NewsImages/{data.imageName}");
                 if (loadedSprite != null)
                 {
@@ -45,32 +51,39 @@ public class ClueSlot : MonoBehaviour
                 }
                 else
                 {
-                    clueImage.gameObject.SetActive(false); // 로드 실패 시 숨김
+                    clueImage.gameObject.SetActive(false);
                 }
             }
             else
             {
-                // 이미지 데이터가 없으면 이미지 칸 숨김
                 clueImage.gameObject.SetActive(false);
             }
         }
+
+        // 새로 생성/갱신될 때는 체크 해제 상태로 시작
+        // (SetIsOnWithoutNotify: 리스너를 다시 트리거하지 않고 값만 초기화)
+        if (selectionToggle != null)
+        {
+            selectionToggle.SetIsOnWithoutNotify(false);
+        }
     }
 
+    /// <summary>
+    /// 체크박스 상태가 바뀔 때마다 DataLogManager에 알립니다 (다중 선택 목록 갱신용).
+    /// </summary>
+    private void OnToggleChanged(bool isOn)
+    {
+        DataLogManager.Instance.SetClueSelected(this, isOn);
+    }
+
+    /// <summary>
+    /// 슬롯의 "본문" 영역(체크박스 제외) 클릭 시 호출됩니다.
+    /// 체크박스를 직접 클릭한 경우에는 체크박스가 이벤트를 먼저 소비하므로
+    /// 이 함수는 실행되지 않습니다.
+    /// 이 단서가 원래 있던 원본 위치(뉴스 기사 등)를 열어 보여주는 용도로 사용하세요.
+    /// </summary>
     public void OnClickSlot()
     {
-        if (DataLogManager.Instance.isDeleteMode)
-        {
-            // 💡 UIManager를 DataLogManager 안에 넣었으므로 경로를 맞춰줍니다.
-            DataLogManager.Instance.uiManager.ShowConfirmPopup(
-                "이 단서를 수집 상태에서 해제하시겠습니까?",
-                () => { DataLogManager.Instance.RemoveClueAndRefreshUI(this.clueData); },
-                () => { Debug.Log("취소"); }
-            );
-        }
-        else
-        {
-            // 원래 기능: 상세 보기 호출 등
-            Debug.Log("단서 상세 보기: " + clueData.clueName);
-        }
+        DataLogManager.Instance.OpenClueSource(clueData);
     }
 }

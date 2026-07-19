@@ -23,10 +23,12 @@ public class QuestStatusUI : MonoBehaviour
                 statusText.text = $"{current} / {target}";
             }
 
-            // 3. 목표치 달성 시 답변 생성 버튼 활성화 (이미 5개면 true, 아니면 false)
+            // 3. 답변 생성 버튼은 항상 활성화 + 클릭 가능 상태로 유지
+            //    (정답/오답 판정은 버튼을 누른 시점에 DataLogManager.CheckIfAllCluesAreCorrect()로 처리)
             if (generateButton != null)
             {
-                generateButton.gameObject.SetActive(current >= target);
+                generateButton.gameObject.SetActive(true);
+                generateButton.interactable = true;
             }
 
             // 퀘스트가 하나라면 바로 루프를 빠져나와도 됩니다.

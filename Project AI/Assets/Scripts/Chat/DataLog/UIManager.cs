@@ -1,16 +1,80 @@
 using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
 using UnityEngine.Events;
 
 public class UIManager : MonoBehaviour
 {
     public static UIManager Instance;
 
-    private void Awake() { Instance = this; }
+    [Header("Confirm Popup UI")]
+    [SerializeField] private GameObject confirmPopupPanel;   // 팝업 전체 오브젝트 (평소엔 꺼져있어야 함)
+    [SerializeField] private TMP_Text confirmMessageText;    // "수집된 데이터를 삭제하시겠습니까?" 텍스트
+    [SerializeField] private Button confirmYesButton;        // 예 버튼
+    [SerializeField] private Button confirmNoButton;         // 아니오 버튼
 
-    // 팝업을 띄우는 함수 (다른 스크립트에서 호출할 수 있게 public)
+    private UnityAction currentOnConfirm;
+    private UnityAction currentOnCancel;
+
+    private void Awake()
+    {
+        Instance = this;
+
+        if (confirmPopupPanel != null)
+        {
+            confirmPopupPanel.SetActive(false);
+        }
+
+        if (confirmYesButton != null)
+        {
+            confirmYesButton.onClick.AddListener(OnConfirmYesClicked);
+        }
+
+        if (confirmNoButton != null)
+        {
+            confirmNoButton.onClick.AddListener(OnConfirmNoClicked);
+        }
+    }
+
     public void ShowConfirmPopup(string message, UnityAction onConfirm, UnityAction onCancel)
     {
-        // 여기에 실제 팝업 UI를 활성화하고, 버튼 이벤트에 onConfirm/onCancel을 연결하는 로직을 넣으세요.
-        Debug.Log("팝업이 호출되었습니다: " + message);
+        if (confirmPopupPanel == null)
+        {
+            Debug.LogWarning("[UIManager] confirmPopupPanel이 Inspector에 연결되지 않았습니다!");
+            return;
+        }
+
+        currentOnConfirm = onConfirm;
+        currentOnCancel = onCancel;
+
+        if (confirmMessageText != null)
+        {
+            confirmMessageText.text = message;
+        }
+
+        confirmPopupPanel.SetActive(true);
+        confirmPopupPanel.transform.SetAsLastSibling();
+    }
+
+    private void OnConfirmYesClicked()
+    {
+        confirmPopupPanel.SetActive(false);
+
+        UnityAction confirmAction = currentOnConfirm;
+        currentOnConfirm = null;
+        currentOnCancel = null;
+
+        confirmAction?.Invoke();
+    }
+
+    private void OnConfirmNoClicked()
+    {
+        confirmPopupPanel.SetActive(false);
+
+        UnityAction cancelAction = currentOnCancel;
+        currentOnConfirm = null;
+        currentOnCancel = null;
+
+        cancelAction?.Invoke();
     }
 }

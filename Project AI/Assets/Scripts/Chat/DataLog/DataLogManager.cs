@@ -29,7 +29,11 @@ public class DataLogManager : MonoBehaviour
     private List<ClueData> collectedClues = new List<ClueData>();
     private bool isOpen = false;
     public bool IsOpen => isOpen;
-    public bool isDeleteMode = false;
+
+    // 💡 [변경] 파일탐색기 방식 다중 선택 삭제를 위한 선택 목록
+    //     (기존 isDeleteMode / selectedSlot 방식은 제거)
+    private List<ClueData> selectedForDeletion = new List<ClueData>();
+
     public UIManager uiManager;
 
     private float panelWidth;
@@ -100,9 +104,6 @@ public class DataLogManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 플레이어가 단서를 발견했을 때 "ID만" 넘겨서 수집하는 함수
-    /// </summary>
-    /// <summary>
     /// 플레이어가 단서를 발견했을 때 퀘스트ID와 단서ID를 넘겨서 수집
     /// </summary>
     public void AcquireClue(string questID, string clueID)
@@ -111,7 +112,6 @@ public class DataLogManager : MonoBehaviour
         Debug.Log($"[디버그] 수집 시도 -> 입력된 퀘스트ID: '{questID}', 수집된 퀘스트 목록: {string.Join(", ", questCollectedClues.Keys)}");
         if (string.IsNullOrEmpty(clueID) || string.IsNullOrEmpty(questID)) return;
         string cleanClueID = clueID.Trim();
-
 
         // 1. 이미 수집한 단서인지 체크
         if (collectedClues.Exists(c => c.clueID == cleanClueID)) return;
@@ -180,20 +180,25 @@ public class DataLogManager : MonoBehaviour
         }
     }
 
-    // DataLogManager.cs 수정
     public void ToggleLogPanel()
     {
         if (logPanelRect == null) return;
 
-        // 타겟 위치를 '0'이 아니라 '채팅창 옆의 정확한 X 좌표'로 지정하세요.
-        // 채팅창 옆이 X=500인 지점이라면, 0f 대신 500f를 넣어야 합니다.
-        float targetX = 250f; // 💡 채팅창 옆의 정확한 X 위치값을 직접 입력하세요.
+        float targetX = 250f; // 💡 채팅창 옆의 정확한 X 위치값
 
         if (!IsOpen)
         {
             logPanelRect.DOKill();
-            // 0f 대신 targetX를 사용하세요.
             logPanelRect.DOAnchorPosX(targetX, duration).SetEase(showEase).SetUpdate(true);
+
+            CanvasGroup cg = logPanelRect.GetComponent<CanvasGroup>();
+            if (cg != null)
+            {
+                cg.alpha = 1f;
+                cg.interactable = true;
+                cg.blocksRaycasts = true;
+            }
+
             isOpen = true;
         }
         else
@@ -202,7 +207,6 @@ public class DataLogManager : MonoBehaviour
         }
     }
 
-    // 무조건 우측 바깥으로 미끄러지며 숨겨지는 강제 닫기 함수
     public void HideLogPanel()
     {
         if (logPanelRect == null) return;
@@ -212,18 +216,22 @@ public class DataLogManager : MonoBehaviour
             .SetEase(hideEase)
             .SetUpdate(true);
 
+        CanvasGroup cg = logPanelRect.GetComponent<CanvasGroup>();
+        if (cg != null)
+        {
+            cg.DOKill();
+            cg.DOFade(0f, duration).SetUpdate(true);
+            cg.interactable = false;
+            cg.blocksRaycasts = false;
+        }
+
         isOpen = false;
     }
 
-    /// <summary>
-    /// 💡 [핵심 수정] 기존에 수집 모드용으로 이미 만들어 두신 버튼 클릭 이벤트(OnClick)에 
-    /// 이 함수를 한 줄 추가해서 같이 실행되게 묶어주시면 끝납니다!
-    /// </summary>
     public void ToggleClueSearchMode()
     {
         IsClueSearchModeActive = !IsClueSearchModeActive;
 
-        // 💡 수집 모드 상태에 따라 필터 패널을 켜거나 끕니다.
         if (clueFilterPanel != null)
         {
             clueFilterPanel.SetActive(IsClueSearchModeActive);
@@ -237,30 +245,79 @@ public class DataLogManager : MonoBehaviour
         if (collectedClues.Count == 0) return false;
         foreach (var clue in collectedClues)
         {
-            // 하나라도 오답(false)이면 실패
             if (!clue.isCorrect) return false;
         }
         return true;
     }
 
-    // 2. 삭제 모드 토글
-    public void ToggleDeleteMode()
+    // ============================================================
+    // 💡 [변경] 파일탐색기 방식 다중 선택 삭제
+    // ============================================================
+
+    /// <summary>
+    /// ClueSlot의 체크박스(Toggle) 상태가 바뀔 때마다 호출됩니다.
+    /// </summary>
+    public void SetClueSelected(ClueSlot slot, bool isSelected)
     {
-        isDeleteMode = !isDeleteMode;
-        Debug.Log("삭제 모드: " + isDeleteMode);
-        // UI에 '삭제 모드' 표시를 하고 싶다면 여기서 호출
+        if (slot == null || slot.clueData == null) return;
+
+        if (isSelected)
+        {
+            if (!selectedForDeletion.Contains(slot.clueData))
+            {
+                selectedForDeletion.Add(slot.clueData);
+            }
+        }
+        else
+        {
+            selectedForDeletion.Remove(slot.clueData);
+        }
     }
 
-    // 3. 실제 삭제 실행 함수 (팝업에서 '예' 버튼 연결용)
-    public void RemoveClueAndRefreshUI(ClueData clue)
+    /// <summary>
+    /// "데이터 삭제" 버튼의 OnClick에 연결하는 함수.
+    /// 체크된 단서가 있을 때만 확인 팝업을 띄우고, 확인 시 전부 삭제합니다.
+    /// </summary>
+    public void OnClickDeleteSelectedClues()
     {
-        if (collectedClues.Contains(clue))
+        if (selectedForDeletion.Count == 0)
         {
-            collectedClues.Remove(clue);
-
-            // UI를 싹 지우고 다시 그리는 함수(필요시 구현)
-            RefreshClueUI();
+            Debug.Log("삭제할 단서를 먼저 체크해주세요.");
+            return;
         }
+
+        List<ClueData> targets = new List<ClueData>(selectedForDeletion); // 클릭 시점 스냅샷
+        int count = targets.Count;
+
+        uiManager.ShowConfirmPopup(
+            $"선택한 {count}개의 단서를 삭제하시겠습니까?",
+            () =>
+            {
+                RemoveCluesAndRefreshUI(targets);
+                selectedForDeletion.Clear();
+            },
+            () =>
+            {
+                Debug.Log("삭제 취소");
+            }
+        );
+    }
+
+    /// <summary>
+    /// 여러 단서를 한 번에 삭제하고 UI는 마지막에 한 번만 새로고침합니다.
+    /// </summary>
+    public void RemoveCluesAndRefreshUI(List<ClueData> cluesToRemove)
+    {
+        foreach (var clue in cluesToRemove)
+        {
+            if (collectedClues.Contains(clue))
+            {
+                collectedClues.Remove(clue);
+                RemoveClue(clue.questID, clue.clueID); // 퀘스트 진행도 카운트도 함께 감소
+            }
+        }
+
+        RefreshClueUI();
     }
 
     private void RefreshClueUI()
@@ -275,17 +332,63 @@ public class DataLogManager : MonoBehaviour
         questStatusUI?.UpdateDisplay();
     }
 
+    // ============================================================
+    // 수집된 단서를 다시 클릭하면 원본 위치(뉴스/SNS/커뮤니티)를 열어주는 기능
+    // 각 매니저(NewsListManager, SNSManager, CommunityManager)의 싱글톤(Instance)을
+    // 통해 접근하므로 이 스크립트에서 별도로 인스펙터 연결할 필요가 없습니다.
+    // ============================================================
+    public void OpenClueSource(ClueData clue)
+    {
+        if (clue == null) return;
+
+        bool found = false;
+
+        // 💡 대소문자/공백 차이로 놓치는 일이 없도록 정규화해서 비교
+        string normalizedType = clue.sourceType?.Trim().ToUpper();
+
+        switch (normalizedType)
+        {
+            case "NEWS":
+            case "뉴스":
+                if (NewsListManager.Instance != null)
+                {
+                    found = NewsListManager.Instance.TryOpenClueSource(clue.clueID);
+                }
+                break;
+
+            case "SNS":
+                if (SNSManager.Instance != null)
+                {
+                    found = SNSManager.Instance.TryOpenClueSource(clue.clueID);
+                }
+                break;
+
+            case "COMMUNITY":
+            case "COMMENT":
+            case "커뮤니티":
+            case "댓글":
+                if (CommunityManager.Instance != null)
+                {
+                    found = CommunityManager.Instance.TryOpenClueSource(clue.clueID);
+                }
+                break;
+        }
+
+        if (!found)
+        {
+            Debug.LogWarning($"[원본 열기 실패] sourceType: {clue.sourceType}, clueID: {clue.clueID} 에 해당하는 원본을 찾지 못했습니다.");
+        }
+    }
+
     public void OnClickGenerateAnswer()
     {
         bool isSuccess = DataLogManager.Instance.CheckIfAllCluesAreCorrect();
         if (isSuccess)
         {
-            // 정답 대화 호출 로직
             Debug.Log("정답입니다!");
         }
         else
         {
-            // 오답 대화 호출 로직
             Debug.Log("오답입니다.");
         }
     }
