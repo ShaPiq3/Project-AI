@@ -3534,7 +3534,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1013929295}
         m_TargetAssemblyTypeName: DataLogManager, Assembly-CSharp
-        m_MethodName: ToggleDeleteMode
+        m_MethodName: OnClickDeleteSelectedClues
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -4595,6 +4595,11 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 528636403}
   m_CullTransparentMesh: 1
+--- !u!1 &533112414 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3538061344140777055, guid: 42971248c8245bf4a9102808c5fc2380, type: 3}
+  m_PrefabInstance: {fileID: 1685517604}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &540283351
 GameObject:
   m_ObjectHideFlags: 0
@@ -7064,6 +7069,26 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_IsOn: 1
+--- !u!1 &795487907 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4144330520428779657, guid: 42971248c8245bf4a9102808c5fc2380, type: 3}
+  m_PrefabInstance: {fileID: 1685517604}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &795487912
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 795487907}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d4fa8e44fe750324dacccb6b4cb94995, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ClueImageHoverEffect
+  highlightColor: {r: 1, g: 1, b: 0.6, a: 1}
+  targetClueID: Clue_1
+  questID: Q1
 --- !u!1 &796313946
 GameObject:
   m_ObjectHideFlags: 0
@@ -12905,6 +12930,19 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 686268647362353937, guid: 42971248c8245bf4a9102808c5fc2380, type: 3}
   m_PrefabInstance: {fileID: 1685517604}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1386099794
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 533112414}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a17018a1a93671d4a85f5d737a26f5a9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ArchiveManager
+  archiveWindowManager: {fileID: 31393967}
 --- !u!1 &1390192932
 GameObject:
   m_ObjectHideFlags: 0
@@ -16800,6 +16838,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Promes_Info
       objectReference: {fileID: 0}
+    - target: {fileID: 3538061344140777055, guid: 42971248c8245bf4a9102808c5fc2380, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 3575674350303291814, guid: 42971248c8245bf4a9102808c5fc2380, type: 3}
       propertyPath: m_AnchorMax.x
       value: 0
@@ -17768,6 +17810,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: -16
       objectReference: {fileID: 0}
+    - target: {fileID: 7733176386694249455, guid: 42971248c8245bf4a9102808c5fc2380, type: 3}
+      propertyPath: m_RaycastTarget
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7821534291761911520, guid: 42971248c8245bf4a9102808c5fc2380, type: 3}
       propertyPath: m_AnchorMax.x
       value: 0
@@ -17951,7 +17997,13 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 3538061344140777055, guid: 42971248c8245bf4a9102808c5fc2380, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1386099794}
+    - targetCorrespondingSourceObject: {fileID: 4144330520428779657, guid: 42971248c8245bf4a9102808c5fc2380, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 795487912}
   m_SourcePrefab: {fileID: 100100000, guid: 42971248c8245bf4a9102808c5fc2380, type: 3}
 --- !u!1 &1704678629
 GameObject:

@@ -246,6 +246,8 @@ public class ChatDialogueManager : MonoBehaviour
         TryStartDialogue();
     }
 
+    // ChatDialogueManager.cs의 CloseChatWindow() 함수를 아래처럼 수정하세요.
+
     public void CloseChatWindow()
     {
         if (dialoguePanelRect == null) return;
@@ -264,6 +266,12 @@ public class ChatDialogueManager : MonoBehaviour
         {
             dialogueCanvasGroup.interactable = false;
             dialogueCanvasGroup.blocksRaycasts = false;
+        }
+
+        // 💡 [추가] 채팅창이 실제로 닫힐 때 WindowManager의 벽(오른쪽 제한)도 함께 해제
+        if (windowManager != null)
+        {
+            windowManager.isChatOpen = false;
         }
 
         dialoguePanelRect.DOKill();

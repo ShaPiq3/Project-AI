@@ -50,7 +50,8 @@ public class PostDetailPageUI : MonoBehaviour
         // PostDetailPageUI.cs 내부의 이미지 렌더링 함수 예시
         if (!string.IsNullOrEmpty(data.imageName))
         {
-            Sprite loadedSprite = Resources.Load<Sprite>($"CommunityImages/{data.imageName}");
+            // 💡 [변경] 실제 이미지가 저장된 폴더명(PostImages)에 맞게 수정
+            Sprite loadedSprite = Resources.Load<Sprite>($"PostImages/{data.imageName}");
             if (loadedSprite != null)
             {
                 postImage.sprite = loadedSprite;

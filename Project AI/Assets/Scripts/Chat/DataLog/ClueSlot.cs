@@ -43,7 +43,10 @@ public class ClueSlot : MonoBehaviour
         {
             if (!string.IsNullOrEmpty(data.imageName))
             {
-                Sprite loadedSprite = Resources.Load<Sprite>($"NewsImages/{data.imageName}");
+                // 💡 [변경] 단서 출처(뉴스/SNS/커뮤니티/아카이브)에 따라 이미지가 저장된
+                // Resources 폴더가 다를 수 있으므로, 순서대로 시도해서 찾습니다.
+                Sprite loadedSprite = LoadClueSprite(data.imageName);
+
                 if (loadedSprite != null)
                 {
                     clueImage.sprite = loadedSprite;
@@ -52,6 +55,7 @@ public class ClueSlot : MonoBehaviour
                 else
                 {
                     clueImage.gameObject.SetActive(false);
+                    Debug.LogWarning($"[ClueSlot] 이미지 로드 실패: {data.imageName} (모든 폴더에서 찾지 못함)");
                 }
             }
             else
@@ -66,6 +70,26 @@ public class ClueSlot : MonoBehaviour
         {
             selectionToggle.SetIsOnWithoutNotify(false);
         }
+    }
+
+    /// <summary>
+    /// 단서 이미지가 어느 Resources 폴더에 있는지 몰라도 되도록,
+    /// 프로젝트에서 쓰는 이미지 폴더들을 순서대로 시도해서 찾습니다.
+    /// </summary>
+    private Sprite LoadClueSprite(string imageName)
+    {
+        string[] candidateFolders = { "NewsImages", "SNSImages", "PostImages", "ArchiveImages" };
+
+        foreach (string folder in candidateFolders)
+        {
+            Sprite sprite = Resources.Load<Sprite>($"{folder}/{imageName}");
+            if (sprite != null)
+            {
+                return sprite;
+            }
+        }
+
+        return null;
     }
 
     /// <summary>

@@ -119,6 +119,15 @@ public class DataLogManager : MonoBehaviour
         // 2. 타이밍 체크
         if (ChatDialogueManager.Instance == null) return;
 
+        // 💡 [추가] 이 단서가 속한 퀘스트가 실제로 시작(isTrigger 발동)됐는지 확인
+        //     아직 StartQuest가 호출되지 않은 questID라면, 단서 수집 모드가 켜져 있어도
+        //     수집되지 않도록 막습니다. (isTrigger가 발동됐을 때만 수집 가능해야 함)
+        if (!questCollectedClues.ContainsKey(questID))
+        {
+            Debug.LogWarning($"[수집 거부] 퀘스트 '{questID}'가 아직 시작되지 않아 수집할 수 없습니다.");
+            return;
+        }
+
         // 3. 데이터베이스 조회 (중요: 여기서 데이터를 찾았을 때만 다음으로 진행)
         if (!clueDatabase.TryGetValue(cleanClueID, out ClueData targetClue))
         {
@@ -370,6 +379,14 @@ public class DataLogManager : MonoBehaviour
                 if (CommunityManager.Instance != null)
                 {
                     found = CommunityManager.Instance.TryOpenClueSource(clue.clueID);
+                }
+                break;
+
+            case "ARCHIVE":
+            case "아카이브":
+                if (ArchiveManager.Instance != null)
+                {
+                    found = ArchiveManager.Instance.TryOpenClueSource(clue.clueID);
                 }
                 break;
         }
