@@ -434,4 +434,37 @@ public class DataLogManager : MonoBehaviour
             Debug.Log("오답입니다.");
         }
     }
+
+    // ============================================================
+    // 💡 [추가 기능] 문서 패널(DocuGame_panel_1 등) 클릭 이벤트 매핑용 함수
+    // ============================================================
+    public void OnClickDocumentPanel(DocumentQuestManager targetQuestManager)
+    {
+        if (targetQuestManager == null) return;
+
+        // 1. 단서 수집 모드가 true인 상태인지 검사
+        if (!IsClueSearchModeActive)
+        {
+            Debug.Log("[시스템] 단서 수집 모드가 비활성화 상태이므로 문서를 분석할 수 없습니다.");
+            return;
+        }
+
+        // 2. 이미 게이지가 차오르고 있거나(IsScanning), 연출이 끝나서 분석 창이 활성화(IsAnalysisActive)된 상태라면 완벽 차단
+        if (targetQuestManager.IsScanning || targetQuestManager.IsAnalysisActive)
+        {
+            Debug.LogWarning("[스캔 차단] 이미 분석이 진행 중이거나 분석 패널이 활성화되어 있습니다.");
+            return;
+        }
+
+        // 3. 이미 해당 문서가 성공적으로 요약 실행이 완료되었는지 검사
+        if (targetQuestManager.IsCompleted)
+        {
+            Debug.LogWarning("[스캔 차단] 이 문서는 이미 요약 분석이 완료되어 재실행할 수 없습니다.");
+            return;
+        }
+
+        // 4. 모든 조건 통과 시에만 최초 1회 연출 시동
+        Debug.Log($"[시스템] 단서 수집 조건 충족. '{targetQuestManager.name}' 분석 연출을 시작합니다.");
+        targetQuestManager.TriggerScanComplete();
+    }
 }
