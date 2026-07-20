@@ -30,14 +30,15 @@ public class DataLogManager : MonoBehaviour
     private bool isOpen = false;
     public bool IsOpen => isOpen;
 
-    // 파일탐색기 방식 다중 선택 삭제를 위한 선택 목록
+    // 💡 [변경] 파일탐색기 방식 다중 선택 삭제를 위한 선택 목록
+    //     (기존 isDeleteMode / selectedSlot 방식은 제거)
     private List<ClueData> selectedForDeletion = new List<ClueData>();
 
     public UIManager uiManager;
 
     private float panelWidth;
 
-    // 다른 스크립트에서 참조할 단서 수집 모드 활성화 여부
+    // 💡 다른 스크립트에서 참조할 단서 수집 모드 활성화 여부
     public bool IsClueSearchModeActive { get; private set; } = false;
     // 퀘스트ID : [수집된 단서ID 리스트]
     public Dictionary<string, List<string>> questCollectedClues = new Dictionary<string, List<string>>();
@@ -118,14 +119,16 @@ public class DataLogManager : MonoBehaviour
         // 2. 타이밍 체크
         if (ChatDialogueManager.Instance == null) return;
 
-        // 이 단서가 속한 퀘스트가 실제로 시작(isTrigger 발동)됐는지 확인
+        // 💡 [추가] 이 단서가 속한 퀘스트가 실제로 시작(isTrigger 발동)됐는지 확인
+        //     아직 StartQuest가 호출되지 않은 questID라면, 단서 수집 모드가 켜져 있어도
+        //     수집되지 않도록 막습니다. (isTrigger가 발동됐을 때만 수집 가능해야 함)
         if (!questCollectedClues.ContainsKey(questID))
         {
             Debug.LogWarning($"[수집 거부] 퀘스트 '{questID}'가 아직 시작되지 않아 수집할 수 없습니다.");
             return;
         }
 
-        // 3. 데이터베이스 조회
+        // 3. 데이터베이스 조회 (중요: 여기서 데이터를 찾았을 때만 다음으로 진행)
         if (!clueDatabase.TryGetValue(cleanClueID, out ClueData targetClue))
         {
             Debug.LogWarning($"데이터베이스에 없음: {cleanClueID}");
@@ -145,7 +148,7 @@ public class DataLogManager : MonoBehaviour
         // 5. 수집 목록 추가 및 UI 생성
         collectedClues.Add(targetClue);
 
-        // UI 생성 함수 호출
+        // 💡 여기서 UI 생성 함수 호출
         CreateClueSlot(targetClue);
         Debug.Log($"단서 수집 성공: {targetClue.clueID}");
     }
@@ -190,7 +193,7 @@ public class DataLogManager : MonoBehaviour
     {
         if (logPanelRect == null) return;
 
-        float targetX = 250f; // 채팅창 옆의 정확한 X 위치값
+        float targetX = 250f; // 💡 채팅창 옆의 정확한 X 위치값
 
         if (!IsOpen)
         {
@@ -234,6 +237,31 @@ public class DataLogManager : MonoBehaviour
         isOpen = false;
     }
 
+    /// <summary>
+    /// 💡 [추가] 사이드바의 "단서 수집" 버튼 전용 함수.
+    /// 토글이 아니라 "켜는 것"만 담당합니다 - 이미 켜져 있으면 아무 일도 하지 않습니다.
+    /// (버튼에 RestoreWindow 등 다른 열기 로직이 같이 연결되어 있어도
+    ///  꺼짐 상태와 충돌하지 않도록, 끄는 동작은 이 함수에서 절대 하지 않습니다.)
+    /// 끄는 것은 ClueFilterPanelCloser(ESC/우클릭)에서만 처리합니다.
+    /// </summary>
+    public void OpenClueSearchMode()
+    {
+        if (IsClueSearchModeActive)
+        {
+            // 이미 켜져 있으면 완전히 무시 (버튼이 막힌 것처럼 동작)
+            return;
+        }
+
+        IsClueSearchModeActive = true;
+
+        if (clueFilterPanel != null)
+        {
+            clueFilterPanel.SetActive(true);
+        }
+
+        Debug.Log("[시스템] 단서 수집 모드: True");
+    }
+
     public void ToggleClueSearchMode()
     {
         IsClueSearchModeActive = !IsClueSearchModeActive;
@@ -255,6 +283,10 @@ public class DataLogManager : MonoBehaviour
         }
         return true;
     }
+
+    // ============================================================
+    // 💡 [변경] 파일탐색기 방식 다중 선택 삭제
+    // ============================================================
 
     /// <summary>
     /// ClueSlot의 체크박스(Toggle) 상태가 바뀔 때마다 호출됩니다.
@@ -278,6 +310,7 @@ public class DataLogManager : MonoBehaviour
 
     /// <summary>
     /// "데이터 삭제" 버튼의 OnClick에 연결하는 함수.
+    /// 체크된 단서가 있을 때만 확인 팝업을 띄우고, 확인 시 전부 삭제합니다.
     /// </summary>
     public void OnClickDeleteSelectedClues()
     {
@@ -287,7 +320,7 @@ public class DataLogManager : MonoBehaviour
             return;
         }
 
-        List<ClueData> targets = new List<ClueData>(selectedForDeletion);
+        List<ClueData> targets = new List<ClueData>(selectedForDeletion); // 클릭 시점 스냅샷
         int count = targets.Count;
 
         uiManager.ShowConfirmPopup(
@@ -314,7 +347,7 @@ public class DataLogManager : MonoBehaviour
             if (collectedClues.Contains(clue))
             {
                 collectedClues.Remove(clue);
-                RemoveClue(clue.questID, clue.clueID);
+                RemoveClue(clue.questID, clue.clueID); // 퀘스트 진행도 카운트도 함께 감소
             }
         }
 
@@ -323,16 +356,28 @@ public class DataLogManager : MonoBehaviour
 
     private void RefreshClueUI()
     {
+        // 1. 기존 슬롯 싹 다 삭제
         foreach (Transform child in clueContainer) Destroy(child.gameObject);
+
+        // 2. 남은 리스트로 다시 생성
         foreach (var clue in collectedClues) CreateClueSlot(clue);
+
+        // 3. 퀘스트 상태 UI 갱신
         questStatusUI?.UpdateDisplay();
     }
 
+    // ============================================================
+    // 수집된 단서를 다시 클릭하면 원본 위치(뉴스/SNS/커뮤니티)를 열어주는 기능
+    // 각 매니저(NewsListManager, SNSManager, CommunityManager)의 싱글톤(Instance)을
+    // 통해 접근하므로 이 스크립트에서 별도로 인스펙터 연결할 필요가 없습니다.
+    // ============================================================
     public void OpenClueSource(ClueData clue)
     {
         if (clue == null) return;
 
         bool found = false;
+
+        // 💡 대소문자/공백 차이로 놓치는 일이 없도록 정규화해서 비교
         string normalizedType = clue.sourceType?.Trim().ToUpper();
 
         switch (normalizedType)
@@ -388,38 +433,5 @@ public class DataLogManager : MonoBehaviour
         {
             Debug.Log("오답입니다.");
         }
-    }
-
-    // ============================================================
-    // 💡 [추가 기능] 문서 패널(DocuGame_panel_1) 클릭 이벤트 매핑용 함수
-    // ============================================================
-    public void OnClickDocumentPanel(DocumentQuestManager targetQuestManager)
-    {
-        if (targetQuestManager == null) return;
-
-        // 1. 단서 수집 모드가 true인 상태인지 검사
-        if (!IsClueSearchModeActive)
-        {
-            Debug.Log("[시스템] 단서 수집 모드가 비활성화 상태이므로 문서를 분석할 수 없습니다.");
-            return;
-        }
-
-        // 2. 이미 게이지가 차오르고 있거나(IsScanning), 연출이 끝나서 분석 창이 활성화(IsAnalysisActive)된 상태라면 완벽 차단
-        if (targetQuestManager.IsScanning || targetQuestManager.IsAnalysisActive)
-        {
-            Debug.LogWarning("[스캔 차단] 이미 분석이 진행 중이거나 분석 패널이 활성화되어 있습니다.");
-            return;
-        }
-
-        // 3. 이미 해당 문서가 성공적으로 요약 실행이 완료되었는지 검사
-        if (targetQuestManager.IsCompleted)
-        {
-            Debug.LogWarning("[스캔 차단] 이 문서는 이미 요약 분석이 완료되어 재실행할 수 없습니다.");
-            return;
-        }
-
-        // 4. 모든 조건 통과 시에만 최초 1회 연출 시동
-        Debug.Log($"[시스템] 단서 수집 조건 충족. '{targetQuestManager.name}' 분석 연출을 시작합니다.");
-        targetQuestManager.TriggerScanComplete();
     }
 }
