@@ -45,6 +45,16 @@ public class DataLogManager : MonoBehaviour
     // 퀘스트ID : [목표 개수]
     public Dictionary<string, int> questTargetCounts = new Dictionary<string, int>();
 
+    // 💡 [추가] 퀘스트별 정답/오답 대화 시작 ID (StartQuest 호출 시 함께 등록됨)
+    [System.Serializable]
+    private class QuestDialogueConfig
+    {
+        public string questID;
+        public int correctDialogueID;
+        public int incorrectDialogueID;
+    }
+    private Dictionary<string, QuestDialogueConfig> questDialogueConfigs = new Dictionary<string, QuestDialogueConfig>();
+
     private void Awake()
     {
         if (Instance == null) Instance = this;
@@ -93,13 +103,29 @@ public class DataLogManager : MonoBehaviour
 
     public List<string> activeQuestIDs = new List<string>();
 
-    public void StartQuest(string questID, int targetCount)
+    /// <summary>
+    /// 💡 [변경] 정답/오답 대화 ID도 함께 받아서 등록합니다.
+    /// (ChatDialogueManager가 isTrigger 행을 처리할 때, 같은 행에 적힌
+    ///  correctDialogueID/incorrectDialogueID를 그대로 넘겨줍니다)
+    /// </summary>
+    public void StartQuest(string questID, int targetCount, int correctDialogueID = 0, int incorrectDialogueID = 0)
     {
         Debug.Log("StartQuest 호출됨!");
         questTargetCounts[questID] = targetCount;
         Debug.Log($"퀘스트 추가됨! 현재 퀘스트 개수: {questTargetCounts.Count}");
         questCollectedClues[questID] = new List<string>();
         if (!activeQuestIDs.Contains(questID)) activeQuestIDs.Add(questID);
+
+        questDialogueConfigs[questID] = new QuestDialogueConfig
+        {
+            questID = questID,
+            correctDialogueID = correctDialogueID,
+            incorrectDialogueID = incorrectDialogueID
+        };
+
+        // 💡 [디버그용] 실제로 어떤 값이 저장되는지 확인
+        Debug.Log($"[디버그] StartQuest 저장값 -> questID:{questID}, correctDialogueID:{correctDialogueID}, incorrectDialogueID:{incorrectDialogueID}");
+
         questStatusUI?.UpdateDisplay();
     }
 
@@ -274,13 +300,50 @@ public class DataLogManager : MonoBehaviour
         Debug.Log($"[시스템] 단서 수집 모드: {IsClueSearchModeActive}");
     }
 
+    /// <summary>
+    /// 현재 진행 중인 퀘스트(가장 최근 시작된 퀘스트) 기준으로:
+    /// 1) 정답으로 표시된(isCorrect=true) 단서를 하나도 빠짐없이 전부 수집했고
+    /// 2) 오답 단서는 하나도 수집하지 않았을 때만 true를 반환합니다.
+    /// (이전에는 "수집한 것 중에 오답이 없는가"만 확인해서,
+    ///  정답 단서를 일부만 모아도 정답 처리되는 버그가 있었습니다.)
+    /// </summary>
     public bool CheckIfAllCluesAreCorrect()
     {
-        if (collectedClues.Count == 0) return false;
-        foreach (var clue in collectedClues)
+        if (activeQuestIDs.Count == 0) return false;
+
+        // 가장 최근에 시작된 퀘스트를 "현재 판정 대상 퀘스트"로 취급
+        string currentQuestID = activeQuestIDs[activeQuestIDs.Count - 1];
+
+        // 1. 마스터 데이터베이스에서 이 퀘스트에 속한 "정답" 단서 ID 목록을 모두 뽑음
+        List<string> requiredCorrectClueIDs = new List<string>();
+        foreach (var kvp in clueDatabase)
+        {
+            ClueData dbClue = kvp.Value;
+            if (dbClue.questID == currentQuestID && dbClue.isCorrect)
+            {
+                requiredCorrectClueIDs.Add(dbClue.clueID);
+            }
+        }
+
+        // 정답으로 지정된 단서가 하나도 없다면(데이터 미설정) 실패로 처리
+        if (requiredCorrectClueIDs.Count == 0) return false;
+
+        // 2. 이 퀘스트에 해당하는, 실제로 수집한 단서들만 추림
+        List<ClueData> collectedForThisQuest = collectedClues.FindAll(c => c.questID == currentQuestID);
+
+        // 3. 오답을 하나라도 수집했으면 실패
+        foreach (var clue in collectedForThisQuest)
         {
             if (!clue.isCorrect) return false;
         }
+
+        // 4. 정답으로 지정된 단서를 전부 수집했는지 확인 (하나라도 빠지면 실패)
+        foreach (var requiredID in requiredCorrectClueIDs)
+        {
+            bool isCollected = collectedForThisQuest.Exists(c => c.clueID == requiredID);
+            if (!isCollected) return false;
+        }
+
         return true;
     }
 
@@ -422,9 +485,16 @@ public class DataLogManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 💡 [변경] 정답/오답 대화 시작 ID는 대화 CSV의 isTrigger 행에서 함께 전달받아
+    /// StartQuest() 시점에 이미 등록되어 있습니다 (QuestConfigData 등 별도 시트 불필요).
+    /// </summary>
     public void OnClickGenerateAnswer()
     {
         bool isSuccess = DataLogManager.Instance.CheckIfAllCluesAreCorrect();
+
+        string currentQuestID = activeQuestIDs.Count > 0 ? activeQuestIDs[activeQuestIDs.Count - 1] : null;
+
         if (isSuccess)
         {
             Debug.Log("정답입니다!");
@@ -433,10 +503,26 @@ public class DataLogManager : MonoBehaviour
         {
             Debug.Log("오답입니다.");
         }
+
+        if (string.IsNullOrEmpty(currentQuestID) || !questDialogueConfigs.TryGetValue(currentQuestID, out QuestDialogueConfig config))
+        {
+            Debug.LogWarning($"[DataLogManager] 퀘스트 '{currentQuestID}'에 대한 정답/오답 대화 설정을 찾지 못했습니다. (StartQuest 호출 시 correctDialogueID/incorrectDialogueID가 전달됐는지 확인하세요)");
+            return;
+        }
+
+        int targetDialogueID = isSuccess ? config.correctDialogueID : config.incorrectDialogueID;
+
+        // 💡 [디버그용] 실제 판정 결과와 선택된 대화 ID 확인
+        Debug.Log($"[디버그] isSuccess:{isSuccess}, questID:{currentQuestID}, config.correct:{config.correctDialogueID}, config.incorrect:{config.incorrectDialogueID}, 선택된targetDialogueID:{targetDialogueID}");
+
+        if (ChatDialogueManager.Instance != null)
+        {
+            ChatDialogueManager.Instance.JumpToDialogue(targetDialogueID);
+        }
     }
 
     // ============================================================
-    // 💡 [추가 기능] 문서 패널(DocuGame_panel_1 등) 클릭 이벤트 매핑용 함수
+    //  [추가 기능] 문서 패널(DocuGame_panel_1 등) 클릭 이벤트 매핑용 함수
     // ============================================================
     public void OnClickDocumentPanel(DocumentQuestManager targetQuestManager)
     {

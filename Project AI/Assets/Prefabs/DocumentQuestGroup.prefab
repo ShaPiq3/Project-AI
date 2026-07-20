@@ -1397,7 +1397,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8363515613987270583}
-  - component: {fileID: 52517946715245426}
   - component: {fileID: 3120656637659825956}
   m_Layer: 5
   m_Name: DocumentQuestGroup
@@ -1428,31 +1427,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &52517946715245426
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5627937350704371846}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d02036c0c1f54f84c902c5ba9aba3a16, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::DocumentQuestManager
-  originalPanel: {fileID: 5036437353820788419}
-  dimmedOverlay: {fileID: 4979090951068334215}
-  analysisPanel: {fileID: 2124005776984596129}
-  loadingGroup: {fileID: 2619389377060711871}
-  progressBarFill: {fileID: 7920015538689256669}
-  toggleAnalysisBtn: {fileID: 3563415232729433699}
-  toggleBtnText: {fileID: 1287713629250030463}
-  summaryExecuteBtn: {fileID: 1429989535046196180}
-  sentencesContainer: {fileID: 9147962288752830060}
-  documentTitle: "Promes AI \uC0AC\uC6A9\uC790 \uD53C\uB4DC\uBC31"
-  correctSentenceIndices: 00000000010000000200000004000000
-  loadingDuration: 1.5
-  sentenceAppearInterval: 0.25
 --- !u!114 &3120656637659825956
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5377,30 +5351,8 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 3735884590943026683, guid: b3b768bfb9c85f9499b9180b582279be, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 9163186696601958640}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: b3b768bfb9c85f9499b9180b582279be, type: 3}
---- !u!1 &5054065853535115880 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 3735884590943026683, guid: b3b768bfb9c85f9499b9180b582279be, type: 3}
-  m_PrefabInstance: {fileID: 8501425144297154451}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &9163186696601958640
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5054065853535115880}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2742d3a4eef3d1e44a468a615ce82910, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SentenceBlock
-  defaultColor: {r: 1, g: 1, b: 1, a: 1}
-  selectedColor: {r: 0, g: 0.75, b: 0.75, a: 1}
 --- !u!224 &9147962288752830060 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 796915151305425407, guid: b3b768bfb9c85f9499b9180b582279be, type: 3}

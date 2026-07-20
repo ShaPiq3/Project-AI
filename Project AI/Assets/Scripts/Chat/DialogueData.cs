@@ -11,7 +11,6 @@ public class DialogueData
     public string ipAddress;
     public string questID;
     public int targetCount;
-
     // --- [필수 추가] 선택지 분기 연출을 위한 변수들 ---
     public bool isBranch;
     public string branchText1;
@@ -21,4 +20,18 @@ public class DialogueData
     public string branchText3;
     public int nextId3;
     public bool isTrigger;
+
+    // 💡 [추가] 문서 요약 패널을 여는 말풍선(로딩바 → 버튼) 관련 필드
+    public bool isDocumentBubble;      // 이 대화 행에서 문서 버블을 띄울지 여부
+    public string documentID;          // 어느 DocumentQuestManager(문서)를 열지 식별하는 ID
+    public float bubbleLoadingDuration; // 말풍선 안 로딩바가 채워지는 시간(초). 0이면 기본값 사용
+
+    // 💡 [추가] 서로 다른 분기(정답/오답 등)가 같은 지점으로 합류할 때 쓰는 강제 점프 ID.
+    // 0이면 사용 안 함(평소처럼 다음 순번 id로 진행), 0이 아니면 이 대화 다음에 무조건 이 id로 점프.
+    public int overrideNextId;
+
+    // 💡 [추가] isTrigger 행에서만 의미가 있음. 이 퀘스트의 답변 결과에 따라
+    // "답변 생성" 클릭 시 점프할 대화 ID를 같이 지정합니다.
+    public int correctDialogueID;
+    public int incorrectDialogueID;
 }

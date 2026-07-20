@@ -44,6 +44,24 @@ public class DocumentQuestManager : MonoBehaviour
     [Tooltip("로딩이 완전히 끝난 후 문장 버튼들이 순차적으로 나타나는 간격 시간입니다.")]
     [SerializeField] private float sentenceAppearInterval = 0.25f;
 
+    [Header("--- Document Identity (채팅 버블 연동용) ---")]
+    [Tooltip("채팅 버블에서 이 문서를 지정할 때 쓰는 고유 ID (CSV의 documentID 컬럼과 일치해야 함)")]
+    [SerializeField] private string documentID;
+    public string DocumentID => documentID;
+
+    [Header("--- 이 문서 창 자체를 여닫는 InGameWindowManager (선택 사항) ---")]
+    [SerializeField] private InGameWindowManager panelWindowManager;
+
+    [Header("--- 성공/실패 대화 분기 (엑셀 dialogueID) ---")]
+    [Tooltip("요약이 성공(isSuccess=true)했을 때 점프할 대화 CSV의 ID")]
+    [SerializeField] private int successDialogueID;
+    [Tooltip("요약이 실패(isSuccess=false)했을 때 점프할 대화 CSV의 ID")]
+    [SerializeField] private int failureDialogueID;
+
+    // 💡 여러 개의 문서(DocumentQuestManager)가 씬에 있을 수 있으므로,
+    // documentID로 찾을 수 있도록 정적 레지스트리를 둡니다.
+    private static readonly Dictionary<string, DocumentQuestManager> registry = new Dictionary<string, DocumentQuestManager>();
+
     private List<SentenceBlock> spawnedBlocks = new List<SentenceBlock>();
     private bool isAnalysisOpen = false;
     private bool isScanning = false;
@@ -63,6 +81,14 @@ public class DocumentQuestManager : MonoBehaviour
     // 외부 시스템에서 구독하여 데이터 분기 및 연출을 처리할 완성 이벤트
     public static event Action<QuestResult> OnQuestComplete;
 
+    private void Awake()
+    {
+        if (!string.IsNullOrEmpty(documentID))
+        {
+            registry[documentID] = this;
+        }
+    }
+
     private void Start()
     {
         // 1) 버튼 이벤트 연결
@@ -71,6 +97,14 @@ public class DocumentQuestManager : MonoBehaviour
 
         // 2) 초기 상태 세팅 (모두 정리된 원본 문서 모드)
         ResetAllUI();
+    }
+
+    private void OnDestroy()
+    {
+        if (!string.IsNullOrEmpty(documentID) && registry.TryGetValue(documentID, out var self) && self == this)
+        {
+            registry.Remove(documentID);
+        }
     }
 
     // 동료 개발자가 창을 활성화(OnEnable)할 때 호출되는 유니티 생명주기 함수
@@ -277,6 +311,58 @@ public class DocumentQuestManager : MonoBehaviour
 
         OnQuestComplete?.Invoke(result);
 
+        // 💡 [추가] 성공/실패 여부에 따라 지정된 대화 ID로 점프해서
+        // 그 이후 대화(CSV에 작성된 내용)를 이어서 재생합니다.
+        if (ChatDialogueManager.Instance != null)
+        {
+            int targetDialogueID = success ? successDialogueID : failureDialogueID;
+            ChatDialogueManager.Instance.JumpToDialogue(targetDialogueID);
+        }
+
         ResetAllUI();
+    }
+
+    public static DocumentQuestManager GetByID(string id)
+    {
+        if (string.IsNullOrEmpty(id)) return null;
+
+        if (registry.TryGetValue(id, out var manager) && manager != null)
+        {
+            return manager;
+        }
+
+        // 💡 [추가] 씬 시작 시점에 비활성화된 문서 패널은 Awake가 아직 실행되지 않아
+        // 레지스트리에 등록이 안 되어 있을 수 있습니다. 이 경우를 대비해
+        // 비활성화된 오브젝트까지 포함해서 한 번 더 찾아봅니다.
+        DocumentQuestManager[] allDocuments = FindObjectsByType<DocumentQuestManager>(FindObjectsInactive.Include);
+        foreach (var doc in allDocuments)
+        {
+            if (doc.documentID == id)
+            {
+                registry[id] = doc; // 다음부터는 바로 찾을 수 있도록 캐싱
+                return doc;
+            }
+        }
+
+        return null;
+    }
+
+    // 💡 채팅 버블의 "문서 열기" 버튼이 호출하는 함수.
+    // 창이 최소화되어 있었다면 먼저 복원한 뒤, 기존 스캔 연출(TriggerScanComplete)을 시작합니다.
+    public void OpenFromChatBubble()
+    {
+        // 💡 [추가] 코루틴은 GameObject가 활성화된 상태에서만 시작할 수 있습니다.
+        // panelWindowManager 연결 여부와 상관없이, 이 오브젝트 자체가 꺼져있다면 먼저 켭니다.
+        if (!gameObject.activeSelf)
+        {
+            gameObject.SetActive(true);
+        }
+
+        if (panelWindowManager != null)
+        {
+            panelWindowManager.RestoreWindow();
+        }
+
+        TriggerScanComplete();
     }
 }
