@@ -19,10 +19,13 @@ public class SNSPost : MonoBehaviour
     [SerializeField] private Image profileImage;             // 프로필 이미지 컴포넌트
     [SerializeField] private Image postImage;                // 본문 이미지 컴포넌트
 
+    // 💡 [추가] 외부(SNSManager 등)에서 본문 이미지에 접근할 수 있도록 공개 프로퍼티 노출
+    public Image PostImage => postImage;
+
     [Header("Comment Spawner Settings")]
     [SerializeField] private GameObject commentPrefab;       // 새로 만든 댓글 프리팹
     [SerializeField] private Transform commentContentParent; // 댓글들이 생성되어 담길 부모
-    
+
     /// <summary>
     /// SNSManager가 생성 직후 엑셀 데이터를 밀어 넣어주는 함수
     /// </summary>

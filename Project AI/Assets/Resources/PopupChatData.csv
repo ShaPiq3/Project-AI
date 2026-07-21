@@ -1,0 +1,12 @@
+﻿id,speakerType,speakerName,dialogueText,HasImage,imagePath,delayTime,ipAddress,isBranch,branchText1,nextId1,branchText2,nextId2,branchText3,nextId3,isTrigger,questID,targetCount,isDocumentBubble,documentID,bubbleLoadingDuration,overrideNextId,correctDialogueID,incorrectDialogueID,isImageGenTrigger,imageGenQuestID,imageGenTruthDialogueID,imageGenFalseDialogueID,imageGenMalfunctionDialogueID,isImageGenMalfunctionEnd
+1,NPC,AD-001,안녕하세요,FALSE,,1.5,38.2.7.174,,,,,,,,,,,,,,,,,,,,,,
+2,NPC,AD-001,제 사진 어떤가요 ,TRUE,img_emoticon_1 1,1.5,38.2.7.174,,,,,,,,,,,,,,,,,,,,,,
+3,NPC,AD-001,퀘스트를 시작하시겠습니까?,FALSE,,1.5,38.2.7.174,TRUE,예,4,,0,,0,,,,,,,,,,,,,,,
+4,NPC,AD-001,,FALSE,,1.5,38.2.7.174,,,,,,,,TRUE,Q1,2,,,,,5,6,,,,,,
+5,USER,PM-0066,데이터 수집 정답,,,1.5,38.2.7.174,,,,,,,,,,,,,,7,,,,,,,,
+6,USER,PM-0066,데이터 수집 오답,,,1.5,38.2.7.174,,,,,,,,,,,,,,,,,,,,,,
+7,NPC,AD-001,문서 요약 퀘스트 시작,,,1.5,38.2.7.174,,,,,,,,,,,,,,,,,,,,,,
+8,NPC,AD-001,,,,1.5,38.2.7.174,,,,,,,,,,,TRUE,D1,,,,,,,,,,
+9,USER,PM-0066,정답!,,,1.5,38.2.7.174,,,,,,,,,,,,,,11,,,,,,,,
+10,USER,PM-0066,오답!,,,1.5,38.2.7.174,,,,,,,,,,,,,,,,,,,,,,
+11,NPC,AD-001,종료,,,1.5,38.2.7.174,,,,,,,,,,,,,,,,,,,,,,

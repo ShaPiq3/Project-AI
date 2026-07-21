@@ -34,4 +34,16 @@ public class DialogueData
     // "답변 생성" 클릭 시 점프할 대화 ID를 같이 지정합니다.
     public int correctDialogueID;
     public int incorrectDialogueID;
+
+    // ==========================================================
+    // 💡 [이미지 생성 퀘스트 추가] DialogueData 클래스 내부에 아래 3개 필드를 추가하세요.
+    // 메인 대화 CSV의 25, 26, 27번째 컬럼 (기존 24번째 컬럼 incorrectDialogueID 바로 뒤)
+    // ==========================================================
+    //
+    public bool isImageGenTrigger;          // 이 말풍선에서 image generation 버튼 잠금 해제 + 패널 자동 오픈
+    public string imageGenQuestID;          // ImageGenQuestSlots.csv / ImageGenQuestResults.csv 의 QuestID
+    public int imageGenTruthDialogueID;         // 💡 [신규] 진실(정답) 판정 시 점프할 대화 ID
+    public int imageGenFalseDialogueID;         // 💡 [신규] 거짓(오답) 판정 시 점프할 대화 ID
+    public int imageGenMalfunctionDialogueID;   // 오작동 판정 시 점프할 대화 ID
+    public bool isImageGenMalfunctionEnd;
 }

@@ -23,6 +23,9 @@ public class CommunityManager : MonoBehaviour
 
     private List<PostData> postList = new List<PostData>();
 
+    // CSV 필드 하나 안에 콤마/줄바꿈이 포함될 수 있으므로(따옴표로 감싼 셀) 정규식으로 셀 분리
+    private const string CsvParserPattern = ",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)";
+
     private void Awake()
     {
         if (Instance == null) Instance = this;
@@ -30,75 +33,114 @@ public class CommunityManager : MonoBehaviour
 
     void Start()
     {
-        TextAsset csvFile = Resources.Load<TextAsset>("CommunityData");
-        if (csvFile != null)
+        // 💡 [변경] 포스트 CSV(CommunityData)와 댓글 CSV(CommentExcelData)를 각각 따로 불러와서 병합
+        TextAsset postCsv = Resources.Load<TextAsset>("PostData");
+        TextAsset commentCsv = Resources.Load<TextAsset>("CommentExcelData");
+
+        if (postCsv != null)
         {
-            ParseCSV(csvFile.text);
+            ParsePostCSV(postCsv.text);
+
+            if (commentCsv != null)
+            {
+                ParseCommentCSV(commentCsv.text);
+            }
+            else
+            {
+                Debug.LogWarning("[CommunityManager] Resources 폴더에서 'CommentExcelData' 를 찾을 수 없습니다. 댓글 없이 진행합니다.");
+            }
+
             GenerateUI();
+        }
+        else
+        {
+            Debug.LogError("[CommunityManager] Resources 폴더에서 'PostData' 를 찾을 수 없습니다.");
         }
     }
 
-    void ParseCSV(string csvText)
+    /// <summary>
+    /// 💡 [변경] 포스트 전용 CSV 파싱.
+    /// 예상 컬럼 순서: postID,title,author,date,likes,dislikes,content,imageName,clueID,collectibleImageID
+    /// (실제 CommunityData.csv 컬럼 순서가 다르면 이 함수만 맞춰서 수정하면 됩니다)
+    /// </summary>
+    private void ParsePostCSV(string csvText)
     {
         string[] rows = Regex.Split(csvText, @"\r\n|\n|\r");
-        string csvParserPattern = ",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)";
+
+        for (int i = 1; i < rows.Length; i++) // 0번째는 헤더
+        {
+            if (string.IsNullOrWhiteSpace(rows[i])) continue;
+
+            string[] columns = Regex.Split(rows[i], CsvParserPattern);
+            if (columns.Length < 9) continue;
+
+            int.TryParse(columns[0].Trim().Replace("\"", ""), out int id);
+            if (id == 0) continue;
+
+            PostData post = new PostData();
+            post.postID = id;
+            post.title = columns[1].Trim().Replace("\"", "");
+            post.author = columns[2].Trim().Replace("\"", "");
+            post.date = columns[3].Trim().Replace("\"", "");
+
+            int.TryParse(columns[4].Trim().Replace("\"", ""), out post.likes);
+            int.TryParse(columns[5].Trim().Replace("\"", ""), out post.dislikes);
+
+            string rawContent = columns[6].Trim();
+            if (rawContent.StartsWith("\"") && rawContent.EndsWith("\""))
+            {
+                rawContent = rawContent.Substring(1, rawContent.Length - 2);
+            }
+            post.content = rawContent.Replace("\"\"", "\"").Replace("\\n", "\n");
+
+            post.imageName = columns[7].Trim().Replace("\"", "");
+            post.clueID = columns[8].Trim().Replace("\"", "");
+
+            // 💡 [추가] 이 게시글의 이미지를 클릭했을 때 수집할 기존 단서 ID (10번째 컬럼)
+            // 원래 CSV에 이 컬럼이 없어서 계속 빈 값이었던 부분을 채워넣음
+            post.imageClueID = (columns.Length >= 10) ? columns[9].Trim().Replace("\"", "") : "";
+
+            // 💡 이미지 생성 퀘스트용 ID (11번째 컬럼으로 밀림)
+            post.collectibleImageID = (columns.Length >= 11) ? columns[10].Trim().Replace("\"", "") : "";
+
+            postList.Add(post);
+        }
+    }
+
+    /// <summary>
+    /// 💡 [추가] 댓글 전용 CSV 파싱 후, postID 기준으로 해당 게시글의 comments 리스트에 병합.
+    /// 컬럼 순서: postID,author,content,isEmoticon,emoticonName,clueID
+    /// </summary>
+    private void ParseCommentCSV(string csvText)
+    {
+        string[] rows = Regex.Split(csvText, @"\r\n|\n|\r");
 
         for (int i = 1; i < rows.Length; i++)
         {
             if (string.IsNullOrWhiteSpace(rows[i])) continue;
 
-            string[] columns = Regex.Split(rows[i], csvParserPattern);
+            string[] columns = Regex.Split(rows[i], CsvParserPattern);
+            if (columns.Length < 5) continue;
 
-            if (columns.Length >= 14)
+            int.TryParse(columns[0].Trim().Replace("\"", ""), out int postID);
+            if (postID == 0) continue;
+
+            PostData targetPost = postList.Find(p => p.postID == postID);
+            if (targetPost == null)
             {
-                int.TryParse(columns[0].Trim().Replace("\"", ""), out int id);
-                if (id == 0) continue;
-
-                PostData existingPost = postList.Find(p => p.postID == id);
-
-                if (existingPost == null)
-                {
-                    existingPost = new PostData();
-                    existingPost.postID = id;
-
-                    existingPost.title = columns[1].Trim().Replace("\"", "");
-                    existingPost.author = columns[2].Trim().Replace("\"", "");
-                    existingPost.date = columns[3].Trim().Replace("\"", "");
-
-                    int.TryParse(columns[4].Trim().Replace("\"", ""), out existingPost.likes);
-                    int.TryParse(columns[5].Trim().Replace("\"", ""), out existingPost.dislikes);
-
-                    string rawContent = columns[6].Trim();
-                    if (rawContent.StartsWith("\"") && rawContent.EndsWith("\""))
-                    {
-                        rawContent = rawContent.Substring(1, rawContent.Length - 2);
-                    }
-                    existingPost.content = rawContent.Replace("\"\"", "\"").Replace("\\n", "\n");
-
-                    existingPost.imageName = columns[7].Trim().Replace("\"", "");
-                    existingPost.clueID = columns[12].Trim().Replace("\"", "");
-
-                    postList.Add(existingPost);
-                }
-                else if (string.IsNullOrEmpty(existingPost.clueID) && !string.IsNullOrWhiteSpace(columns[12]))
-                {
-                    existingPost.clueID = columns[12].Trim().Replace("\"", "");
-                }
-
-                if (columns.Length >= 12 && !string.IsNullOrWhiteSpace(columns[8]))
-                {
-                    CommentData comment = new CommentData();
-                    comment.postID = id;
-                    comment.author = columns[8].Trim().Replace("\"", "");
-                    comment.content = columns[9].Trim().Replace("\"", "");
-
-                    bool.TryParse(columns[10].Trim().Replace("\"", ""), out comment.isEmoticon);
-                    comment.emoticonName = columns[11].Trim().Replace("\"", "");
-                    comment.clueID = columns[13].Trim().Replace("\"", "");
-
-                    existingPost.comments.Add(comment);
-                }
+                Debug.LogWarning($"[CommunityManager] 댓글의 postID {postID} 에 해당하는 게시글을 찾을 수 없습니다.");
+                continue;
             }
+
+            CommentData comment = new CommentData();
+            comment.postID = postID;
+            comment.author = columns[1].Trim().Replace("\"", "");
+            comment.content = columns[2].Trim().Replace("\"", "");
+            bool.TryParse(columns[3].Trim().Replace("\"", ""), out comment.isEmoticon);
+            comment.emoticonName = columns[4].Trim().Replace("\"", "");
+            comment.clueID = (columns.Length >= 6) ? columns[5].Trim().Replace("\"", "") : "";
+
+            targetPost.comments.Add(comment);
         }
     }
 
@@ -113,6 +155,9 @@ public class CommunityManager : MonoBehaviour
             if (itemUI != null)
             {
                 itemUI.Setup(post, this);
+                // 💡 리스트 아이템(PostItemUI)에는 이미지가 없으므로 여기선 수집 등록 안 함.
+                // 실제 이미지는 상세 페이지(PostDetailPageUI)에서 보여지므로,
+                // 수집 등록은 OpenDetailPage() / PostDetailPageUI.DisplayPost() 쪽에서 처리함.
             }
         }
     }

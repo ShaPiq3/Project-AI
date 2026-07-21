@@ -75,6 +75,11 @@ public class PostDetailPageUI : MonoBehaviour
                 {
                     if (imgBtn != null) Destroy(imgBtn); // 단서가 없는 이미지는 버튼 기능 제거
                 }
+
+                // 💡 [추가] 이미지 생성 퀘스트 수집 대상으로 자동 등록.
+                // 이 패널은 게시글마다 새로 생성되지 않고 재사용되므로,
+                // DisplayPost() 호출될 때마다 Bind()가 imageID를 새로 갱신해줌.
+                CollectibleImageBinder.Bind(postImage, data.collectibleImageID);
             }
         }
 

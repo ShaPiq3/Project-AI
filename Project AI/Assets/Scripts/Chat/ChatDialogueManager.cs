@@ -52,9 +52,20 @@ public class ChatDialogueManager : MonoBehaviour
         set => isDialoguePaused = value;
     }
 
-    // 💡 이제 이 값이 말풍선 타이밍에 맞춰 실시간으로 true / false 제어됩니다!
-    public bool IsTriggerActive { get; private set; } = false;
+    private bool isTriggerActive = false;
+    public bool IsTriggerActive
+    {
+        get => isTriggerActive;
+        private set
+        {
+            if (isTriggerActive == value) return;
+            isTriggerActive = value;
+            OnTriggerActiveChanged?.Invoke(isTriggerActive);
+        }
+    }
 
+    /// <summary> IsTriggerActive 값이 바뀔 때마다 발생 (true = isTrigger 진행 중 / false = 아님) </summary>
+    public event System.Action<bool> OnTriggerActiveChanged;
     private GameObject activeBranchInstance;
     private Button[] activeBranchButtons;
     private bool isWaitingForBranchSelection = false;
@@ -154,11 +165,11 @@ public class ChatDialogueManager : MonoBehaviour
 
             if (columns.Length >= 17)
             {
-                data.questID = columns[16].Trim(); // 실제 CSV 순서에 맞게 인덱스를 조정하세요!
+                data.questID = columns[16].Trim();
             }
             else
             {
-                data.questID = "Q1"; // 혹시 비어있을 경우를 대비한 기본값 설정 (테스트용)
+                data.questID = "Q1";
             }
 
             if (columns.Length >= 18)
@@ -167,10 +178,9 @@ public class ChatDialogueManager : MonoBehaviour
             }
             else
             {
-                data.targetCount = 5; // 데이터가 없을 경우 기본값(예: 5)
+                data.targetCount = 5;
             }
 
-            // 💡 [추가] 문서 요약 버블 관련 컬럼 (18, 19, 20번째 컬럼)
             if (columns.Length >= 19)
             {
                 bool.TryParse(columns[18].Trim(), out data.isDocumentBubble);
@@ -195,10 +205,9 @@ public class ChatDialogueManager : MonoBehaviour
             }
             else
             {
-                data.bubbleLoadingDuration = 0f; // 0이면 DocumentBubbleController의 기본값 사용
+                data.bubbleLoadingDuration = 0f;
             }
 
-            // 💡 [추가] 강제 점프 ID (22번째 컬럼)
             if (columns.Length >= 22)
             {
                 int.TryParse(columns[21].Trim(), out data.overrideNextId);
@@ -208,7 +217,6 @@ public class ChatDialogueManager : MonoBehaviour
                 data.overrideNextId = 0;
             }
 
-            // 💡 [추가] 정답/오답 대화 ID (23, 24번째 컬럼) - isTrigger 행에만 채우면 됨
             if (columns.Length >= 23)
             {
                 int.TryParse(columns[22].Trim(), out data.correctDialogueID);
@@ -225,6 +233,61 @@ public class ChatDialogueManager : MonoBehaviour
             else
             {
                 data.incorrectDialogueID = 0;
+            }
+
+            if (columns.Length >= 25)
+            {
+                bool.TryParse(columns[24].Trim(), out data.isImageGenTrigger);
+            }
+            else
+            {
+                data.isImageGenTrigger = false;
+            }
+
+            if (columns.Length >= 26)
+            {
+                data.imageGenQuestID = columns[25].Trim();
+            }
+            else
+            {
+                data.imageGenQuestID = "";
+            }
+
+            if (columns.Length >= 27)
+            {
+                int.TryParse(columns[26].Trim(), out data.imageGenTruthDialogueID);
+            }
+            else
+            {
+                data.imageGenTruthDialogueID = 0;
+            }
+
+            if (columns.Length >= 28)
+            {
+                int.TryParse(columns[27].Trim(), out data.imageGenFalseDialogueID);
+            }
+            else
+            {
+                data.imageGenFalseDialogueID = 0;
+            }
+
+            if (columns.Length >= 29)
+            {
+                int.TryParse(columns[28].Trim(), out data.imageGenMalfunctionDialogueID);
+            }
+            else
+            {
+                data.imageGenMalfunctionDialogueID = 0;
+            }
+
+            // 💡 [추가] 오작동 결과 시퀀스의 마지막 줄 표시 (30번째 컬럼)
+            if (columns.Length >= 30)
+            {
+                bool.TryParse(columns[29].Trim(), out data.isImageGenMalfunctionEnd);
+            }
+            else
+            {
+                data.isImageGenMalfunctionEnd = false;
             }
 
             if (!dialogueDictionary.ContainsKey(data.id))
@@ -330,7 +393,6 @@ public class ChatDialogueManager : MonoBehaviour
             dialogueCanvasGroup.blocksRaycasts = false;
         }
 
-        // 💡 채팅창이 실제로 닫힐 때 WindowManager의 벽(오른쪽 제한)도 함께 해제
         if (windowManager != null)
         {
             windowManager.isChatOpen = false;
@@ -370,10 +432,18 @@ public class ChatDialogueManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 💡 [추가] 외부(DataLogManager, DocumentQuestManager 등)에서
-    /// "정답/오답" 또는 "성공/실패"에 따라 지정된 대화 ID로 즉시 점프해서
-    /// 그 이후 대화를 CSV에 작성된 그대로 이어서 재생합니다.
+    /// 💡 [추가] 특정 대화ID의 delayTime(그 줄이 화면에 머무는 시간)을 조회합니다.
+    /// ImageGenerationManager가 오작동 결과 대화 재생이 끝나는 시점을 정확히 알기 위해 사용합니다.
     /// </summary>
+    public float GetDialogueDelay(int id)
+    {
+        if (dialogueDictionary.TryGetValue(id, out var data))
+        {
+            return data.delayTime;
+        }
+        return 0f;
+    }
+
     public void JumpToDialogue(int targetId)
     {
         if (!dialogueDictionary.ContainsKey(targetId))
@@ -382,7 +452,6 @@ public class ChatDialogueManager : MonoBehaviour
             return;
         }
 
-        // 기존에 진행 중이던 대화/분기 UI를 정리합니다.
         if (mainDialogueCoroutine != null)
         {
             StopCoroutine(mainDialogueCoroutine);
@@ -397,11 +466,8 @@ public class ChatDialogueManager : MonoBehaviour
         isDialoguePaused = false;
         isClosedByPlayer = false;
 
-        // 💡 [추가] 트리거로 인해 멈춰있던 상태였다면 여기서 완전히 해제
-        // (이전에는 2.5초 타이머가 이 역할을 했지만, 이제는 JumpToDialogue가 담당)
         IsTriggerActive = false;
 
-        // 채팅창이 닫혀있다면 강제로 열어서 점프한 대화가 바로 보이게 합니다.
         if (!isChatWindowOpened)
         {
             isChatWindowOpened = true;
@@ -429,7 +495,7 @@ public class ChatDialogueManager : MonoBehaviour
             }
         }
 
-        isDialogueStarted = true; // 이미 시작된 것으로 표시 (TryStartDialogue의 초기 진입 로직과 충돌 방지)
+        isDialogueStarted = true;
         mainDialogueCoroutine = StartCoroutine(GenerateChatWithExcelDelay(targetId));
     }
 
@@ -451,7 +517,6 @@ public class ChatDialogueManager : MonoBehaviour
                 topIPText.text = !string.IsNullOrEmpty(data.ipAddress) ? $"IP : {data.ipAddress}" : "IP : -";
             }
 
-            // 🌟 [핵심 수정 위치] 말풍선이 출력되기 전 트리거 세팅
             if (data.isTrigger)
             {
                 IsTriggerActive = true;
@@ -474,10 +539,23 @@ public class ChatDialogueManager : MonoBehaviour
                         DataLogManager.Instance.ToggleLogPanel();
                     }
                 }
-                // 💡 [변경] 이전에는 여기서 2.5초 뒤 자동으로 대화가 재개됐지만,
-                // 이제는 플레이어가 실제로 "답변 생성"을 눌러 JumpToDialogue()가
-                // 호출될 때까지 대화가 계속 멈춰있어야 하므로 자동 타이머를 제거합니다.
-                // (JumpToDialogue 안에서 IsDialoguePaused = false / IsTriggerActive = false 처리)
+            }
+
+            // 💡 [수정] isTrigger 블록과 완전히 별개(형제 관계)로 분리.
+            // isTrigger=FALSE 여도 isImageGenTrigger=TRUE 면 정상 동작해야 하기 때문.
+            if (data.isImageGenTrigger)
+            {
+                IsDialoguePaused = true;
+
+                if (ImageGenerationManager.Instance != null)
+                {
+                    ImageGenerationManager.Instance.UnlockAndOpen(
+                        data.imageGenQuestID,
+                        data.imageGenTruthDialogueID,
+                        data.imageGenFalseDialogueID,
+                        data.imageGenMalfunctionDialogueID
+                    );
+                }
             }
 
             if (!data.isBranch || !string.IsNullOrEmpty(data.dialogueText))
@@ -500,8 +578,16 @@ public class ChatDialogueManager : MonoBehaviour
                 yield return new WaitForSeconds(data.delayTime);
             }
 
-            // 💡 [추가] 문서 요약 버블 생성 (로딩바 → 문서 열기 버튼)
-            // 일반 텍스트 말풍선 뒤에 이어서 표시됩니다.
+            // 💡 [추가] 이 줄까지가 오작동 결과 시퀀스의 끝이라고 표시된 경우,
+            // 말풍선을 다 보여준 뒤(위 delayTime까지 끝난 뒤) 정확히 이 시점에 버튼을 다시 열어줌
+            if (data.isImageGenMalfunctionEnd)
+            {
+                if (ImageGenerationManager.Instance != null)
+                {
+                    ImageGenerationManager.Instance.OnMalfunctionDialogueFinished();
+                }
+            }
+
             if (data.isDocumentBubble)
             {
                 if (documentBubblePrefab != null)
@@ -526,10 +612,6 @@ public class ChatDialogueManager : MonoBehaviour
                     Debug.LogWarning("[ChatDialogueManager] documentBubblePrefab이 인스펙터에 연결되지 않았습니다!");
                 }
 
-                // 💡 [추가] 문서 버블이 뜬 뒤에는 대화가 자동으로 계속 진행되면 안 됩니다.
-                // 플레이어가 실제로 문서(요약) 퀘스트를 끝내고 DocumentQuestManager.ExecuteSummary()가
-                // JumpToDialogue()를 호출할 때까지 여기서 멈춰있어야, 9/10번처럼 정답/오답 대화가
-                // 순서대로 다 재생되어버리는 문제가 생기지 않습니다.
                 IsDialoguePaused = true;
             }
 
@@ -568,8 +650,6 @@ public class ChatDialogueManager : MonoBehaviour
             }
             else
             {
-                // 💡 [변경] overrideNextId가 지정되어 있으면(0이 아니면) 그 ID로 강제 점프,
-                // 아니면 기존처럼 다음 순번으로 진행
                 currentId = data.overrideNextId != 0 ? data.overrideNextId : currentId + 1;
             }
         }
@@ -579,7 +659,7 @@ public class ChatDialogueManager : MonoBehaviour
     {
         yield return new WaitForSeconds(delay);
         IsDialoguePaused = false;
-        IsTriggerActive = false; // ⭕ 대화가 다음으로 넘어가므로 단서 수집 가능 상태를 꺼줍니다!
+        IsTriggerActive = false;
     }
 
     private void ShowBranchUI(DialogueData data)

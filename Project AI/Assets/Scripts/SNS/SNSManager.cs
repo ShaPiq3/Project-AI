@@ -30,10 +30,25 @@ public class SNSManager : MonoBehaviour
 
     void Start()
     {
-        TextAsset csvFile = Resources.Load<TextAsset>("SNSData");
-        if (csvFile != null)
+        // 💡 [변경] 포스트 CSV(SNSData)와 댓글 CSV(SNSCommentData)를 각각 따로 불러와서 병합
+        TextAsset postCsv = Resources.Load<TextAsset>("SNSData");
+        TextAsset commentCsv = Resources.Load<TextAsset>("SNSCommentData");
+
+        if (postCsv != null)
         {
-            ParseAdvancedCSV(csvFile.text);
+            List<List<string>> postGrid = ParseCsvGrid(postCsv.text);
+            BuildPosts(postGrid);
+
+            if (commentCsv != null)
+            {
+                List<List<string>> commentGrid = ParseCsvGrid(commentCsv.text);
+                MergeComments(commentGrid);
+            }
+            else
+            {
+                Debug.LogWarning("[SNSManager] Resources 폴더에서 'SNSCommentData' 를 찾을 수 없습니다. 댓글 없이 진행합니다.");
+            }
+
             GenerateSNSUI();
         }
         else
@@ -42,7 +57,11 @@ public class SNSManager : MonoBehaviour
         }
     }
 
-    void ParseAdvancedCSV(string csvText)
+    /// <summary>
+    /// 따옴표로 감싼 셀 안의 콤마/줄바꿈까지 안전하게 처리하는 범용 CSV 파서.
+    /// 포스트/댓글 CSV 둘 다 이 함수로 grid(행x열)를 만든 뒤 각자 다른 컬럼 규칙으로 읽음.
+    /// </summary>
+    private List<List<string>> ParseCsvGrid(string csvText)
     {
         List<List<string>> grid = new List<List<string>>();
         List<string> row = new List<string>();
@@ -113,7 +132,17 @@ public class SNSManager : MonoBehaviour
             if (!string.IsNullOrWhiteSpace(row[0])) grid.Add(row);
         }
 
-        for (int i = 1; i < grid.Count; i++)
+        return grid;
+    }
+
+    /// <summary>
+    /// 💡 [변경] 포스트 전용 grid 파싱.
+    /// 예상 컬럼 순서: postID,author,profileImageName,content,postImageName,collectibleImageID
+    /// (실제 SNSData.csv 컬럼 순서가 다르면 이 함수만 맞춰서 수정하면 됩니다)
+    /// </summary>
+    private void BuildPosts(List<List<string>> grid)
+    {
+        for (int i = 1; i < grid.Count; i++) // 0번째는 헤더
         {
             List<string> columns = grid[i];
             if (columns.Count < 5) continue;
@@ -121,35 +150,53 @@ public class SNSManager : MonoBehaviour
             int.TryParse(columns[0], out int id);
             if (id == 0) continue;
 
-            SNSPostData existingPost = snsPostList.Find(p => p.postID == id);
+            SNSPostData post = new SNSPostData();
+            post.postID = id;
+            post.author = columns[1];
+            post.profileImageName = columns[2];
+            post.content = columns[3];
+            post.postImageName = columns[4];
 
-            if (existingPost == null)
+            // 💡 [추가] 이미지 생성 퀘스트용 ID (6번째 컬럼)
+            post.collectibleImageID = (columns.Count >= 6) ? columns[5] : "";
+
+            snsPostList.Add(post);
+        }
+    }
+
+    /// <summary>
+    /// 💡 [추가] 댓글 전용 grid 파싱 후, postID 기준으로 해당 게시글의 comments 리스트에 병합.
+    /// 컬럼 순서: postID,author,content,isEmoticon,emoticonName
+    /// </summary>
+    private void MergeComments(List<List<string>> grid)
+    {
+        for (int i = 1; i < grid.Count; i++)
+        {
+            List<string> columns = grid[i];
+            if (columns.Count < 3) continue;
+
+            int.TryParse(columns[0], out int postID);
+            if (postID == 0) continue;
+
+            SNSPostData targetPost = snsPostList.Find(p => p.postID == postID);
+            if (targetPost == null)
             {
-                existingPost = new SNSPostData();
-                existingPost.postID = id;
-                existingPost.author = columns[1];
-                existingPost.profileImageName = columns[2];
-                existingPost.content = columns[3];
-                existingPost.postImageName = columns[4];
-
-                snsPostList.Add(existingPost);
+                Debug.LogWarning($"[SNSManager] 댓글의 postID {postID} 에 해당하는 게시물을 찾을 수 없습니다.");
+                continue;
             }
 
-            if (columns.Count >= 7 && !string.IsNullOrWhiteSpace(columns[5]))
+            SNSCommentData comment = new SNSCommentData();
+            comment.postID = postID;
+            comment.author = columns[1];
+            comment.content = columns[2];
+
+            if (columns.Count >= 5)
             {
-                SNSCommentData comment = new SNSCommentData();
-                comment.postID = id;
-                comment.author = columns[5];
-                comment.content = columns[6];
-
-                if (columns.Count >= 9)
-                {
-                    bool.TryParse(columns[7], out comment.isEmoticon);
-                    comment.emoticonName = columns[8];
-                }
-
-                existingPost.comments.Add(comment);
+                bool.TryParse(columns[3], out comment.isEmoticon);
+                comment.emoticonName = columns[4];
             }
+
+            targetPost.comments.Add(comment);
         }
     }
 
@@ -166,6 +213,9 @@ public class SNSManager : MonoBehaviour
             if (postScript != null)
             {
                 postScript.Setup(postData);
+
+                // 💡 [추가] 이미지 생성 퀘스트 수집 대상으로 자동 등록
+                CollectibleImageBinder.Bind(postScript.PostImage, postData.collectibleImageID);
             }
 
             // 💡 [추가] postData와 같은 순서로 저장 (인덱스로 매칭)

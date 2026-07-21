@@ -20,5 +20,10 @@ public class PostData
     public string imageClueID;
     public string imageQuestID;
 
+    // 💡 [추가] 이 게시글의 이미지가 이미지 생성 슬롯 시스템에서 수집 가능한 단서일 경우의 ID.
+    // 비어있으면 수집 대상이 아님. ImageGenSlotItems.csv 의 ImageID 와 매칭됨.
+    // (기존 imageQuestID 와는 다른 값이므로 절대 혼용하지 마세요)
+    public string collectibleImageID;
+
     public List<CommentData> comments = new List<CommentData>();
 }

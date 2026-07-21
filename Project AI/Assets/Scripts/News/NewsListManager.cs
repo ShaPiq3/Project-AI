@@ -71,6 +71,9 @@ public class NewsListManager : MonoBehaviour
 
             string bodyClue = (row.Count > 8) ? row[8] : "";
 
+            // 💡 [추가] 이미지 생성 퀘스트용 ID (10번째 컬럼). 비어있으면 수집 대상 아님.
+            string collectibleImageID = (row.Count > 9) ? row[9] : "";
+
             NewsData data = new NewsData
             {
                 id = idResult,
@@ -81,7 +84,8 @@ public class NewsListManager : MonoBehaviour
                 imageName = row[5],
                 imageClueID = imgClue,
                 clueParagraphIndex = paragraphIdx,
-                bodyClueID = bodyClue
+                bodyClueID = bodyClue,
+                collectibleImageID = collectibleImageID
             };
 
             // 💡 [추가] 나중에 clueID로 검색할 수 있도록 저장
@@ -92,6 +96,9 @@ public class NewsListManager : MonoBehaviour
             if (newsBtn != null)
             {
                 newsBtn.SetButton(data, this);
+
+                // 💡 [추가] 이미지 생성 퀘스트 수집 대상으로 자동 등록
+                CollectibleImageBinder.Bind(newsBtn.ThumbnailImage, data.collectibleImageID);
             }
         }
     }
