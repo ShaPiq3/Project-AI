@@ -58,27 +58,18 @@ public class DocumentQuestManager : MonoBehaviour
     [Tooltip("요약이 실패(isSuccess=false)했을 때 점프할 대화 CSV의 ID")]
     [SerializeField] private int failureDialogueID;
 
-    // 💡 여러 개의 문서(DocumentQuestManager)가 씬에 있을 수 있으므로,
-    // documentID로 찾을 수 있도록 정적 레지스트리를 둡니다.
     private static readonly Dictionary<string, DocumentQuestManager> registry = new Dictionary<string, DocumentQuestManager>();
 
     private List<SentenceBlock> spawnedBlocks = new List<SentenceBlock>();
     private bool isAnalysisOpen = false;
     private bool isScanning = false;
 
-    // 분석 연출이 완전히 끝나서 우측 패널이 작동 중인지 여부 (중복 실행 차단용 스위치)
     private bool isAnalysisActive = false;
 
-    // 외부 DataLogManager에서 연출 진행 여부를 확인하기 위한 프로퍼티
     public bool IsScanning => isScanning;
-
-    // 외부 DataLogManager에서 이미 분석 패널이 활성화되어 진행 중인지 확인하기 위한 프로퍼티
     public bool IsAnalysisActive => isAnalysisActive;
-
-    // 외부 시스템에서 이 문서가 이미 요약 성공 완료 상태인지 확인할 수 있는 판별값
     public bool IsCompleted { get; private set; } = false;
 
-    // 외부 시스템에서 구독하여 데이터 분기 및 연출을 처리할 완성 이벤트
     public static event Action<QuestResult> OnQuestComplete;
 
     private void Awake()
@@ -91,11 +82,9 @@ public class DocumentQuestManager : MonoBehaviour
 
     private void Start()
     {
-        // 1) 버튼 이벤트 연결
         toggleAnalysisBtn.onClick.AddListener(ToggleAnalysisPanel);
         summaryExecuteBtn.onClick.AddListener(ExecuteSummary);
 
-        // 2) 초기 상태 세팅 (모두 정리된 원본 문서 모드)
         ResetAllUI();
     }
 
@@ -107,7 +96,6 @@ public class DocumentQuestManager : MonoBehaviour
         }
     }
 
-    // 동료 개발자가 창을 활성화(OnEnable)할 때 호출되는 유니티 생명주기 함수
     private void OnEnable()
     {
         if (IsCompleted)
@@ -142,7 +130,6 @@ public class DocumentQuestManager : MonoBehaviour
         }
     }
 
-    // 외부 스캔 시스템 연동 완료 시 호출하는 퍼블릭 함수
     public void TriggerScanComplete()
     {
         if (IsCompleted)
@@ -154,7 +141,6 @@ public class DocumentQuestManager : MonoBehaviour
         if (isScanning) return;
         isScanning = true;
 
-        // 분석 프로세스 활성화 상태 스위치 On
         isAnalysisActive = true;
 
         toggleAnalysisBtn.gameObject.SetActive(true);
@@ -267,10 +253,10 @@ public class DocumentQuestManager : MonoBehaviour
 
     private void ExecuteSummary()
     {
-        int totalCorrectAnswers = correctSentenceIndices.Count;
         int userCorrectCount = 0;
         List<int> selectedIndices = new List<int>();
 
+        // 1. 플레이어가 선택한 블록 집계 및 정답 개수 계산
         foreach (var block in spawnedBlocks)
         {
             if (block.IsSelected)
@@ -283,12 +269,19 @@ public class DocumentQuestManager : MonoBehaviour
             }
         }
 
+        int totalUserSelectedCount = selectedIndices.Count;
+        int totalCorrectAnswersCount = correctSentenceIndices.Count;
         float achievementRate = 0f;
-        if (totalCorrectAnswers > 0)
+
+        // 2. F1-Score 기반 점수 계산
+        // 공식: (내가 맞힌 정답 수 * 2) / (전체 정답 수 + 내가 선택한 총 개수) * 100
+        int denominator = totalCorrectAnswersCount + totalUserSelectedCount;
+        if (denominator > 0)
         {
-            achievementRate = (float)userCorrectCount / totalCorrectAnswers * 100f;
+            achievementRate = ((float)(userCorrectCount * 2) / denominator) * 100f;
         }
 
+        // 3. F1-Score 점수가 80% 이상일 때만 성공 처리
         bool success = achievementRate >= 80f;
 
         QuestResult result = new QuestResult
@@ -299,20 +292,19 @@ public class DocumentQuestManager : MonoBehaviour
             selectedParagraphs = selectedIndices
         };
 
-        if (success)
-        {
-            IsCompleted = true;
-        }
+        // 완료 처리 및 저장 (재스캔 방지)
+        IsCompleted = true;
 
         string json = JsonUtility.ToJson(result);
         PlayerPrefs.SetString("QuestResult_" + result.questTitle, json);
         PlayerPrefs.Save();
-        Debug.Log($"[미니게임 데이터 로컬 저장 완료]\n{json}");
+
+        Debug.Log($"[F1-Score 판정 결과]\n" +
+                  $"전체 정답 수: {totalCorrectAnswersCount}, 내가 선택한 수: {totalUserSelectedCount}, 맞힌 정답 수: {userCorrectCount}\n" +
+                  $"최종 F1 점수: {achievementRate:F1}% -> {(success ? "성공" : "실패")}\n{json}");
 
         OnQuestComplete?.Invoke(result);
 
-        // 💡 [추가] 성공/실패 여부에 따라 지정된 대화 ID로 점프해서
-        // 그 이후 대화(CSV에 작성된 내용)를 이어서 재생합니다.
         if (ChatDialogueManager.Instance != null)
         {
             int targetDialogueID = success ? successDialogueID : failureDialogueID;
@@ -331,15 +323,12 @@ public class DocumentQuestManager : MonoBehaviour
             return manager;
         }
 
-        // 💡 [추가] 씬 시작 시점에 비활성화된 문서 패널은 Awake가 아직 실행되지 않아
-        // 레지스트리에 등록이 안 되어 있을 수 있습니다. 이 경우를 대비해
-        // 비활성화된 오브젝트까지 포함해서 한 번 더 찾아봅니다.
         DocumentQuestManager[] allDocuments = FindObjectsByType<DocumentQuestManager>(FindObjectsInactive.Include);
         foreach (var doc in allDocuments)
         {
             if (doc.documentID == id)
             {
-                registry[id] = doc; // 다음부터는 바로 찾을 수 있도록 캐싱
+                registry[id] = doc;
                 return doc;
             }
         }
@@ -347,12 +336,8 @@ public class DocumentQuestManager : MonoBehaviour
         return null;
     }
 
-    // 💡 채팅 버블의 "문서 열기" 버튼이 호출하는 함수.
-    // 창이 최소화되어 있었다면 먼저 복원한 뒤, 기존 스캔 연출(TriggerScanComplete)을 시작합니다.
     public void OpenFromChatBubble()
     {
-        // 💡 [추가] 코루틴은 GameObject가 활성화된 상태에서만 시작할 수 있습니다.
-        // panelWindowManager 연결 여부와 상관없이, 이 오브젝트 자체가 꺼져있다면 먼저 켭니다.
         if (!gameObject.activeSelf)
         {
             gameObject.SetActive(true);
@@ -363,6 +348,13 @@ public class DocumentQuestManager : MonoBehaviour
             panelWindowManager.RestoreWindow();
         }
 
-        TriggerScanComplete();
+        if (DataLogManager.Instance != null)
+        {
+            DataLogManager.Instance.OnClickDocumentPanel(this);
+        }
+        else
+        {
+            TriggerScanComplete();
+        }
     }
 }
