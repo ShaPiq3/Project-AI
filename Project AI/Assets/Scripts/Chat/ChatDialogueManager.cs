@@ -130,7 +130,7 @@ public class ChatDialogueManager : MonoBehaviour
             int.TryParse(columns[0].Trim(), out data.id);
             data.speakerType = columns[1].Trim();
             data.speakerName = columns[2].Trim();
-            data.dialogueText = columns[3].Trim().Replace("\"", "");
+            data.dialogueText = columns[3].Trim().Replace("\"", "").Replace("\\n", "\n");
             bool.TryParse(columns[4].Trim(), out data.hasImage);
             data.imagePath = columns[5].Trim();
             float.TryParse(columns[6].Trim(), out data.delayTime);
@@ -139,11 +139,11 @@ public class ChatDialogueManager : MonoBehaviour
             if (columns.Length >= 15)
             {
                 bool.TryParse(columns[8].Trim(), out data.isBranch);
-                data.branchText1 = columns[9].Trim().Replace("\"", "");
+                data.branchText1 = columns[9].Trim().Replace("\"", "").Replace("\\n", "\n");
                 int.TryParse(columns[10].Trim(), out data.nextId1);
-                data.branchText2 = columns[11].Trim().Replace("\"", "");
+                data.branchText2 = columns[11].Trim().Replace("\"", "").Replace("\\n", "\n");
                 int.TryParse(columns[12].Trim(), out data.nextId2);
-                data.branchText3 = columns[13].Trim().Replace("\"", "");
+                data.branchText3 = columns[13].Trim().Replace("\"", "").Replace("\\n", "\n");
                 int.TryParse(columns[14].Trim(), out data.nextId3);
             }
             else
