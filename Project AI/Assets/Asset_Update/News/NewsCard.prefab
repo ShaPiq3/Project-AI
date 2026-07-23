@@ -133,10 +133,10 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-      - m_Target: {fileID: 5761355633373061784}
-        m_TargetAssemblyTypeName: UnityEngine.GameObject, UnityEngine
-        m_MethodName: SetActive
-        m_Mode: 6
+      - m_Target: {fileID: 8493371611245872435}
+        m_TargetAssemblyTypeName: NewsCard, Assembly-CSharp
+        m_MethodName: ClosePopup
+        m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
@@ -709,6 +709,7 @@ MonoBehaviour:
   highlightColor: {r: 1, g: 1, b: 0.6, a: 1}
   targetClueID: 
   questID: 
+  sourceTitleOverride: 
 --- !u!1 &4148780669870996062
 GameObject:
   m_ObjectHideFlags: 0
@@ -1493,6 +1494,7 @@ MonoBehaviour:
   targetClueID: NEWS_TXT_01
   hexHighlightColor: '#FFFF00AA'
   questID: T_Q1
+  sourceTitleOverride: 
 --- !u!224 &3576061610078207320 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 715599732515998005, guid: e5e7009b99686c941a3f517cfc6927dc, type: 3}

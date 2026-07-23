@@ -32,6 +32,17 @@ public class ClueImageHoverEffect : MonoBehaviour, IPointerEnterHandler, IPointe
         {
             ArchiveManager.Instance.RegisterClueLocation(targetClueID, GetComponent<RectTransform>());
         }
+
+        // 💡 [추가] questID가 비어있다면(뉴스/커뮤니티에서 동적으로 붙었는데 questID를
+        // 못 받은 경우 등), 마스터 데이터(ClueExcelData)에서 자동으로 찾아 채웁니다.
+        if (string.IsNullOrEmpty(questID) && DataLogManager.Instance != null && !string.IsNullOrEmpty(targetClueID))
+        {
+            ClueData masterClue = DataLogManager.Instance.GetClueData(targetClueID.Trim());
+            if (masterClue != null && !string.IsNullOrEmpty(masterClue.questID))
+            {
+                questID = masterClue.questID;
+            }
+        }
     }
 
     /// <summary>
@@ -43,6 +54,14 @@ public class ClueImageHoverEffect : MonoBehaviour, IPointerEnterHandler, IPointe
         if (DataLogManager.Instance == null) return false;
         if (!DataLogManager.Instance.IsClueSearchModeActive) return false;
         if (!DataLogManager.Instance.IsQuestActive(questID)) return false;
+
+        // 💡 이미 수집한 단서라면 더 이상 호버/클릭 반응이 없도록 막습니다.
+        if (DataLogManager.Instance.IsClueAlreadyCollected(targetClueID)) return false;
+
+        // 💡 [추가] 이 단서 자체는 안 모았어도, 퀘스트가 이미 목표 개수를 다 채웠다면
+        // 더 이상 아무것도 못 모으는 상태이므로 마찬가지로 막습니다.
+        if (DataLogManager.Instance.IsQuestCapReached(questID)) return false;
+
         return true;
     }
 

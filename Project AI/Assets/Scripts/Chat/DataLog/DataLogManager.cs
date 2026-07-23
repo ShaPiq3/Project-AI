@@ -55,6 +55,30 @@ public class DataLogManager : MonoBehaviour
         return questCollectedClues.ContainsKey(questID);
     }
 
+    /// <summary>
+    /// 💡 [추가] 이 단서를 이미 수집했는지 확인합니다.
+    /// 이미 수집한 단서는 호버 효과/클릭 수집이 다시 반응하지 않게 하는 데 씁니다.
+    /// </summary>
+    public bool IsClueAlreadyCollected(string clueID)
+    {
+        if (string.IsNullOrEmpty(clueID)) return false;
+        string cleanClueID = clueID.Trim();
+        return collectedClues.Exists(c => c.clueID == cleanClueID);
+    }
+
+    /// <summary>
+    /// 💡 [추가] 이 퀘스트가 이미 목표 개수(targetCount)만큼 다 모아서
+    /// 더 이상 아무 단서도 수집할 수 없는 상태인지 확인합니다.
+    /// (이 단서 자체를 이미 모았는지와는 별개 - 퀘스트 전체가 꽉 찬 경우)
+    /// </summary>
+    public bool IsQuestCapReached(string questID)
+    {
+        if (string.IsNullOrEmpty(questID)) return false;
+        if (!questTargetCounts.TryGetValue(questID, out int target)) return false;
+        if (!questCollectedClues.TryGetValue(questID, out var collectedList)) return false;
+        return collectedList.Count >= target;
+    }
+
     // 💡 퀘스트별 정답/오답 대화 시작 ID (StartQuest 호출 시 함께 등록됨)
     [System.Serializable]
     private class QuestDialogueConfig
@@ -236,6 +260,24 @@ public class DataLogManager : MonoBehaviour
             return targetClue;
         }
         return null;
+    }
+
+    /// <summary>
+    /// 💡 [추가] 주어진 clueID의 정확한 questID를 마스터 데이터(ClueExcelData)에서 자동으로 찾습니다.
+    /// 찾지 못하면 fallbackQuestID를 그대로 반환합니다.
+    /// 이걸 쓰면 뉴스/커뮤니티 패널 하나로 퀘스트가 여러 개 있어도, 매번 questID를
+    /// 수동으로 바꿔줄 필요 없이 항상 그 단서에 맞는 정확한 퀘스트로 수집됩니다.
+    /// </summary>
+    public string ResolveQuestID(string clueID, string fallbackQuestID = null)
+    {
+        if (string.IsNullOrEmpty(clueID)) return fallbackQuestID;
+
+        if (clueDatabase.TryGetValue(clueID.Trim(), out ClueData masterClue) && !string.IsNullOrEmpty(masterClue.questID))
+        {
+            return masterClue.questID;
+        }
+
+        return fallbackQuestID;
     }
 
     private void CreateClueSlot(ClueData clue)

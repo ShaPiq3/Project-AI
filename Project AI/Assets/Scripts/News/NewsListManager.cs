@@ -28,6 +28,10 @@ public class NewsListManager : MonoBehaviour
     // 💡 파싱된 모든 뉴스 데이터를 보관 (clueID로 역참조 검색하기 위함)
     private List<NewsData> allNewsData = new List<NewsData>();
 
+    // 💡 여러 창을 동시에 띄우기 위해, 기사 id별로 "지금 열려있는 창"을 추적합니다.
+    // 같은 기사를 또 열려고 하면 새로 만들지 않고 이 창을 맨 앞으로만 가져옵니다.
+    private Dictionary<int, NewsCard> openNewsWindows = new Dictionary<int, NewsCard>();
+
     private void Awake()
     {
         if (Instance == null) Instance = this;
@@ -74,7 +78,7 @@ public class NewsListManager : MonoBehaviour
             // 💡 이미지 생성 퀘스트용 ID (10번째 컬럼). 비어있으면 수집 대상 아님.
             string collectibleImageID = (row.Count > 9) ? row[9] : "";
 
-            // 💡 [추가] 제목 클릭 단서 ID (11번째 컬럼). 비어있으면 제목은 수집 대상 아님.
+            // 💡 제목 클릭 단서 ID (11번째 컬럼). 비어있으면 제목은 수집 대상 아님.
             string titleClue = (row.Count > 10) ? row[10] : "";
 
             NewsData data = new NewsData
@@ -101,8 +105,9 @@ public class NewsListManager : MonoBehaviour
             {
                 newsBtn.SetButton(data, this);
 
-                // 💡 이미지 생성 퀘스트 수집 대상으로 자동 등록
-                CollectibleImageBinder.Bind(newsBtn.ThumbnailImage, data.collectibleImageID);
+                // 💡 [변경] 목록 썸네일이 아니라 "본문을 열었을 때 보이는 이미지"를
+                // 클릭해야 수집되도록, 여기서는 더 이상 바인딩하지 않습니다.
+                // (실제 바인딩은 NewsCard.SetNewsData()에서 처리)
             }
         }
     }
@@ -217,18 +222,31 @@ public class NewsListManager : MonoBehaviour
     }
 
     // 3. 버튼을 눌렀을 때 상세 팝업을 열어주는 중계 함수
+    // 💡 하나의 팝업을 재사용하던 방식에서, 클릭마다 새로 복제해서
+    // 여러 창을 동시에 띄우는 방식으로 변경. 같은 기사가 이미 열려있으면
+    // 새로 만들지 않고 그 창을 맨 앞으로만 가져옵니다.
     public void OpenDetailPopup(NewsData data)
     {
-        if (detailPopup != null)
-        {
-            detailPopup.gameObject.SetActive(true);
-            detailPopup.SetNewsData(data);
+        if (detailPopup == null) return;
 
-            if (windowManager != null)
-            {
-                RectTransform cardRect = detailPopup.GetComponent<RectTransform>();
-                windowManager.RepositionPopupWindow(cardRect);
-            }
+        // 이미 열려있는 기사라면 그 창을 맨 앞으로만 가져오고 끝
+        if (openNewsWindows.TryGetValue(data.id, out NewsCard existingWindow) && existingWindow != null)
+        {
+            existingWindow.transform.SetAsLastSibling();
+            return;
+        }
+
+        // 새 창 복제 (detailPopup을 "복제할 원본 템플릿"으로 사용)
+        NewsCard newWindow = Instantiate(detailPopup, detailPopup.transform.parent);
+        newWindow.gameObject.SetActive(true);
+        newWindow.SetNewsData(data);
+
+        openNewsWindows[data.id] = newWindow;
+
+        if (windowManager != null)
+        {
+            RectTransform cardRect = newWindow.GetComponent<RectTransform>();
+            windowManager.RepositionPopupWindow(cardRect);
         }
     }
 
@@ -248,7 +266,7 @@ public class NewsListManager : MonoBehaviour
             bool isBodyMatch = !string.IsNullOrEmpty(data.bodyClueID) && data.bodyClueID == clueID;
             bool isImageMatch = !string.IsNullOrEmpty(data.imageClueID) && data.imageClueID == clueID;
 
-            // 💡 [추가] 본문 안에 "[CLUE:아이디]" 태그로 심어둔 (여러 개일 수 있는) 단서도 검색
+            // 💡 본문 안에 "[CLUE:아이디]" 태그로 심어둔 (여러 개일 수 있는) 단서도 검색
             bool isTaggedBodyMatch = BodyContainsClueTag(data.body, clueID);
 
             if (isTitleMatch || isBodyMatch || isImageMatch || isTaggedBodyMatch)
@@ -268,7 +286,7 @@ public class NewsListManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 💡 [추가] 본문을 '|'로 나눈 문단들 중에, "[CLUE:아이디]" 태그로 시작하는 문단이
+    /// 💡 본문을 '|'로 나눈 문단들 중에, "[CLUE:아이디]" 태그로 시작하는 문단이
     /// 주어진 clueID와 일치하는 게 있는지 확인합니다. (문단 여러 개가 단서인 경우 지원)
     /// </summary>
     private bool BodyContainsClueTag(string body, string clueID)

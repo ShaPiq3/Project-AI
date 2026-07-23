@@ -549,6 +549,9 @@ public class ChatDialogueManager : MonoBehaviour
             {
                 IsDialoguePaused = true;
 
+                // 💡 [디버그용] 이 분기까지 실제로 도달하는지, Instance가 살아있는지 확인
+                Debug.Log($"[디버그] isImageGenTrigger 발동! questID:{data.imageGenQuestID}, ImageGenerationManager.Instance == null: {ImageGenerationManager.Instance == null}");
+
                 if (ImageGenerationManager.Instance != null)
                 {
                     ImageGenerationManager.Instance.UnlockAndOpen(

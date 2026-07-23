@@ -68,7 +68,7 @@ public class ImageGenerationManager : MonoBehaviour
     [SerializeField] private CanvasGroup panelCanvasGroup;
     [SerializeField] private Button toggleButton;      // 열고 끄는 버튼 (평소엔 잠겨있음)
     [SerializeField] private Button generateAnswerButton; // 답변 생성 버튼
-    [SerializeField] private TMP_Text progressText; // 💡 [추가] "2/3" 형태로 진행도를 보여줄 텍스트 (DataLogManager의 questStatusUI와 동일한 역할)
+    [SerializeField] private TMP_Text progressText; // 💡 "2/3" 형태로 진행도를 보여줄 텍스트 (DataLogManager의 questStatusUI와 동일한 역할)
     [SerializeField] private Button deleteSelectedButton;  // 항상 떠있는 삭제 버튼 (체크된 슬롯을 지움)
 
     [Header("애니메이션 설정")]
@@ -93,6 +93,12 @@ public class ImageGenerationManager : MonoBehaviour
     private string currentQuestID = null;
     private bool isPanelOpen = false;
     private bool isUnlocked = false;
+
+    /// <summary>
+    /// 💡 [추가] 지금 이미지 생성 퀘스트가 실제로 열려있는(잠금 해제된) 상태인지 외부에서 확인할 수 있게 합니다.
+    /// CollectibleImageIcon이 이걸로 "아직 발동 안 한 단서인데 호버가 뜨는" 문제를 막습니다.
+    /// </summary>
+    public bool IsUnlocked => isUnlocked;
 
     /// <summary> 데이터 수집 모드 (기존 "데이터 수집" 버튼에서 같이 켜/꺼주세요) </summary>
     public bool IsCollectingMode { get; private set; } = false;
@@ -144,11 +150,18 @@ public class ImageGenerationManager : MonoBehaviour
         ParseSlotItemCsv();
         ParseQuestSlotCsv();
         ParseQuestResultCsv();
+
+        // 💡 [디버그용] CSV가 실제로 로드되어 몇 개의 퀘스트가 등록됐는지 확인
+        Debug.Log($"[디버그] ImageGenerationManager CSV 로딩 완료 -> layoutByQuestID 개수:{layoutByQuestID.Count}, 등록된 questID 목록: {string.Join(", ", layoutByQuestID.Keys)}");
     }
 
     private void ParseSlotItemCsv()
     {
-        if (slotItemCsv == null) return;
+        if (slotItemCsv == null)
+        {
+            Debug.LogWarning("[ImageGenerationManager] slotItemCsv(ImageGenSlotItems.csv)가 인스펙터에 연결되지 않았습니다!");
+            return;
+        }
         string[] rows = slotItemCsv.text.Replace("\r", "").Split(new char[] { '\n' }, System.StringSplitOptions.RemoveEmptyEntries);
         for (int i = 1; i < rows.Length; i++)
         {
@@ -172,7 +185,11 @@ public class ImageGenerationManager : MonoBehaviour
 
     private void ParseQuestSlotCsv()
     {
-        if (questSlotCsv == null) return;
+        if (questSlotCsv == null)
+        {
+            Debug.LogWarning("[ImageGenerationManager] questSlotCsv(ImageGenQuestSlots.csv)가 인스펙터에 연결되지 않았습니다!");
+            return;
+        }
         string[] rows = questSlotCsv.text.Replace("\r", "").Split(new char[] { '\n' }, System.StringSplitOptions.RemoveEmptyEntries);
         for (int i = 1; i < rows.Length; i++)
         {
@@ -199,7 +216,11 @@ public class ImageGenerationManager : MonoBehaviour
 
     private void ParseQuestResultCsv()
     {
-        if (questResultCsv == null) return;
+        if (questResultCsv == null)
+        {
+            Debug.LogWarning("[ImageGenerationManager] questResultCsv(ImageGenQuestResults.csv)가 인스펙터에 연결되지 않았습니다!");
+            return;
+        }
         string[] rows = questResultCsv.text.Replace("\r", "").Split(new char[] { '\n' }, System.StringSplitOptions.RemoveEmptyEntries);
         for (int i = 1; i < rows.Length; i++)
         {
@@ -228,6 +249,9 @@ public class ImageGenerationManager : MonoBehaviour
     /// <param name="malfunctionDialogueID">신규 컬럼</param>
     public void UnlockAndOpen(string questID, int truthDialogueID, int falseDialogueID, int malfunctionDialogueID)
     {
+        // 💡 [디버그용] 이 함수가 실제로 호출됐는지부터 확인
+        Debug.Log($"[디버그] UnlockAndOpen 호출됨! questID:'{questID}'");
+
         if (string.IsNullOrEmpty(questID) || !layoutByQuestID.ContainsKey(questID))
         {
             Debug.LogWarning($"[ImageGenerationManager] 퀘스트ID '{questID}' 의 슬롯 배열을 찾을 수 없습니다.");
@@ -251,6 +275,10 @@ public class ImageGenerationManager : MonoBehaviour
 
         EnsureRuntimeForQuest(questID);
         RebuildSlotUI(questID);
+
+        // 💡 [디버그용] 여기까지 왔다는 건 예외 없이 전부 통과했다는 뜻
+        Debug.Log($"[디버그] UnlockAndOpen 끝까지 도달! isUnlocked:{isUnlocked}, toggleButton null 여부:{toggleButton == null}, panelRect null 여부:{panelRect == null}, panelCanvasGroup null 여부:{panelCanvasGroup == null}");
+
         OpenPanel();
     }
 
@@ -279,6 +307,17 @@ public class ImageGenerationManager : MonoBehaviour
     // =========================================================
     private void RebuildSlotUI(string questID)
     {
+        if (slotContainer == null)
+        {
+            Debug.LogWarning("[ImageGenerationManager] slotContainer가 인스펙터에 연결되지 않았습니다!");
+            return;
+        }
+        if (slotButtonPrefab == null)
+        {
+            Debug.LogWarning("[ImageGenerationManager] slotButtonPrefab이 인스펙터에 연결되지 않았습니다!");
+            return;
+        }
+
         foreach (Transform child in slotContainer) Destroy(child.gameObject);
         activeSlotButtons.Clear();
 
@@ -326,7 +365,7 @@ public class ImageGenerationManager : MonoBehaviour
 
         if (generateAnswerButton != null) generateAnswerButton.interactable = allFilled;
 
-        // 💡 [추가] DataLogManager의 진행도 표시와 동일한 역할
+        // 💡 DataLogManager의 진행도 표시와 동일한 역할
         if (progressText != null) progressText.text = $"{filledCount}/{totalCount}";
     }
 
@@ -470,7 +509,7 @@ public class ImageGenerationManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 💡 [추가] ChatDialogueManager가 오작동 결과 시퀀스의 마지막 줄
+    /// 💡 ChatDialogueManager가 오작동 결과 시퀀스의 마지막 줄
     /// (isImageGenMalfunctionEnd=TRUE)까지 다 재생했을 때 호출합니다.
     /// 그 시점에 정확히 맞춰 버튼을 다시 열어줍니다.
     /// </summary>
@@ -524,7 +563,25 @@ public class ImageGenerationManager : MonoBehaviour
 
     public void OpenPanel()
     {
+        // 💡 [디버그용] OpenPanel이 실제로 호출됐는지, panelRect가 연결됐는지 확인
+        Debug.Log($"[디버그] OpenPanel 호출됨! panelRect null 여부:{panelRect == null}");
+
         if (panelRect == null) return;
+
+        // 💡 [변경] panelRect 자기 자신뿐 아니라, 상위 조상 오브젝트들(예: ImageGeneration_Panel
+        // 최상위 루트)까지 전부 비활성화 상태였을 수 있으므로, 부모 체인을 타고 올라가며
+        // 꺼져있는 오브젝트를 전부 강제로 켭니다. DOTween으로 위치/알파를 아무리 바꿔도
+        // 오브젝트 자체가 꺼져있으면 화면에 안 보이기 때문입니다.
+        Transform current = panelRect.transform;
+        while (current != null)
+        {
+            if (!current.gameObject.activeSelf)
+            {
+                current.gameObject.SetActive(true);
+            }
+            current = current.parent;
+        }
+
         isPanelOpen = true;
 
         panelRect.DOKill();

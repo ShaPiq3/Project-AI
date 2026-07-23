@@ -1,27 +1,78 @@
-using UnityEngine;
+ï»¿using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
 /// <summary>
-/// ¾ÆÄ«ÀÌºê, ´º½º µî ¾î´À Ã¢ÀÌµç »ó°ü¾øÀÌ "¼öÁı °¡´ÉÇÑ ÀÌ¹ÌÁö" ¿ÀºêÁ§Æ®¿¡ ºÙÀÌ¼¼¿ä.
-/// µ¥ÀÌÅÍ ¼öÁı ¸ğµå(ImageGenerationManager.Instance.IsCollectingMode)°¡ ÄÑÁ® ÀÖÀ» ¶§¸¸ µ¿ÀÛÇÕ´Ï´Ù.
-/// ±âÁ¸¿¡ ±× ÀÌ¹ÌÁö¿¡ ´Ù¸¥ Å¬¸¯ µ¿ÀÛ(È®´ëº¸±â µî)ÀÌ ÀÖ¾îµµ »ó°ü¾øµµ·Ï º°µµ ¸®½º³Ê·Î Ãß°¡ÇÏ¼¼¿ä.
+/// ì•„ì¹´ì´ë¸Œ, ë‰´ìŠ¤ ë“± ì–´ëŠ ì°½ì´ë“  ìƒê´€ì—†ì´ "ìˆ˜ì§‘ ê°€ëŠ¥í•œ ì´ë¯¸ì§€" ì˜¤ë¸Œì íŠ¸ì— ë¶™ì´ì„¸ìš”.
+/// ë‹¤ë¥¸ ë‹¨ì„œ(ClueTextHoverEffect/ClueImageHoverEffect)ì™€ ë™ì¼í•˜ê²Œ
+/// DataLogManager.IsClueSearchModeActive("ë‹¨ì„œ ìˆ˜ì§‘ ëª¨ë“œ")ê°€ ì¼œì ¸ ìˆì„ ë•Œë§Œ ë™ì‘í•©ë‹ˆë‹¤.
+/// ê¸°ì¡´ì— ê·¸ ì´ë¯¸ì§€ì— ë‹¤ë¥¸ í´ë¦­ ë™ì‘(í™•ëŒ€ë³´ê¸° ë“±)ì´ ìˆì–´ë„ ìƒê´€ì—†ë„ë¡ ë³„ë„ ë¦¬ìŠ¤ë„ˆë¡œ ì¶”ê°€í•˜ì„¸ìš”.
 /// </summary>
-public class CollectibleImageIcon : MonoBehaviour, IPointerClickHandler
+public class CollectibleImageIcon : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler
 {
-    [Tooltip("ImageGenSlotItems.csv ÀÇ ImageID ¿Í µ¿ÀÏÇÏ°Ô ÀÔ·Â")]
+    [Tooltip("ImageGenSlotItems.csv ì˜ ImageID ì™€ ë™ì¼í•˜ê²Œ ì…ë ¥")]
     public string imageID;
 
-    /// <summary>CSV·Î µ¿Àû »ı¼ºµÇ´Â ¾ÆÀÌÅÛ(¿¹: ´º½º)¿¡¼­ Instantiate Á÷ÈÄ È£ÃâÇØ¼­ ÀÚµ¿ ¿¬°áÇÒ ¶§ »ç¿ë</summary>
+    [Header("í˜¸ë²„ ì‹œ ìƒ‰ í‘œì‹œ (ì„ íƒ ì‚¬í•­)")]
+    [SerializeField] private Color highlightColor = new Color(1f, 1f, 0.6f, 1f);
+
+    private Image image;
+    private Color originalColor;
+
+    private void Awake()
+    {
+        image = GetComponent<Image>();
+        if (image != null)
+        {
+            originalColor = image.color;
+        }
+    }
+
+    /// <summary>CSVë¡œ ë™ì  ìƒì„±ë˜ëŠ” ì•„ì´í…œ(ì˜ˆ: ë‰´ìŠ¤)ì—ì„œ Instantiate ì§í›„ í˜¸ì¶œí•´ì„œ ìë™ ì—°ê²°í•  ë•Œ ì‚¬ìš©</summary>
     public void Init(string id)
     {
         imageID = id;
     }
 
+    /// <summary>
+    /// ğŸ’¡ [ë³€ê²½] ì˜ˆì „ì—ëŠ” ImageGenerationManager.IsCollectingModeë¥¼ í™•ì¸í–ˆëŠ”ë°,
+    /// ì´ ê°’ì„ ì„¸íŒ…í•˜ëŠ” ê³³ì´ ì–´ë””ì—ë„ ì—†ì–´ì„œ í•­ìƒ falseë¡œ ê³ ì •ë˜ì–´ í´ë¦­ì´ ë§‰í˜€ìˆì—ˆìŠµë‹ˆë‹¤.
+    /// ë‹¤ë¥¸ ë‹¨ì„œë“¤ê³¼ ë™ì¼í•˜ê²Œ DataLogManagerì˜ ë‹¨ì„œ ìˆ˜ì§‘ ëª¨ë“œë¥¼ ê¸°ì¤€ìœ¼ë¡œ í†µì¼í•©ë‹ˆë‹¤.
+    /// </summary>
+    private bool IsInteractable()
+    {
+        if (DataLogManager.Instance == null) return false;
+        if (!DataLogManager.Instance.IsClueSearchModeActive) return false;
+        if (string.IsNullOrEmpty(imageID)) return false;
+
+        // ğŸ’¡ [ì¶”ê°€] ì´ë¯¸ì§€ ìƒì„± í€˜ìŠ¤íŠ¸ê°€ ì•„ì§ ë°œë™(ì ê¸ˆ í•´ì œ)ë˜ì§€ ì•Šì•˜ë‹¤ë©´
+        // í˜¸ë²„/í´ë¦­ ëª¨ë‘ ë°˜ì‘í•˜ì§€ ì•Šë„ë¡ ë§‰ìŠµë‹ˆë‹¤.
+        if (ImageGenerationManager.Instance == null || !ImageGenerationManager.Instance.IsUnlocked) return false;
+
+        return true;
+    }
+
+    public void OnPointerEnter(PointerEventData eventData)
+    {
+        if (!IsInteractable()) return;
+        if (image != null)
+        {
+            image.color = highlightColor;
+        }
+    }
+
+    public void OnPointerExit(PointerEventData eventData)
+    {
+        if (image != null)
+        {
+            image.color = originalColor;
+        }
+    }
+
     public void OnPointerClick(PointerEventData eventData)
     {
+        if (!IsInteractable()) return;
         if (ImageGenerationManager.Instance == null) return;
-        if (!ImageGenerationManager.Instance.IsCollectingMode) return;
-        if (string.IsNullOrEmpty(imageID)) return;
 
         ImageGenerationManager.Instance.RegisterImageToSlot(imageID);
     }

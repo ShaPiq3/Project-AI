@@ -23,6 +23,10 @@ public class CommunityManager : MonoBehaviour
 
     private List<PostData> postList = new List<PostData>();
 
+    // 💡 [추가] 여러 창을 동시에 띄우기 위해, 게시글 postID별로 "지금 열려있는 창"을 추적합니다.
+    // 같은 게시글을 또 열려고 하면 새로 만들지 않고 이 창을 맨 앞으로만 가져옵니다.
+    private Dictionary<int, PostDetailPageUI> openPostWindows = new Dictionary<int, PostDetailPageUI>();
+
     // CSV 필드 하나 안에 콤마/줄바꿈이 포함될 수 있으므로(따옴표로 감싼 셀) 정규식으로 셀 분리
     private const string CsvParserPattern = ",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)";
 
@@ -33,6 +37,10 @@ public class CommunityManager : MonoBehaviour
 
     void Start()
     {
+        // 💡 [추가] 상세 페이지 템플릿은 시작할 때 꺼둡니다 (여러 창 복제 방식이므로
+        // 원본 템플릿 자체는 화면에 보이면 안 됨). NewsListManager와 동일한 패턴.
+        if (detailPageUI != null) detailPageUI.gameObject.SetActive(false);
+
         // 💡 포스트 CSV(CommunityData)와 댓글 CSV(CommentExcelData)를 각각 따로 불러와서 병합
         TextAsset postCsv = Resources.Load<TextAsset>("CommunityExcelData");
         TextAsset commentCsv = Resources.Load<TextAsset>("CommentExcelData");
@@ -177,13 +185,30 @@ public class CommunityManager : MonoBehaviour
         }
     }
 
+    // 💡 [변경] 하나의 상세 페이지를 재사용하던 방식에서, 클릭마다 새로 복제해서
+    // 여러 창을 동시에 띄우는 방식으로 변경. 같은 게시글이 이미 열려있으면
+    // 새로 만들지 않고 그 창을 맨 앞으로만 가져옵니다.
     public void OpenDetailPage(PostData data)
     {
-        detailPageUI.DisplayPost(data);
+        if (detailPageUI == null) return;
 
-        if (windowManager != null && detailPageUI != null)
+        // 이미 열려있는 게시글이라면 그 창을 맨 앞으로만 가져오고 끝
+        if (openPostWindows.TryGetValue(data.postID, out PostDetailPageUI existingWindow) && existingWindow != null)
         {
-            RectTransform detailRect = detailPageUI.GetComponent<RectTransform>();
+            existingWindow.transform.SetAsLastSibling();
+            return;
+        }
+
+        // 새 창 복제 (detailPageUI를 "복제할 원본 템플릿"으로 사용)
+        PostDetailPageUI newWindow = Instantiate(detailPageUI, detailPageUI.transform.parent);
+        newWindow.gameObject.SetActive(true);
+        newWindow.DisplayPost(data);
+
+        openPostWindows[data.postID] = newWindow;
+
+        if (windowManager != null)
+        {
+            RectTransform detailRect = newWindow.GetComponent<RectTransform>();
             windowManager.RepositionPopupWindow(detailRect);
         }
     }

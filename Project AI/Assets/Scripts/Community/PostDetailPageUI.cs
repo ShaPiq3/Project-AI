@@ -60,7 +60,9 @@ public class PostDetailPageUI : MonoBehaviour
             titleBtn.onClick.RemoveAllListeners();
             titleBtn.onClick.AddListener(() => {
                 Debug.Log($"커뮤니티 제목 클릭으로 단서 수집: {data.titleClueID}");
-                DataLogManager.Instance.AcquireClue(questID, data.titleClueID, data.title);
+                // 💡 [변경] questID를 마스터 데이터에서 자동으로 찾아서 사용 (여러 퀘스트 재사용 대응)
+                string resolvedQuestID = DataLogManager.Instance.ResolveQuestID(data.titleClueID, questID);
+                DataLogManager.Instance.AcquireClue(resolvedQuestID, data.titleClueID, data.title);
             });
         }
         else
@@ -184,7 +186,10 @@ public class PostDetailPageUI : MonoBehaviour
                     imgBtn.onClick.RemoveAllListeners();
                     imgBtn.onClick.AddListener(() => {
                         Debug.Log($"커뮤니티 이미지 클릭으로 단서 수집: {data.imageClueID}");
-                        DataLogManager.Instance.AcquireClue(data.imageQuestID, data.imageClueID, data.title);
+                        // 💡 [변경] data.imageQuestID는 CSV에서 채워지지 않아 항상 비어있던 값이라,
+                        // 마스터 데이터에서 자동으로 questID를 찾도록 변경
+                        string resolvedQuestID = DataLogManager.Instance.ResolveQuestID(data.imageClueID, questID);
+                        DataLogManager.Instance.AcquireClue(resolvedQuestID, data.imageClueID, data.title);
                     });
                 }
                 else
@@ -206,9 +211,10 @@ public class PostDetailPageUI : MonoBehaviour
             if (!string.IsNullOrEmpty(data.clueID) && DataLogManager.Instance != null)
             {
                 postContentButton.onClick.AddListener(() => {
-                    // ⚠️ [기존 버그, 손대지 않음] 아래 AcquireClue가 본문의 clueID가 아니라
-                    // 이미지용 ID(imageQuestID/imageClueID)를 넘기고 있습니다. 의도하신 게 맞는지 확인 필요.
-                    DataLogManager.Instance.AcquireClue(data.imageQuestID, data.imageClueID, data.title);
+                    // 💡 [수정] 예전엔 본문 clueID가 아니라 이미지용 ID를 잘못 넘기고 있었습니다.
+                    // 이제 본문 자체의 clueID를 쓰고, questID도 마스터 데이터에서 자동으로 찾습니다.
+                    string resolvedQuestID = DataLogManager.Instance.ResolveQuestID(data.clueID, questID);
+                    DataLogManager.Instance.AcquireClue(resolvedQuestID, data.clueID, data.title);
                 });
             }
         }
@@ -235,9 +241,10 @@ public class PostDetailPageUI : MonoBehaviour
 
                     commentBtn.onClick.RemoveAllListeners();
                     commentBtn.onClick.AddListener(() => {
-                        // ⚠️ [기존 버그, 손대지 않음] 아래 AcquireClue가 댓글의 clueID가 아니라
-                        // 이미지용 ID(imageQuestID/imageClueID)를 넘기고 있습니다. 의도하신 게 맞는지 확인 필요.
-                        DataLogManager.Instance.AcquireClue(data.imageQuestID, data.imageClueID, $"{data.title} ({cData.author})");
+                        // 💡 [수정] 예전엔 댓글 clueID가 아니라 이미지용 ID를 잘못 넘기고 있었습니다.
+                        // 이제 댓글 자체의 clueID를 쓰고, questID도 마스터 데이터에서 자동으로 찾습니다.
+                        string resolvedQuestID = DataLogManager.Instance.ResolveQuestID(cData.clueID, questID);
+                        DataLogManager.Instance.AcquireClue(resolvedQuestID, cData.clueID, $"{data.title} ({cData.author})");
                     });
                 }
             }
@@ -276,6 +283,8 @@ public class PostDetailPageUI : MonoBehaviour
 
     public void ClosePage()
     {
-        gameObject.SetActive(false);
+        // 💡 [변경] 이제 이 오브젝트는 클릭할 때마다 새로 복제된 것이므로,
+        // 그냥 숨기지 않고 완전히 파괴합니다.
+        Destroy(gameObject);
     }
 }

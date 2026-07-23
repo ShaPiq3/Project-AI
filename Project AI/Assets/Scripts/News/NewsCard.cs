@@ -24,7 +24,7 @@ public class NewsCard : MonoBehaviour
         titleText.text = data.title;
         infoText.text = data.info;
 
-        // 💡 [추가] 제목(title) 자체가 단서인 경우, 제목 텍스트에도 ClueTextHoverEffect를 붙입니다.
+        // 💡 제목(title) 자체가 단서인 경우, 제목 텍스트에도 ClueTextHoverEffect를 붙입니다.
         ClueTextHoverEffect titleHoverEffect = titleText.gameObject.GetComponent<ClueTextHoverEffect>();
         if (!string.IsNullOrEmpty(data.titleClueID))
         {
@@ -65,8 +65,7 @@ public class NewsCard : MonoBehaviour
             string rawParagraph = paragraphs[i].Trim();
             if (string.IsNullOrEmpty(rawParagraph)) continue;
 
-            // 💡 [추가] 문단이 여러 개 단서일 수 있으므로, "[CLUE:아이디]" 태그로 시작하는지 확인
-            // (SNSPost.cs에서 이미 쓰는 것과 동일한 방식). 태그는 화면에 표시되지 않고 잘라냅니다.
+            // 💡 문단이 여러 개 단서일 수 있으므로, "[CLUE:아이디]" 태그로 시작하는지 확인
             string paragraphText = rawParagraph;
             string taggedClueID = null;
 
@@ -88,7 +87,7 @@ public class NewsCard : MonoBehaviour
             // 현재 가리키는 문단 번호 (1부터 시작)
             int currentParagraphNum = i + 1;
 
-            // 💡 [변경] 기존 방식(문단 1개만 지정)도 계속 지원 - 하위 호환
+            // 💡 기존 방식(문단 1개만 지정)도 계속 지원 - 하위 호환
             bool isLegacySingleClueParagraph =
                 data.clueParagraphIndex > 0 &&
                 currentParagraphNum == data.clueParagraphIndex &&
@@ -101,8 +100,6 @@ public class NewsCard : MonoBehaviour
 
             if (!string.IsNullOrEmpty(finalClueID))
             {
-                // ❌ 기존의 기습적인 'Button' 추가 및 파란 글씨 색상 지정 코드 전체 제거!
-                // 💡 대신, 우리가 작성한 똑똑한 'ClueTextHoverEffect' 컴포넌트를 동적으로 심어줍니다.
                 ClueTextHoverEffect hoverEffect = newText.gameObject.GetComponent<ClueTextHoverEffect>();
                 if (hoverEffect == null)
                 {
@@ -118,7 +115,6 @@ public class NewsCard : MonoBehaviour
                 }
 
                 // 💡 이 기사의 실제 제목을 sourceTitleOverride에 주입
-                // -> DataLog에 저장될 때 엑셀 SourceTitle 대신 실제 기사 제목이 사용됨
                 var titleField = typeof(ClueTextHoverEffect).GetField("sourceTitleOverride", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
                 if (titleField != null)
                 {
@@ -139,7 +135,7 @@ public class NewsCard : MonoBehaviour
                 newsImage.sprite = loadedSprite;
                 newsImage.gameObject.SetActive(true);
 
-                // 💡 [수정] 이미지 역시 직접 버튼을 주입해 직접 수집하던 코드에서
+                // 💡 이미지 역시 직접 버튼을 주입해 직접 수집하던 코드에서
                 // 우리가 만든 호버/클릭 효과 컴포넌트(ClueImageHoverEffect) 체제로 자동 전환합니다.
                 ClueImageHoverEffect imgHover = newsImage.gameObject.GetComponent<ClueImageHoverEffect>();
                 Button imgBtn = newsImage.gameObject.GetComponent<Button>();
@@ -150,9 +146,7 @@ public class NewsCard : MonoBehaviour
                 {
                     if (imgHover == null) imgHover = newsImage.gameObject.AddComponent<ClueImageHoverEffect>();
 
-                    // 이미지 호버 스크립트에도 마우스 클릭 시 수집을 호출하는 확장 스크립트를 적용하거나 관리할 수 있게 됩니다.
-
-                    // 💡 [추가] 이미지 단서에도 실제 기사 제목을 sourceTitleOverride에 주입
+                    // 💡 이미지 단서에도 실제 기사 제목을 sourceTitleOverride에 주입
                     var imgTitleField = typeof(ClueImageHoverEffect).GetField("sourceTitleOverride", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
                     if (imgTitleField != null)
                     {
@@ -163,6 +157,10 @@ public class NewsCard : MonoBehaviour
                 {
                     if (imgHover != null) Destroy(imgHover);
                 }
+
+                // 💡 [추가] 본문 이미지를 이미지 생성 퀘스트 수집 대상으로 자동 등록
+                // (목록 썸네일이 아니라 여기, 상세 본문 이미지에 걸어야 함)
+                CollectibleImageBinder.Bind(newsImage, data.collectibleImageID);
             }
             else newsImage.gameObject.SetActive(false);
         }
@@ -180,7 +178,8 @@ public class NewsCard : MonoBehaviour
 
     public void ClosePopup()
     {
+        // 💡 이 오브젝트는 클릭할 때마다 새로 복제된 것이므로, 완전히 파괴합니다.
         ClearSpawnedTexts();
-        gameObject.SetActive(false);
+        Destroy(gameObject);
     }
 }

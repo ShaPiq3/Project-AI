@@ -50,6 +50,14 @@ public class ClueTextHoverEffect : MonoBehaviour, IPointerEnterHandler, IPointer
         {
             targetClueWord = Regex.Replace(clueData.contentText.Trim(), @"<[^>]*>", "");
             isInitialized = true;
+
+            // 💡 [추가] questID가 비어있다면(뉴스/커뮤니티에서 동적으로 붙었는데 questID를
+            // 못 받은 경우 등), 마스터 데이터(ClueExcelData)에서 자동으로 찾아 채웁니다.
+            // Inspector에서 직접 지정해둔 경우(아카이브 등)는 그 값을 그대로 존중합니다.
+            if (string.IsNullOrEmpty(questID) && !string.IsNullOrEmpty(clueData.questID))
+            {
+                questID = clueData.questID;
+            }
             // 아카이브 매니저에 "이 단서는 여기 있다"고 스스로 등록
             if (ArchiveManager.Instance != null)
             {
@@ -67,6 +75,14 @@ public class ClueTextHoverEffect : MonoBehaviour, IPointerEnterHandler, IPointer
         if (DataLogManager.Instance == null) return false;
         if (!DataLogManager.Instance.IsClueSearchModeActive) return false;
         if (!DataLogManager.Instance.IsQuestActive(questID)) return false;
+
+        // 💡 이미 수집한 단서라면 더 이상 호버/클릭 반응이 없도록 막습니다.
+        if (DataLogManager.Instance.IsClueAlreadyCollected(targetClueID)) return false;
+
+        // 💡 [추가] 이 단서 자체는 안 모았어도, 퀘스트가 이미 목표 개수를 다 채웠다면
+        // 더 이상 아무것도 못 모으는 상태이므로 마찬가지로 막습니다.
+        if (DataLogManager.Instance.IsQuestCapReached(questID)) return false;
+
         return true;
     }
 

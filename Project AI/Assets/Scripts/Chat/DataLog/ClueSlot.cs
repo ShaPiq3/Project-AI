@@ -30,8 +30,9 @@ public class ClueSlot : MonoBehaviour
 
         if (sourceText != null)
         {
-            sourceText.text = string.IsNullOrEmpty(data.sourceType) ?
-                data.sourceTitle : $"[{data.sourceType}] {data.sourceTitle}";
+            // 💡 [변경] 제목(sourceTitle)이 본문(contentText)과 중복 표시되는 문제 때문에,
+            // 헤더 줄에서는 출처 타입 태그만 표시하고 제목은 빼기로 변경
+            sourceText.text = string.IsNullOrEmpty(data.sourceType) ? "" : $"[{data.sourceType}]";
         }
 
         if (contentText != null)
