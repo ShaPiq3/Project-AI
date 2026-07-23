@@ -45,6 +45,16 @@ public class DataLogManager : MonoBehaviour
     // 퀘스트ID : [목표 개수]
     public Dictionary<string, int> questTargetCounts = new Dictionary<string, int>();
 
+    /// <summary>
+    /// 💡 [추가] 이 퀘스트가 실제로 시작(isTrigger 발동 -> StartQuest 호출)된 상태인지 확인합니다.
+    /// 호버 효과, 클릭 수집 등에서 "아직 시작 안 된 퀘스트의 단서인데 반응이 생기는" 문제를 막는 데 씁니다.
+    /// </summary>
+    public bool IsQuestActive(string questID)
+    {
+        if (string.IsNullOrEmpty(questID)) return false;
+        return questCollectedClues.ContainsKey(questID);
+    }
+
     // 💡 [추가] 퀘스트별 정답/오답 대화 시작 ID (StartQuest 호출 시 함께 등록됨)
     [System.Serializable]
     private class QuestDialogueConfig
@@ -503,6 +513,13 @@ public class DataLogManager : MonoBehaviour
         {
             Debug.Log("오답입니다.");
         }
+
+        // 💡 [추가] 답변 생성 버튼을 누르면 판정 결과와 상관없이
+        // DataLog 패널이 오른쪽으로 슬라이드되며 닫히고, 수집했던 단서도 전부 비웁니다.
+        collectedClues.Clear();
+        selectedForDeletion.Clear();
+        RefreshClueUI();
+        HideLogPanel();
 
         if (string.IsNullOrEmpty(currentQuestID) || !questDialogueConfigs.TryGetValue(currentQuestID, out QuestDialogueConfig config))
         {

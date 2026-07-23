@@ -33201,6 +33201,7 @@ GameObject:
   - component: {fileID: 1223892941}
   - component: {fileID: 1223892940}
   - component: {fileID: 1223892943}
+  - component: {fileID: 1223892944}
   m_Layer: 5
   m_Name: Promes_Archive_Panel
   m_TagString: Untagged
@@ -33298,6 +33299,30 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ArchiveCollectibleAutoBinder
   archiveIDMapCsv: {fileID: 0}
+--- !u!114 &1223892944
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1223892938}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b9ea9de2103175640a0d7d1174e2a8c5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ClueSlot
+  sourceText: {fileID: 0}
+  contentText: {fileID: 0}
+  clueImage: {fileID: 0}
+  selectionToggle: {fileID: 0}
+  clueData:
+    clueID: 
+    sourceType: 
+    sourceTitle: 
+    contentText: 
+    imageName: 
+    questID: 
+    isCorrect: 0
 --- !u!1 &1232711530
 GameObject:
   m_ObjectHideFlags: 0

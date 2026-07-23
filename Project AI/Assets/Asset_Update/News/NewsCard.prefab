@@ -1492,7 +1492,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ClueTextHoverEffect
   targetClueID: NEWS_TXT_01
   hexHighlightColor: '#FFFF00AA'
-  questID: Q1
+  questID: T_Q1
 --- !u!224 &3576061610078207320 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 715599732515998005, guid: e5e7009b99686c941a3f517cfc6927dc, type: 3}

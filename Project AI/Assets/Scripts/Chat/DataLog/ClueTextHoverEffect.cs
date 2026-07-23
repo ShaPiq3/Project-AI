@@ -18,7 +18,7 @@ public class ClueTextHoverEffect : MonoBehaviour, IPointerEnterHandler, IPointer
 
     private void OnDestroy()
     {
-        // 💡 [추가] 오브젝트가 사라질 때 아카이브 위치 등록도 함께 해제
+        // 💡 오브젝트가 사라질 때 아카이브 위치 등록도 함께 해제
         if (ArchiveManager.Instance != null && !string.IsNullOrEmpty(targetClueID))
         {
             ArchiveManager.Instance.UnregisterClueLocation(targetClueID);
@@ -40,14 +40,12 @@ public class ClueTextHoverEffect : MonoBehaviour, IPointerEnterHandler, IPointer
     {
         if (isInitialized || string.IsNullOrEmpty(targetClueID)) return;
         if (DataLogManager.Instance == null) return;
-
         ClueData clueData = DataLogManager.Instance.GetClueData(targetClueID.Trim());
         if (clueData != null && !string.IsNullOrEmpty(clueData.contentText))
         {
             targetClueWord = Regex.Replace(clueData.contentText.Trim(), @"<[^>]*>", "");
             isInitialized = true;
-
-            // 💡 [추가] 아카이브 매니저에 "이 단서는 여기 있다"고 스스로 등록
+            // 💡 아카이브 매니저에 "이 단서는 여기 있다"고 스스로 등록
             // (뉴스 등 다른 곳에서 동적으로 붙는 경우에도 무해합니다.
             //  ArchiveManager는 sourceType이 "아카이브"일 때만 조회되기 때문입니다.)
             if (ArchiveManager.Instance != null)
@@ -57,10 +55,21 @@ public class ClueTextHoverEffect : MonoBehaviour, IPointerEnterHandler, IPointer
         }
     }
 
+    /// <summary>
+    /// 💡 [추가] 이 단서가 지금 상호작용 가능한 상태인지 공통으로 체크합니다.
+    /// (수집 모드가 켜져 있고, 이 단서가 속한 퀘스트가 실제로 시작된 상태여야 함)
+    /// </summary>
+    private bool IsInteractable()
+    {
+        if (DataLogManager.Instance == null) return false;
+        if (!DataLogManager.Instance.IsClueSearchModeActive) return false;
+        if (!DataLogManager.Instance.IsQuestActive(questID)) return false;
+        return true;
+    }
+
     public void OnPointerEnter(PointerEventData eventData)
     {
-        if (DataLogManager.Instance == null) return;
-        if (!DataLogManager.Instance.IsClueSearchModeActive) return;
+        if (!IsInteractable()) return;
         if (string.IsNullOrEmpty(targetClueWord)) return;
         textComponent.text = cleanText.Replace(targetClueWord, $"<mark={hexHighlightColor}>{targetClueWord}</mark>");
     }
@@ -72,7 +81,7 @@ public class ClueTextHoverEffect : MonoBehaviour, IPointerEnterHandler, IPointer
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        if (DataLogManager.Instance == null || !DataLogManager.Instance.IsClueSearchModeActive) return;
+        if (!IsInteractable()) return;
         eventData.Use();
         Debug.Log($"[수집 성공] ID: {targetClueID}");
         DataLogManager.Instance.AcquireClue(this.questID, this.targetClueID);

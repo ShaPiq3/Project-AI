@@ -75,9 +75,18 @@ public class ClueSlot : MonoBehaviour
     /// <summary>
     /// 단서 이미지가 어느 Resources 폴더에 있는지 몰라도 되도록,
     /// 프로젝트에서 쓰는 이미지 폴더들을 순서대로 시도해서 찾습니다.
+    /// 하위 폴더 없이 Resources 바로 밑에 있는 경우도 시도합니다.
     /// </summary>
     private Sprite LoadClueSprite(string imageName)
     {
+        // 1. 하위 폴더 없이 Resources 바로 밑에 있는 경우 먼저 시도
+        Sprite directSprite = Resources.Load<Sprite>(imageName);
+        if (directSprite != null)
+        {
+            return directSprite;
+        }
+
+        // 2. 알려진 하위 폴더들을 순서대로 시도
         string[] candidateFolders = { "NewsImages", "SNSImages", "PostImages", "ArchiveImages" };
 
         foreach (string folder in candidateFolders)

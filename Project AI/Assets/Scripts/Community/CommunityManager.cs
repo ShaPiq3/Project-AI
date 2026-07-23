@@ -34,7 +34,7 @@ public class CommunityManager : MonoBehaviour
     void Start()
     {
         // 💡 [변경] 포스트 CSV(CommunityData)와 댓글 CSV(CommentExcelData)를 각각 따로 불러와서 병합
-        TextAsset postCsv = Resources.Load<TextAsset>("PostData");
+        TextAsset postCsv = Resources.Load<TextAsset>("CommunityExcelData");
         TextAsset commentCsv = Resources.Load<TextAsset>("CommentExcelData");
 
         if (postCsv != null)
