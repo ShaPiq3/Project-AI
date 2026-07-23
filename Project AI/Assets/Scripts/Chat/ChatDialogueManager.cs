@@ -74,7 +74,7 @@ public class ChatDialogueManager : MonoBehaviour
 
     private CanvasGroup dialogueCanvasGroup;
 
-    // 💡 [추가] 현재 진행 중인 메인 대화 코루틴 참조 (정답/오답 분기 등으로 점프할 때 정지시키기 위함)
+    // 💡 현재 진행 중인 메인 대화 코루틴 참조 (정답/오답 분기 등으로 점프할 때 정지시키기 위함)
     private Coroutine mainDialogueCoroutine;
 
     void Awake()
@@ -130,7 +130,8 @@ public class ChatDialogueManager : MonoBehaviour
             int.TryParse(columns[0].Trim(), out data.id);
             data.speakerType = columns[1].Trim();
             data.speakerName = columns[2].Trim();
-            data.dialogueText = columns[3].Trim().Replace("\"", "").Replace("\\n", "\n");
+            // 💡 [추가] '|' 기호를 줄바꿈으로 변환 (뉴스/커뮤니티 본문과 동일한 방식으로 통일)
+            data.dialogueText = columns[3].Trim().Replace("\"", "").Replace("\\n", "\n").Replace("|", "\n");
             bool.TryParse(columns[4].Trim(), out data.hasImage);
             data.imagePath = columns[5].Trim();
             float.TryParse(columns[6].Trim(), out data.delayTime);
@@ -139,11 +140,12 @@ public class ChatDialogueManager : MonoBehaviour
             if (columns.Length >= 15)
             {
                 bool.TryParse(columns[8].Trim(), out data.isBranch);
-                data.branchText1 = columns[9].Trim().Replace("\"", "").Replace("\\n", "\n");
+                // 💡 [추가] 분기 선택지 텍스트도 동일하게 '|' -> 줄바꿈 변환
+                data.branchText1 = columns[9].Trim().Replace("\"", "").Replace("\\n", "\n").Replace("|", "\n");
                 int.TryParse(columns[10].Trim(), out data.nextId1);
-                data.branchText2 = columns[11].Trim().Replace("\"", "").Replace("\\n", "\n");
+                data.branchText2 = columns[11].Trim().Replace("\"", "").Replace("\\n", "\n").Replace("|", "\n");
                 int.TryParse(columns[12].Trim(), out data.nextId2);
-                data.branchText3 = columns[13].Trim().Replace("\"", "").Replace("\\n", "\n");
+                data.branchText3 = columns[13].Trim().Replace("\"", "").Replace("\\n", "\n").Replace("|", "\n");
                 int.TryParse(columns[14].Trim(), out data.nextId3);
             }
             else
@@ -280,7 +282,7 @@ public class ChatDialogueManager : MonoBehaviour
                 data.imageGenMalfunctionDialogueID = 0;
             }
 
-            // 💡 [추가] 오작동 결과 시퀀스의 마지막 줄 표시 (30번째 컬럼)
+            // 💡 오작동 결과 시퀀스의 마지막 줄 표시 (30번째 컬럼)
             if (columns.Length >= 30)
             {
                 bool.TryParse(columns[29].Trim(), out data.isImageGenMalfunctionEnd);
@@ -432,7 +434,7 @@ public class ChatDialogueManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 💡 [추가] 특정 대화ID의 delayTime(그 줄이 화면에 머무는 시간)을 조회합니다.
+    /// 💡 특정 대화ID의 delayTime(그 줄이 화면에 머무는 시간)을 조회합니다.
     /// ImageGenerationManager가 오작동 결과 대화 재생이 끝나는 시점을 정확히 알기 위해 사용합니다.
     /// </summary>
     public float GetDialogueDelay(int id)
@@ -541,7 +543,7 @@ public class ChatDialogueManager : MonoBehaviour
                 }
             }
 
-            // 💡 [수정] isTrigger 블록과 완전히 별개(형제 관계)로 분리.
+            // 💡 isTrigger 블록과 완전히 별개(형제 관계)로 분리.
             // isTrigger=FALSE 여도 isImageGenTrigger=TRUE 면 정상 동작해야 하기 때문.
             if (data.isImageGenTrigger)
             {
@@ -578,7 +580,7 @@ public class ChatDialogueManager : MonoBehaviour
                 yield return new WaitForSeconds(data.delayTime);
             }
 
-            // 💡 [추가] 이 줄까지가 오작동 결과 시퀀스의 끝이라고 표시된 경우,
+            // 💡 이 줄까지가 오작동 결과 시퀀스의 끝이라고 표시된 경우,
             // 말풍선을 다 보여준 뒤(위 delayTime까지 끝난 뒤) 정확히 이 시점에 버튼을 다시 열어줌
             if (data.isImageGenMalfunctionEnd)
             {

@@ -248,7 +248,10 @@ public class NewsListManager : MonoBehaviour
             bool isBodyMatch = !string.IsNullOrEmpty(data.bodyClueID) && data.bodyClueID == clueID;
             bool isImageMatch = !string.IsNullOrEmpty(data.imageClueID) && data.imageClueID == clueID;
 
-            if (isTitleMatch || isBodyMatch || isImageMatch)
+            // 💡 [추가] 본문 안에 "[CLUE:아이디]" 태그로 심어둔 (여러 개일 수 있는) 단서도 검색
+            bool isTaggedBodyMatch = BodyContainsClueTag(data.body, clueID);
+
+            if (isTitleMatch || isBodyMatch || isImageMatch || isTaggedBodyMatch)
             {
                 // 뉴스 창 자체가 최소화되어 있었다면 먼저 복원
                 if (newsWindowManager != null)
@@ -259,6 +262,30 @@ public class NewsListManager : MonoBehaviour
                 OpenDetailPopup(data);
                 return true;
             }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// 💡 [추가] 본문을 '|'로 나눈 문단들 중에, "[CLUE:아이디]" 태그로 시작하는 문단이
+    /// 주어진 clueID와 일치하는 게 있는지 확인합니다. (문단 여러 개가 단서인 경우 지원)
+    /// </summary>
+    private bool BodyContainsClueTag(string body, string clueID)
+    {
+        if (string.IsNullOrEmpty(body) || string.IsNullOrEmpty(clueID)) return false;
+
+        string[] paragraphs = body.Split('|');
+        foreach (var paragraph in paragraphs)
+        {
+            string trimmed = paragraph.Trim();
+            if (!trimmed.StartsWith("[CLUE:")) continue;
+
+            int closeBracketIndex = trimmed.IndexOf(']');
+            if (closeBracketIndex <= 6) continue;
+
+            string tagId = trimmed.Substring(6, closeBracketIndex - 6);
+            if (tagId == clueID) return true;
         }
 
         return false;

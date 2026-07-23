@@ -23174,6 +23174,7 @@ MonoBehaviour:
   highlightColor: {r: 1, g: 1, b: 0.6, a: 1}
   targetClueID: T_Q_1_D_1
   questID: T_Q1
+  sourceTitleOverride: 
 --- !u!1 &796313946
 GameObject:
   m_ObjectHideFlags: 0
@@ -28642,6 +28643,7 @@ MonoBehaviour:
   targetClueID: T_Q_1_D_2
   hexHighlightColor: '#FFFF00AA'
   questID: T_Q1
+  sourceTitleOverride: 
 --- !u!1 &988129938
 GameObject:
   m_ObjectHideFlags: 0
@@ -28960,6 +28962,7 @@ MonoBehaviour:
   targetClueID: T_Q_2_D_5
   hexHighlightColor: '#FFFF00AA'
   questID: T_Q2
+  sourceTitleOverride: 
 --- !u!1 &1010608299
 GameObject:
   m_ObjectHideFlags: 0
@@ -32004,6 +32007,7 @@ MonoBehaviour:
   targetClueID: T_Q_2_D_1
   hexHighlightColor: '#FFFF00AA'
   questID: T_Q2
+  sourceTitleOverride: 
 --- !u!1 &1131156941
 GameObject:
   m_ObjectHideFlags: 0
@@ -33716,6 +33720,7 @@ MonoBehaviour:
   targetClueID: T_Q_2_D_3
   hexHighlightColor: '#FFFF00AA'
   questID: T_Q2
+  sourceTitleOverride: 
 --- !u!224 &1237560973 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 3946638770140229285, guid: 06ab40397ce0bd840a49fe4a44026c42, type: 3}
@@ -41030,6 +41035,7 @@ MonoBehaviour:
   targetClueID: T_Q_2_D_2
   hexHighlightColor: '#FFFF00AA'
   questID: T_Q2
+  sourceTitleOverride: 
 --- !u!1 &1430069560
 GameObject:
   m_ObjectHideFlags: 0
@@ -57323,6 +57329,7 @@ MonoBehaviour:
   targetClueID: T_Q_2_D_4
   hexHighlightColor: '#FFFF00AA'
   questID: T_Q2
+  sourceTitleOverride: 
 --- !u!1 &2132935029
 GameObject:
   m_ObjectHideFlags: 0

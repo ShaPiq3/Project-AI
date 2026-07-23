@@ -60,7 +60,7 @@ public class CommunityManager : MonoBehaviour
 
     /// <summary>
     /// 포스트 전용 CSV 파싱.
-    /// 예상 컬럼 순서: postID,title,author,date,likes,dislikes,content,imageName,clueID,imageClueID,collectibleImageID,titleClueID
+    /// 예상 컬럼 순서: postID,title,author,date,likes,dislikes,content,imageName,clueID,imageClueID,collectibleImageID,titleClueID,clueParagraphIndex,bodyClueID
     /// (실제 CommunityData.csv 컬럼 순서가 다르면 이 함수만 맞춰서 수정하면 됩니다)
     /// </summary>
     private void ParsePostCSV(string csvText)
@@ -91,6 +91,8 @@ public class CommunityManager : MonoBehaviour
             {
                 rawContent = rawContent.Substring(1, rawContent.Length - 2);
             }
+            // 💡 [변경] 뉴스(NewsData.body)와 동일하게 '|' 기호로 문단을 구분해서 씁니다.
+            // 기존처럼 "\\n"이 들어오면 문단 구분용으로 호환되게 줄바꿈 문자로도 변환해둡니다.
             post.content = rawContent.Replace("\"\"", "\"").Replace("\\n", "\n");
 
             post.imageName = columns[7].Trim().Replace("\"", "");
@@ -102,8 +104,19 @@ public class CommunityManager : MonoBehaviour
             // 💡 이미지 생성 퀘스트용 ID (11번째 컬럼)
             post.collectibleImageID = (columns.Length >= 11) ? columns[10].Trim().Replace("\"", "") : "";
 
-            // 💡 [추가] 제목 클릭 단서 ID (12번째 컬럼). 비어있으면 제목은 수집 대상 아님.
+            // 💡 제목 클릭 단서 ID (12번째 컬럼). 비어있으면 제목은 수집 대상 아님.
             post.titleClueID = (columns.Length >= 12) ? columns[11].Trim().Replace("\"", "") : "";
+
+            // 💡 [추가] 단서가 숨겨진 본문 문단 번호 (13번째 컬럼)
+            int paragraphIdx = 0;
+            if (columns.Length >= 13)
+            {
+                int.TryParse(columns[12].Trim().Replace("\"", ""), out paragraphIdx);
+            }
+            post.clueParagraphIndex = paragraphIdx;
+
+            // 💡 [추가] 그 문단 클릭 시 수집할 단서 ID (14번째 컬럼)
+            post.bodyClueID = (columns.Length >= 14) ? columns[13].Trim().Replace("\"", "") : "";
 
             postList.Add(post);
         }
@@ -177,8 +190,8 @@ public class CommunityManager : MonoBehaviour
 
     /// <summary>
     /// 💡 DataLogManager가 "원본 보기"를 요청할 때 호출.
-    /// 게시글 제목의 clueID든, 본문의 clueID든, 댓글의 clueID든 일치하는 걸 찾아
-    /// 해당 게시글의 상세 페이지를 열어줍니다.
+    /// 게시글 제목의 clueID든, 본문 문단의 clueID든, 본문 전체의 clueID든, 댓글의 clueID든
+    /// 일치하는 걸 찾아 해당 게시글의 상세 페이지를 열어줍니다.
     /// </summary>
     public bool TryOpenClueSource(string clueID)
     {
@@ -188,9 +201,13 @@ public class CommunityManager : MonoBehaviour
         {
             bool isTitleMatch = !string.IsNullOrEmpty(post.titleClueID) && post.titleClueID == clueID;
             bool isPostMatch = !string.IsNullOrEmpty(post.clueID) && post.clueID == clueID;
+            bool isBodyMatch = !string.IsNullOrEmpty(post.bodyClueID) && post.bodyClueID == clueID;
             bool isCommentMatch = post.comments.Exists(c => !string.IsNullOrEmpty(c.clueID) && c.clueID == clueID);
 
-            if (isTitleMatch || isPostMatch || isCommentMatch)
+            // 💡 [추가] 본문 안에 "[CLUE:아이디]" 태그로 심어둔 (여러 개일 수 있는) 단서도 검색
+            bool isTaggedBodyMatch = ContentContainsClueTag(post.content, clueID);
+
+            if (isTitleMatch || isPostMatch || isBodyMatch || isCommentMatch || isTaggedBodyMatch)
             {
                 if (communityWindowManager != null)
                 {
@@ -200,6 +217,30 @@ public class CommunityManager : MonoBehaviour
                 OpenDetailPage(post);
                 return true;
             }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// 💡 [추가] 본문을 '|'로 나눈 문단들 중에, "[CLUE:아이디]" 태그로 시작하는 문단이
+    /// 주어진 clueID와 일치하는 게 있는지 확인합니다. (문단 여러 개가 단서인 경우 지원)
+    /// </summary>
+    private bool ContentContainsClueTag(string content, string clueID)
+    {
+        if (string.IsNullOrEmpty(content) || string.IsNullOrEmpty(clueID)) return false;
+
+        string[] paragraphs = content.Split('|');
+        foreach (var paragraph in paragraphs)
+        {
+            string trimmed = paragraph.Trim();
+            if (!trimmed.StartsWith("[CLUE:")) continue;
+
+            int closeBracketIndex = trimmed.IndexOf(']');
+            if (closeBracketIndex <= 6) continue;
+
+            string tagId = trimmed.Substring(6, closeBracketIndex - 6);
+            if (tagId == clueID) return true;
         }
 
         return false;

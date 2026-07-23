@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using System.Collections.Generic;
 using TMPro;
 
 public class PostDetailPageUI : MonoBehaviour
@@ -17,7 +18,19 @@ public class PostDetailPageUI : MonoBehaviour
 
     [Header("③번 구역 (본문)")]
     public Image postImage;
+
+    [Tooltip("기존 방식(호환용). 아래 Text Template + Text Container를 연결하면 이 필드는 더 이상 쓰이지 않습니다.")]
     public TMP_Text contentText;
+
+    // 💡 [추가] NewsCard와 동일한 방식: 본문을 '|' 기호로 문단을 나눠서
+    // 문단마다 별도의 TMP 오브젝트로 생성합니다. (줄바꿈 안정성 + 문단별 단서 수집을 위함)
+    [Header("③번 구역 - 동적 문단 생성 설정 (권장)")]
+    [Tooltip("복사 원본이 될 TMP 템플릿 오브젝트 (비활성화 상태로 두세요, Rich Text 체크 필요)")]
+    [SerializeField] private TextMeshProUGUI textTemplate;
+    [Tooltip("문단들이 생성되어 쌓일 부모 (Vertical Layout Group 필요)")]
+    [SerializeField] private Transform textContainer;
+
+    private List<TextMeshProUGUI> spawnedTexts = new List<TextMeshProUGUI>();
 
     // 💡 [추가] 본문 전체 영역을 클릭했을 때 단서를 수집할 수 있도록 버튼 컴포넌트 연결
     // 만약 이미 본문 오브젝트에 버튼이 붙어있다면 인스펙터에서 드래그하여 연결해 주시면 됩니다.
@@ -37,7 +50,7 @@ public class PostDetailPageUI : MonoBehaviour
         authorText.text = data.author;
         dateText.text = data.date;
 
-        // 💡 [추가] 제목(title) 자체가 단서인 경우, 제목 텍스트에 클릭 시 수집 기능을 붙입니다.
+        // 💡 제목(title) 자체가 단서인 경우, 제목 텍스트에 클릭 시 수집 기능을 붙입니다.
         Button titleBtn = titleText.gameObject.GetComponent<Button>();
         if (!string.IsNullOrEmpty(data.titleClueID) && DataLogManager.Instance != null)
         {
@@ -64,8 +77,92 @@ public class PostDetailPageUI : MonoBehaviour
         buttonLikeText.text = $"추천 ▲ {data.likes}";
         buttonDislikeText.text = $"비추 ▼ {data.dislikes}"; // ⭐ 세팅
 
-        // 2. ②번 구역 세팅
-        contentText.text = data.content;
+        // 2. ②번 구역 세팅 - 본문 렌더링
+        ClearSpawnedTexts();
+
+        if (textTemplate != null && textContainer != null)
+        {
+            // 💡 [신규 방식] NewsCard와 동일하게 '|' 기호로 문단을 나눠서 각각 별도 TMP로 생성
+            if (textTemplate.gameObject.activeSelf) textTemplate.gameObject.SetActive(false);
+
+            string[] paragraphs = (data.content ?? "").Split('|');
+
+            for (int i = 0; i < paragraphs.Length; i++)
+            {
+                string rawParagraph = paragraphs[i].Trim();
+                if (string.IsNullOrEmpty(rawParagraph)) continue;
+
+                // 💡 [추가] 문단이 여러 개 단서일 수 있으므로, "[CLUE:아이디]" 태그로 시작하는지 확인
+                string paragraphText = rawParagraph;
+                string taggedClueID = null;
+
+                if (rawParagraph.StartsWith("[CLUE:"))
+                {
+                    int closeBracketIndex = rawParagraph.IndexOf(']');
+                    if (closeBracketIndex > 6)
+                    {
+                        taggedClueID = rawParagraph.Substring(6, closeBracketIndex - 6);
+                        paragraphText = rawParagraph.Substring(closeBracketIndex + 1).TrimStart();
+                    }
+                }
+
+                TextMeshProUGUI newText = Instantiate(textTemplate, textContainer);
+                newText.richText = true;
+                newText.text = paragraphText;
+
+                int currentParagraphNum = i + 1;
+
+                // 💡 [변경] 기존 방식(문단 1개만 지정)도 계속 지원 - 하위 호환
+                bool isLegacySingleClueParagraph =
+                    data.clueParagraphIndex > 0 &&
+                    currentParagraphNum == data.clueParagraphIndex &&
+                    !string.IsNullOrEmpty(data.bodyClueID);
+
+                string finalClueID = !string.IsNullOrEmpty(taggedClueID)
+                    ? taggedClueID
+                    : (isLegacySingleClueParagraph ? data.bodyClueID : null);
+
+                if (!string.IsNullOrEmpty(finalClueID))
+                {
+                    ClueTextHoverEffect hoverEffect = newText.gameObject.GetComponent<ClueTextHoverEffect>();
+                    if (hoverEffect == null)
+                    {
+                        hoverEffect = newText.gameObject.AddComponent<ClueTextHoverEffect>();
+                    }
+
+                    newText.raycastTarget = true;
+
+                    var idField = typeof(ClueTextHoverEffect).GetField("targetClueID", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                    if (idField != null)
+                    {
+                        idField.SetValue(hoverEffect, finalClueID);
+                    }
+
+                    var questIdField = typeof(ClueTextHoverEffect).GetField("questID", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                    if (questIdField != null)
+                    {
+                        questIdField.SetValue(hoverEffect, questID);
+                    }
+
+                    // 💡 실제 게시글 제목을 sourceTitleOverride로 주입
+                    var titleField = typeof(ClueTextHoverEffect).GetField("sourceTitleOverride", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                    if (titleField != null)
+                    {
+                        titleField.SetValue(hoverEffect, data.title);
+                    }
+                }
+
+                newText.gameObject.SetActive(true);
+                spawnedTexts.Add(newText);
+            }
+        }
+        else if (contentText != null)
+        {
+            // 💡 [기존 방식, 호환용] Text Template/Container가 아직 설정 안 되어 있으면
+            // 예전처럼 본문 전체를 하나의 텍스트 박스에 넣습니다.
+            contentText.text = data.content;
+        }
+
         // PostDetailPageUI.cs 내부의 이미지 렌더링 함수 예시
         if (!string.IsNullOrEmpty(data.imageName))
         {
@@ -87,7 +184,6 @@ public class PostDetailPageUI : MonoBehaviour
                     imgBtn.onClick.RemoveAllListeners();
                     imgBtn.onClick.AddListener(() => {
                         Debug.Log($"커뮤니티 이미지 클릭으로 단서 수집: {data.imageClueID}");
-                        // 💡 [추가] 실제 게시글 제목을 같이 전달
                         DataLogManager.Instance.AcquireClue(data.imageQuestID, data.imageClueID, data.title);
                     });
                 }
@@ -103,7 +199,7 @@ public class PostDetailPageUI : MonoBehaviour
             }
         }
 
-        // 💡 [추가] 게시글 본문 자체에 단서 ID(clueID)가 들어있는지 검사하고 클릭 이벤트 연결
+        // 💡 게시글 본문 자체(전체)에 단서 ID(clueID)가 들어있는지 검사하고 클릭 이벤트 연결
         if (postContentButton != null)
         {
             postContentButton.onClick.RemoveAllListeners();
@@ -112,7 +208,6 @@ public class PostDetailPageUI : MonoBehaviour
                 postContentButton.onClick.AddListener(() => {
                     // ⚠️ [기존 버그, 손대지 않음] 아래 AcquireClue가 본문의 clueID가 아니라
                     // 이미지용 ID(imageQuestID/imageClueID)를 넘기고 있습니다. 의도하신 게 맞는지 확인 필요.
-                    // 💡 [추가] 실제 게시글 제목을 같이 전달
                     DataLogManager.Instance.AcquireClue(data.imageQuestID, data.imageClueID, data.title);
                 });
             }
@@ -131,7 +226,7 @@ public class PostDetailPageUI : MonoBehaviour
                 GameObject cItem = Instantiate(commentPrefab, commentListTransform);
                 cItem.GetComponent<CommentItemUI>().Setup(cData);
 
-                // 💡 [추가] 해당 댓글에 단서 ID(clueID)가 매핑되어 있다면 클릭 시 단서 수집 처리
+                // 💡 해당 댓글에 단서 ID(clueID)가 매핑되어 있다면 클릭 시 단서 수집 처리
                 // 댓글 프리팹 자체에 Button 컴포넌트가 부착되어 있거나 동적으로 추가하여 연동합니다.
                 if (!string.IsNullOrEmpty(cData.clueID) && DataLogManager.Instance != null)
                 {
@@ -142,7 +237,6 @@ public class PostDetailPageUI : MonoBehaviour
                     commentBtn.onClick.AddListener(() => {
                         // ⚠️ [기존 버그, 손대지 않음] 아래 AcquireClue가 댓글의 clueID가 아니라
                         // 이미지용 ID(imageQuestID/imageClueID)를 넘기고 있습니다. 의도하신 게 맞는지 확인 필요.
-                        // 💡 [추가] "게시글 제목 (댓글 작성자)" 형태로 제목 전달
                         DataLogManager.Instance.AcquireClue(data.imageQuestID, data.imageClueID, $"{data.title} ({cData.author})");
                     });
                 }
@@ -152,11 +246,20 @@ public class PostDetailPageUI : MonoBehaviour
         gameObject.SetActive(true);
     }
 
+    private void ClearSpawnedTexts()
+    {
+        foreach (var txt in spawnedTexts)
+        {
+            if (txt != null) Destroy(txt.gameObject);
+        }
+        spawnedTexts.Clear();
+    }
+
     private void CollectClue(string targetClueID)
     {
         if (string.IsNullOrEmpty(targetClueID) || targetClueID.ToLower() == "none") return;
 
-        // 💡 [추가] 수집 모드가 꺼져 있다면 클릭해도 단서를 수집하지 않고 리턴시킵니다!
+        // 💡 수집 모드가 꺼져 있다면 클릭해도 단서를 수집하지 않고 리턴시킵니다!
         if (DataLogManager.Instance != null && !DataLogManager.Instance.IsClueSearchModeActive)
         {
             Debug.Log("현재 단서 수집 모드가 비활성화되어 있어 수집할 수 없습니다.");

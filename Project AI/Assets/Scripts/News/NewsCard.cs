@@ -62,19 +62,44 @@ public class NewsCard : MonoBehaviour
         // 1. 본문 문단 생성 루프
         for (int i = 0; i < paragraphs.Length; i++)
         {
-            string paragraphText = paragraphs[i].Trim();
-            if (string.IsNullOrEmpty(paragraphText)) continue;
+            string rawParagraph = paragraphs[i].Trim();
+            if (string.IsNullOrEmpty(rawParagraph)) continue;
+
+            // 💡 [추가] 문단이 여러 개 단서일 수 있으므로, "[CLUE:아이디]" 태그로 시작하는지 확인
+            // (SNSPost.cs에서 이미 쓰는 것과 동일한 방식). 태그는 화면에 표시되지 않고 잘라냅니다.
+            string paragraphText = rawParagraph;
+            string taggedClueID = null;
+
+            if (rawParagraph.StartsWith("[CLUE:"))
+            {
+                int closeBracketIndex = rawParagraph.IndexOf(']');
+                if (closeBracketIndex > 6)
+                {
+                    taggedClueID = rawParagraph.Substring(6, closeBracketIndex - 6);
+                    paragraphText = rawParagraph.Substring(closeBracketIndex + 1).TrimStart();
+                }
+            }
 
             // 문단 템플릿 생성
             TextMeshProUGUI newText = Instantiate(textTemplate, textContainer);
             newText.richText = true;
-            newText.text = paragraphText; // 텍스트 원본 그대로 주입
+            newText.text = paragraphText; // 태그를 제거한 실제 텍스트만 주입
 
             // 현재 가리키는 문단 번호 (1부터 시작)
             int currentParagraphNum = i + 1;
 
-            // 🌟 [수정] 엑셀에서 받아온 단서 문단일 때 처리
-            if (data.clueParagraphIndex > 0 && currentParagraphNum == data.clueParagraphIndex && !string.IsNullOrEmpty(data.bodyClueID))
+            // 💡 [변경] 기존 방식(문단 1개만 지정)도 계속 지원 - 하위 호환
+            bool isLegacySingleClueParagraph =
+                data.clueParagraphIndex > 0 &&
+                currentParagraphNum == data.clueParagraphIndex &&
+                !string.IsNullOrEmpty(data.bodyClueID);
+
+            // 💡 태그 방식이 우선, 없으면 기존 단일 지정 방식 사용
+            string finalClueID = !string.IsNullOrEmpty(taggedClueID)
+                ? taggedClueID
+                : (isLegacySingleClueParagraph ? data.bodyClueID : null);
+
+            if (!string.IsNullOrEmpty(finalClueID))
             {
                 // ❌ 기존의 기습적인 'Button' 추가 및 파란 글씨 색상 지정 코드 전체 제거!
                 // 💡 대신, 우리가 작성한 똑똑한 'ClueTextHoverEffect' 컴포넌트를 동적으로 심어줍니다.
@@ -85,16 +110,14 @@ public class NewsCard : MonoBehaviour
                 }
 
                 newText.raycastTarget = true;
-                // 리플렉션이나 인스펙터 직렬화 필드 대입을 위해 세팅
-                // (만약 targetClueID 변수가 private/protected라면 컴포넌트 인스펙터에서 직접 부여하셔도 됩니다.)
-                // 아래 코드는 동적으로 단서 ID를 적용하기 위한 안전장치입니다.
+
                 var idField = typeof(ClueTextHoverEffect).GetField("targetClueID", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
                 if (idField != null)
                 {
-                    idField.SetValue(hoverEffect, data.bodyClueID);
+                    idField.SetValue(hoverEffect, finalClueID);
                 }
 
-                // 💡 [추가] 이 기사의 실제 제목을 sourceTitleOverride에 주입
+                // 💡 이 기사의 실제 제목을 sourceTitleOverride에 주입
                 // -> DataLog에 저장될 때 엑셀 SourceTitle 대신 실제 기사 제목이 사용됨
                 var titleField = typeof(ClueTextHoverEffect).GetField("sourceTitleOverride", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
                 if (titleField != null)
