@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 
 public class CommunityManager : MonoBehaviour
 {
-    // 💡 [추가] 싱글톤 인스턴스
+    // 💡 싱글톤 인스턴스
     public static CommunityManager Instance { get; private set; }
 
     public GameObject postItemPrefab;
@@ -33,7 +33,7 @@ public class CommunityManager : MonoBehaviour
 
     void Start()
     {
-        // 💡 [변경] 포스트 CSV(CommunityData)와 댓글 CSV(CommentExcelData)를 각각 따로 불러와서 병합
+        // 💡 포스트 CSV(CommunityData)와 댓글 CSV(CommentExcelData)를 각각 따로 불러와서 병합
         TextAsset postCsv = Resources.Load<TextAsset>("CommunityExcelData");
         TextAsset commentCsv = Resources.Load<TextAsset>("CommentExcelData");
 
@@ -59,8 +59,8 @@ public class CommunityManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 💡 [변경] 포스트 전용 CSV 파싱.
-    /// 예상 컬럼 순서: postID,title,author,date,likes,dislikes,content,imageName,clueID,collectibleImageID
+    /// 포스트 전용 CSV 파싱.
+    /// 예상 컬럼 순서: postID,title,author,date,likes,dislikes,content,imageName,clueID,imageClueID,collectibleImageID,titleClueID
     /// (실제 CommunityData.csv 컬럼 순서가 다르면 이 함수만 맞춰서 수정하면 됩니다)
     /// </summary>
     private void ParsePostCSV(string csvText)
@@ -96,19 +96,21 @@ public class CommunityManager : MonoBehaviour
             post.imageName = columns[7].Trim().Replace("\"", "");
             post.clueID = columns[8].Trim().Replace("\"", "");
 
-            // 💡 [추가] 이 게시글의 이미지를 클릭했을 때 수집할 기존 단서 ID (10번째 컬럼)
-            // 원래 CSV에 이 컬럼이 없어서 계속 빈 값이었던 부분을 채워넣음
+            // 💡 이 게시글의 이미지를 클릭했을 때 수집할 기존 단서 ID (10번째 컬럼)
             post.imageClueID = (columns.Length >= 10) ? columns[9].Trim().Replace("\"", "") : "";
 
-            // 💡 이미지 생성 퀘스트용 ID (11번째 컬럼으로 밀림)
+            // 💡 이미지 생성 퀘스트용 ID (11번째 컬럼)
             post.collectibleImageID = (columns.Length >= 11) ? columns[10].Trim().Replace("\"", "") : "";
+
+            // 💡 [추가] 제목 클릭 단서 ID (12번째 컬럼). 비어있으면 제목은 수집 대상 아님.
+            post.titleClueID = (columns.Length >= 12) ? columns[11].Trim().Replace("\"", "") : "";
 
             postList.Add(post);
         }
     }
 
     /// <summary>
-    /// 💡 [추가] 댓글 전용 CSV 파싱 후, postID 기준으로 해당 게시글의 comments 리스트에 병합.
+    /// 댓글 전용 CSV 파싱 후, postID 기준으로 해당 게시글의 comments 리스트에 병합.
     /// 컬럼 순서: postID,author,content,isEmoticon,emoticonName,clueID
     /// </summary>
     private void ParseCommentCSV(string csvText)
@@ -174,8 +176,8 @@ public class CommunityManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 💡 [추가] DataLogManager가 "원본 보기"를 요청할 때 호출.
-    /// 게시글 본문의 clueID든, 댓글의 clueID든 일치하는 걸 찾아
+    /// 💡 DataLogManager가 "원본 보기"를 요청할 때 호출.
+    /// 게시글 제목의 clueID든, 본문의 clueID든, 댓글의 clueID든 일치하는 걸 찾아
     /// 해당 게시글의 상세 페이지를 열어줍니다.
     /// </summary>
     public bool TryOpenClueSource(string clueID)
@@ -184,10 +186,11 @@ public class CommunityManager : MonoBehaviour
 
         foreach (var post in postList)
         {
+            bool isTitleMatch = !string.IsNullOrEmpty(post.titleClueID) && post.titleClueID == clueID;
             bool isPostMatch = !string.IsNullOrEmpty(post.clueID) && post.clueID == clueID;
             bool isCommentMatch = post.comments.Exists(c => !string.IsNullOrEmpty(c.clueID) && c.clueID == clueID);
 
-            if (isPostMatch || isCommentMatch)
+            if (isTitleMatch || isPostMatch || isCommentMatch)
             {
                 if (communityWindowManager != null)
                 {

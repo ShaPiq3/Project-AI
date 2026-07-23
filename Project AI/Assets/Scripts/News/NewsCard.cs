@@ -24,6 +24,35 @@ public class NewsCard : MonoBehaviour
         titleText.text = data.title;
         infoText.text = data.info;
 
+        // 💡 [추가] 제목(title) 자체가 단서인 경우, 제목 텍스트에도 ClueTextHoverEffect를 붙입니다.
+        ClueTextHoverEffect titleHoverEffect = titleText.gameObject.GetComponent<ClueTextHoverEffect>();
+        if (!string.IsNullOrEmpty(data.titleClueID))
+        {
+            if (titleHoverEffect == null)
+            {
+                titleHoverEffect = titleText.gameObject.AddComponent<ClueTextHoverEffect>();
+            }
+
+            titleText.raycastTarget = true;
+
+            var titleIdField = typeof(ClueTextHoverEffect).GetField("targetClueID", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (titleIdField != null)
+            {
+                titleIdField.SetValue(titleHoverEffect, data.titleClueID);
+            }
+
+            var titleTitleField = typeof(ClueTextHoverEffect).GetField("sourceTitleOverride", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (titleTitleField != null)
+            {
+                titleTitleField.SetValue(titleHoverEffect, data.title);
+            }
+        }
+        else
+        {
+            // 제목이 단서가 아닌 기사로 다시 세팅될 수도 있으므로, 이전에 붙어있던 컴포넌트는 제거
+            if (titleHoverEffect != null) Destroy(titleHoverEffect);
+        }
+
         // 원본 템플릿 비활성화
         if (textTemplate != null) textTemplate.gameObject.SetActive(false);
 
@@ -64,6 +93,14 @@ public class NewsCard : MonoBehaviour
                 {
                     idField.SetValue(hoverEffect, data.bodyClueID);
                 }
+
+                // 💡 [추가] 이 기사의 실제 제목을 sourceTitleOverride에 주입
+                // -> DataLog에 저장될 때 엑셀 SourceTitle 대신 실제 기사 제목이 사용됨
+                var titleField = typeof(ClueTextHoverEffect).GetField("sourceTitleOverride", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                if (titleField != null)
+                {
+                    titleField.SetValue(hoverEffect, data.title);
+                }
             }
 
             newText.gameObject.SetActive(true);
@@ -91,6 +128,13 @@ public class NewsCard : MonoBehaviour
                     if (imgHover == null) imgHover = newsImage.gameObject.AddComponent<ClueImageHoverEffect>();
 
                     // 이미지 호버 스크립트에도 마우스 클릭 시 수집을 호출하는 확장 스크립트를 적용하거나 관리할 수 있게 됩니다.
+
+                    // 💡 [추가] 이미지 단서에도 실제 기사 제목을 sourceTitleOverride에 주입
+                    var imgTitleField = typeof(ClueImageHoverEffect).GetField("sourceTitleOverride", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                    if (imgTitleField != null)
+                    {
+                        imgTitleField.SetValue(imgHover, data.title);
+                    }
                 }
                 else
                 {

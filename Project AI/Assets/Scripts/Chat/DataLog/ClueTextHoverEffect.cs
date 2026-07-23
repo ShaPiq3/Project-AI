@@ -13,12 +13,17 @@ public class ClueTextHoverEffect : MonoBehaviour, IPointerEnterHandler, IPointer
     [SerializeField] private string hexHighlightColor = "#FFFF00AA";
     [SerializeField] private string questID;
 
+    // 💡 [추가] 실제 뉴스 기사/게시글 제목. NewsCard 등이 동적으로 값을 넣어주면
+    // 엑셀 SourceTitle 대신 이 값을 그대로 DataLog에 표시합니다.
+    // Inspector에서 직접 입력해도 되고(아카이브 수동 태깅), 비워두면 기존처럼 엑셀 값 사용.
+    [SerializeField] private string sourceTitleOverride;
+
     void Awake() => textComponent = GetComponent<TMP_Text>();
     void OnEnable() => StartCoroutine(DelayedInitialize());
 
     private void OnDestroy()
     {
-        // 💡 오브젝트가 사라질 때 아카이브 위치 등록도 함께 해제
+        // 오브젝트가 사라질 때 아카이브 위치 등록도 함께 해제
         if (ArchiveManager.Instance != null && !string.IsNullOrEmpty(targetClueID))
         {
             ArchiveManager.Instance.UnregisterClueLocation(targetClueID);
@@ -45,9 +50,7 @@ public class ClueTextHoverEffect : MonoBehaviour, IPointerEnterHandler, IPointer
         {
             targetClueWord = Regex.Replace(clueData.contentText.Trim(), @"<[^>]*>", "");
             isInitialized = true;
-            // 💡 아카이브 매니저에 "이 단서는 여기 있다"고 스스로 등록
-            // (뉴스 등 다른 곳에서 동적으로 붙는 경우에도 무해합니다.
-            //  ArchiveManager는 sourceType이 "아카이브"일 때만 조회되기 때문입니다.)
+            // 아카이브 매니저에 "이 단서는 여기 있다"고 스스로 등록
             if (ArchiveManager.Instance != null)
             {
                 ArchiveManager.Instance.RegisterClueLocation(targetClueID, GetComponent<RectTransform>());
@@ -56,7 +59,7 @@ public class ClueTextHoverEffect : MonoBehaviour, IPointerEnterHandler, IPointer
     }
 
     /// <summary>
-    /// 💡 [추가] 이 단서가 지금 상호작용 가능한 상태인지 공통으로 체크합니다.
+    /// 이 단서가 지금 상호작용 가능한 상태인지 공통으로 체크합니다.
     /// (수집 모드가 켜져 있고, 이 단서가 속한 퀘스트가 실제로 시작된 상태여야 함)
     /// </summary>
     private bool IsInteractable()
@@ -84,6 +87,7 @@ public class ClueTextHoverEffect : MonoBehaviour, IPointerEnterHandler, IPointer
         if (!IsInteractable()) return;
         eventData.Use();
         Debug.Log($"[수집 성공] ID: {targetClueID}");
-        DataLogManager.Instance.AcquireClue(this.questID, this.targetClueID);
+        // 💡 [변경] 실제 제목(sourceTitleOverride)이 세팅되어 있으면 그걸 같이 전달
+        DataLogManager.Instance.AcquireClue(this.questID, this.targetClueID, this.sourceTitleOverride);
     }
 }

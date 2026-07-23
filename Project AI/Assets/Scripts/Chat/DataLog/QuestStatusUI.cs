@@ -10,29 +10,48 @@ public class QuestStatusUI : MonoBehaviour
 
     public void UpdateDisplay()
     {
-        // 1. 진행 중인 퀘스트 데이터를 가져옴 (보통 퀘스트는 하나씩 진행되므로 첫 번째 것을 사용)
-        foreach (var questID in DataLogManager.Instance.questTargetCounts.Keys)
-        {
-            int current = DataLogManager.Instance.questCollectedClues.ContainsKey(questID)
-                          ? DataLogManager.Instance.questCollectedClues[questID].Count : 0;
-            int target = DataLogManager.Instance.questTargetCounts[questID];
+        if (DataLogManager.Instance == null) return;
 
-            // 2. 텍스트 업데이트
+        // 💡 [변경] 여러 퀘스트가 등록되어 있어도, DataLogManager의 다른 로직
+        // (정답 판정, 대화 분기)과 동일하게 "가장 최근에 시작된 퀘스트"를 기준으로 표시합니다.
+        var activeQuestIDs = DataLogManager.Instance.activeQuestIDs;
+
+        if (activeQuestIDs == null || activeQuestIDs.Count == 0)
+        {
             if (statusText != null)
             {
-                statusText.text = $"{current} / {target}";
+                statusText.text = "0 / 0";
             }
 
-            // 3. 답변 생성 버튼은 항상 활성화 + 클릭 가능 상태로 유지
-            //    (정답/오답 판정은 버튼을 누른 시점에 DataLogManager.CheckIfAllCluesAreCorrect()로 처리)
             if (generateButton != null)
             {
                 generateButton.gameObject.SetActive(true);
-                generateButton.interactable = true;
+                generateButton.interactable = false;
             }
 
-            // 퀘스트가 하나라면 바로 루프를 빠져나와도 됩니다.
-            break;
+            return;
+        }
+
+        string currentQuestID = activeQuestIDs[activeQuestIDs.Count - 1];
+
+        int current = DataLogManager.Instance.questCollectedClues.ContainsKey(currentQuestID)
+                      ? DataLogManager.Instance.questCollectedClues[currentQuestID].Count : 0;
+
+        int target = DataLogManager.Instance.questTargetCounts.ContainsKey(currentQuestID)
+                     ? DataLogManager.Instance.questTargetCounts[currentQuestID] : 0;
+
+        // 텍스트 업데이트
+        if (statusText != null)
+        {
+            statusText.text = $"{current} / {target}";
+        }
+
+        // 💡 [변경] 목표 개수를 다 채웠을 때만 버튼이 눌리도록 잠금.
+        // 버튼 자체는 계속 보이게 유지하고(SetActive(true)), interactable만 잠갔다 풉니다.
+        if (generateButton != null)
+        {
+            generateButton.gameObject.SetActive(true);
+            generateButton.interactable = (target > 0 && current >= target);
         }
     }
 }

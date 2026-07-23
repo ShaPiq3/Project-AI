@@ -9,7 +9,7 @@ public class InGameWindowManager : MonoBehaviour
 
     [Header("Sub Panels (Auto Close ONLY on Complete Close)")]
     [SerializeField] private GameObject[] subPanels;
-
+    
     [Header("Pop-up Animation Settings")]
     [SerializeField] private float animationSpeed = 15f;    // 애니메이션 속도
     [SerializeField] private float scalePunchMultiplier = 1.1f; // 최대로 커질 때의 배율 (1.1 = 110%)

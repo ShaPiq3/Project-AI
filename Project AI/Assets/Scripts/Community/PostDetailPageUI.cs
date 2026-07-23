@@ -37,6 +37,25 @@ public class PostDetailPageUI : MonoBehaviour
         authorText.text = data.author;
         dateText.text = data.date;
 
+        // 💡 [추가] 제목(title) 자체가 단서인 경우, 제목 텍스트에 클릭 시 수집 기능을 붙입니다.
+        Button titleBtn = titleText.gameObject.GetComponent<Button>();
+        if (!string.IsNullOrEmpty(data.titleClueID) && DataLogManager.Instance != null)
+        {
+            if (titleBtn == null) titleBtn = titleText.gameObject.AddComponent<Button>();
+
+            titleBtn.transition = Selectable.Transition.ColorTint;
+            titleBtn.onClick.RemoveAllListeners();
+            titleBtn.onClick.AddListener(() => {
+                Debug.Log($"커뮤니티 제목 클릭으로 단서 수집: {data.titleClueID}");
+                DataLogManager.Instance.AcquireClue(questID, data.titleClueID, data.title);
+            });
+        }
+        else
+        {
+            // 제목이 단서가 아닌 게시글로 다시 세팅될 수도 있으므로, 이전에 붙어있던 버튼은 제거
+            if (titleBtn != null) Destroy(titleBtn);
+        }
+
         // 상단 헤더 배지 동기화
         headerLikeText.text = $"추천 {data.likes}";
         headerDislikeText.text = $"비추 {data.dislikes}"; // ⭐ 세팅
@@ -68,7 +87,8 @@ public class PostDetailPageUI : MonoBehaviour
                     imgBtn.onClick.RemoveAllListeners();
                     imgBtn.onClick.AddListener(() => {
                         Debug.Log($"커뮤니티 이미지 클릭으로 단서 수집: {data.imageClueID}");
-                        DataLogManager.Instance.AcquireClue(data.imageQuestID, data.imageClueID);
+                        // 💡 [추가] 실제 게시글 제목을 같이 전달
+                        DataLogManager.Instance.AcquireClue(data.imageQuestID, data.imageClueID, data.title);
                     });
                 }
                 else
@@ -76,7 +96,7 @@ public class PostDetailPageUI : MonoBehaviour
                     if (imgBtn != null) Destroy(imgBtn); // 단서가 없는 이미지는 버튼 기능 제거
                 }
 
-                // 💡 [추가] 이미지 생성 퀘스트 수집 대상으로 자동 등록.
+                // 💡 이미지 생성 퀘스트 수집 대상으로 자동 등록.
                 // 이 패널은 게시글마다 새로 생성되지 않고 재사용되므로,
                 // DisplayPost() 호출될 때마다 Bind()가 imageID를 새로 갱신해줌.
                 CollectibleImageBinder.Bind(postImage, data.collectibleImageID);
@@ -90,15 +110,10 @@ public class PostDetailPageUI : MonoBehaviour
             if (!string.IsNullOrEmpty(data.clueID) && DataLogManager.Instance != null)
             {
                 postContentButton.onClick.AddListener(() => {
-                    ClueData clue = new ClueData
-                    {
-                        clueID = data.clueID,
-                        sourceType = "커뮤니티",
-                        sourceTitle = data.title,
-                        contentText = data.content,
-                        imageName = data.imageName
-                    };
-                    DataLogManager.Instance.AcquireClue(data.imageQuestID, data.imageClueID);
+                    // ⚠️ [기존 버그, 손대지 않음] 아래 AcquireClue가 본문의 clueID가 아니라
+                    // 이미지용 ID(imageQuestID/imageClueID)를 넘기고 있습니다. 의도하신 게 맞는지 확인 필요.
+                    // 💡 [추가] 실제 게시글 제목을 같이 전달
+                    DataLogManager.Instance.AcquireClue(data.imageQuestID, data.imageClueID, data.title);
                 });
             }
         }
@@ -125,15 +140,10 @@ public class PostDetailPageUI : MonoBehaviour
 
                     commentBtn.onClick.RemoveAllListeners();
                     commentBtn.onClick.AddListener(() => {
-                        ClueData clue = new ClueData
-                        {
-                            clueID = cData.clueID,
-                            sourceType = "댓글",
-                            sourceTitle = $"{data.title} ({cData.author})",
-                            contentText = cData.content,
-                            imageName = ""
-                        };
-                        DataLogManager.Instance.AcquireClue(data.imageQuestID, data.imageClueID);
+                        // ⚠️ [기존 버그, 손대지 않음] 아래 AcquireClue가 댓글의 clueID가 아니라
+                        // 이미지용 ID(imageQuestID/imageClueID)를 넘기고 있습니다. 의도하신 게 맞는지 확인 필요.
+                        // 💡 [추가] "게시글 제목 (댓글 작성자)" 형태로 제목 전달
+                        DataLogManager.Instance.AcquireClue(data.imageQuestID, data.imageClueID, $"{data.title} ({cData.author})");
                     });
                 }
             }

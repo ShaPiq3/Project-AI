@@ -46,7 +46,7 @@ public class DataLogManager : MonoBehaviour
     public Dictionary<string, int> questTargetCounts = new Dictionary<string, int>();
 
     /// <summary>
-    /// 💡 [추가] 이 퀘스트가 실제로 시작(isTrigger 발동 -> StartQuest 호출)된 상태인지 확인합니다.
+    /// 💡 이 퀘스트가 실제로 시작(isTrigger 발동 -> StartQuest 호출)된 상태인지 확인합니다.
     /// 호버 효과, 클릭 수집 등에서 "아직 시작 안 된 퀘스트의 단서인데 반응이 생기는" 문제를 막는 데 씁니다.
     /// </summary>
     public bool IsQuestActive(string questID)
@@ -55,7 +55,7 @@ public class DataLogManager : MonoBehaviour
         return questCollectedClues.ContainsKey(questID);
     }
 
-    // 💡 [추가] 퀘스트별 정답/오답 대화 시작 ID (StartQuest 호출 시 함께 등록됨)
+    // 💡 퀘스트별 정답/오답 대화 시작 ID (StartQuest 호출 시 함께 등록됨)
     [System.Serializable]
     private class QuestDialogueConfig
     {
@@ -114,7 +114,7 @@ public class DataLogManager : MonoBehaviour
     public List<string> activeQuestIDs = new List<string>();
 
     /// <summary>
-    /// 💡 [변경] 정답/오답 대화 ID도 함께 받아서 등록합니다.
+    /// 💡 정답/오답 대화 ID도 함께 받아서 등록합니다.
     /// (ChatDialogueManager가 isTrigger 행을 처리할 때, 같은 행에 적힌
     ///  correctDialogueID/incorrectDialogueID를 그대로 넘겨줍니다)
     /// </summary>
@@ -142,7 +142,11 @@ public class DataLogManager : MonoBehaviour
     /// <summary>
     /// 플레이어가 단서를 발견했을 때 퀘스트ID와 단서ID를 넘겨서 수집
     /// </summary>
-    public void AcquireClue(string questID, string clueID)
+    /// <param name="overrideSourceTitle">
+    /// 뉴스 기사/커뮤니티 게시글의 실제 제목을 그대로 쓰고 싶을 때 넘깁니다.
+    /// 비워두면 기존처럼 엑셀 ClueExcelData의 SourceTitle 값을 그대로 씁니다.
+    /// </param>
+    public void AcquireClue(string questID, string clueID, string overrideSourceTitle = null)
     {
         Debug.Log($"[디버그] 클릭 감지됨! 퀘스트ID: {questID}, 단서ID: {clueID}");
         Debug.Log($"[디버그] 수집 시도 -> 입력된 퀘스트ID: '{questID}', 수집된 퀘스트 목록: {string.Join(", ", questCollectedClues.Keys)}");
@@ -155,13 +159,26 @@ public class DataLogManager : MonoBehaviour
         // 2. 타이밍 체크
         if (ChatDialogueManager.Instance == null) return;
 
-        // 💡 [추가] 이 단서가 속한 퀘스트가 실제로 시작(isTrigger 발동)됐는지 확인
+        // 💡 이 단서가 속한 퀘스트가 실제로 시작(isTrigger 발동)됐는지 확인
         //     아직 StartQuest가 호출되지 않은 questID라면, 단서 수집 모드가 켜져 있어도
         //     수집되지 않도록 막습니다. (isTrigger가 발동됐을 때만 수집 가능해야 함)
         if (!questCollectedClues.ContainsKey(questID))
         {
             Debug.LogWarning($"[수집 거부] 퀘스트 '{questID}'가 아직 시작되지 않아 수집할 수 없습니다.");
             return;
+        }
+
+        // 💡 이미 목표 개수(targetCount)만큼 다 모았다면 더 이상 수집하지 못하게 막습니다.
+        //     (퀘스트에는 정답/오답 단서가 섞여서 여러 개 있을 수 있지만,
+        //      엑셀이 정한 targetCount개까지만 모을 수 있어야 함)
+        if (questTargetCounts.TryGetValue(questID, out int targetCount))
+        {
+            int currentCount = questCollectedClues[questID].Count;
+            if (currentCount >= targetCount)
+            {
+                Debug.LogWarning($"[수집 거부] 퀘스트 '{questID}'는 이미 목표 개수({targetCount}개)를 다 모아서 더 이상 수집할 수 없습니다.");
+                return;
+            }
         }
 
         // 3. 데이터베이스 조회 (중요: 여기서 데이터를 찾았을 때만 다음으로 진행)
@@ -181,13 +198,27 @@ public class DataLogManager : MonoBehaviour
             }
         }
 
+        // 💡 [추가] clueDatabase의 targetClue는 모든 곳에서 공유되는 마스터 객체이므로
+        // 직접 수정하지 않고, 복사본을 만들어서 필요하면 제목만 실제 값으로 덮어씁니다.
+        ClueData collectedClue = new ClueData
+        {
+            clueID = targetClue.clueID,
+            sourceType = targetClue.sourceType,
+            sourceTitle = !string.IsNullOrEmpty(overrideSourceTitle) ? overrideSourceTitle : targetClue.sourceTitle,
+            contentText = targetClue.contentText,
+            imageName = targetClue.imageName,
+            questID = targetClue.questID,
+            isCorrect = targetClue.isCorrect
+        };
+
         // 5. 수집 목록 추가 및 UI 생성
-        collectedClues.Add(targetClue);
+        collectedClues.Add(collectedClue);
 
         // 💡 여기서 UI 생성 함수 호출
-        CreateClueSlot(targetClue);
-        Debug.Log($"단서 수집 성공: {targetClue.clueID}");
+        CreateClueSlot(collectedClue);
+        Debug.Log($"단서 수집 성공: {collectedClue.clueID}");
     }
+
 
     public void RemoveClue(string questID, string clueID)
     {
@@ -274,7 +305,7 @@ public class DataLogManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 💡 [추가] 사이드바의 "단서 수집" 버튼 전용 함수.
+    /// 💡 사이드바의 "단서 수집" 버튼 전용 함수.
     /// 토글이 아니라 "켜는 것"만 담당합니다 - 이미 켜져 있으면 아무 일도 하지 않습니다.
     /// (버튼에 RestoreWindow 등 다른 열기 로직이 같이 연결되어 있어도
     ///  꺼짐 상태와 충돌하지 않도록, 끄는 동작은 이 함수에서 절대 하지 않습니다.)
@@ -358,7 +389,7 @@ public class DataLogManager : MonoBehaviour
     }
 
     // ============================================================
-    // 💡 [변경] 파일탐색기 방식 다중 선택 삭제
+    // 💡 파일탐색기 방식 다중 선택 삭제
     // ============================================================
 
     /// <summary>
@@ -496,7 +527,7 @@ public class DataLogManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 💡 [변경] 정답/오답 대화 시작 ID는 대화 CSV의 isTrigger 행에서 함께 전달받아
+    /// 💡 정답/오답 대화 시작 ID는 대화 CSV의 isTrigger 행에서 함께 전달받아
     /// StartQuest() 시점에 이미 등록되어 있습니다 (QuestConfigData 등 별도 시트 불필요).
     /// </summary>
     public void OnClickGenerateAnswer()
@@ -514,7 +545,7 @@ public class DataLogManager : MonoBehaviour
             Debug.Log("오답입니다.");
         }
 
-        // 💡 [추가] 답변 생성 버튼을 누르면 판정 결과와 상관없이
+        // 💡 답변 생성 버튼을 누르면 판정 결과와 상관없이
         // DataLog 패널이 오른쪽으로 슬라이드되며 닫히고, 수집했던 단서도 전부 비웁니다.
         collectedClues.Clear();
         selectedForDeletion.Clear();

@@ -4,7 +4,7 @@ using System.Text;
 
 public class NewsListManager : MonoBehaviour
 {
-    // 💡 [추가] 다른 스크립트(DataLogManager)에서 접근할 수 있도록 싱글톤 인스턴스 추가
+    // 💡 다른 스크립트(DataLogManager)에서 접근할 수 있도록 싱글톤 인스턴스 추가
     public static NewsListManager Instance { get; private set; }
 
     [Header("Data (Excel CSV)")]
@@ -25,7 +25,7 @@ public class NewsListManager : MonoBehaviour
              "원본 보기를 눌렀을 때 창이 닫혀 있어도 자동으로 복원됩니다.")]
     [SerializeField] private InGameWindowManager newsWindowManager;
 
-    // 💡 [추가] 파싱된 모든 뉴스 데이터를 보관 (clueID로 역참조 검색하기 위함)
+    // 💡 파싱된 모든 뉴스 데이터를 보관 (clueID로 역참조 검색하기 위함)
     private List<NewsData> allNewsData = new List<NewsData>();
 
     private void Awake()
@@ -71,8 +71,11 @@ public class NewsListManager : MonoBehaviour
 
             string bodyClue = (row.Count > 8) ? row[8] : "";
 
-            // 💡 [추가] 이미지 생성 퀘스트용 ID (10번째 컬럼). 비어있으면 수집 대상 아님.
+            // 💡 이미지 생성 퀘스트용 ID (10번째 컬럼). 비어있으면 수집 대상 아님.
             string collectibleImageID = (row.Count > 9) ? row[9] : "";
+
+            // 💡 [추가] 제목 클릭 단서 ID (11번째 컬럼). 비어있으면 제목은 수집 대상 아님.
+            string titleClue = (row.Count > 10) ? row[10] : "";
 
             NewsData data = new NewsData
             {
@@ -85,10 +88,11 @@ public class NewsListManager : MonoBehaviour
                 imageClueID = imgClue,
                 clueParagraphIndex = paragraphIdx,
                 bodyClueID = bodyClue,
-                collectibleImageID = collectibleImageID
+                collectibleImageID = collectibleImageID,
+                titleClueID = titleClue
             };
 
-            // 💡 [추가] 나중에 clueID로 검색할 수 있도록 저장
+            // 💡 나중에 clueID로 검색할 수 있도록 저장
             allNewsData.Add(data);
 
             GameObject btnGo = Instantiate(newsButtonPrefab, contentParent);
@@ -97,7 +101,7 @@ public class NewsListManager : MonoBehaviour
             {
                 newsBtn.SetButton(data, this);
 
-                // 💡 [추가] 이미지 생성 퀘스트 수집 대상으로 자동 등록
+                // 💡 이미지 생성 퀘스트 수집 대상으로 자동 등록
                 CollectibleImageBinder.Bind(newsBtn.ThumbnailImage, data.collectibleImageID);
             }
         }
@@ -229,8 +233,8 @@ public class NewsListManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 💡 [추가] DataLogManager가 "원본 보기"를 요청할 때 호출하는 함수.
-    /// clueID로 어느 기사(본문 문단 또는 이미지)에서 나온 단서인지 찾아서
+    /// 💡 DataLogManager가 "원본 보기"를 요청할 때 호출하는 함수.
+    /// clueID로 어느 기사(제목/본문 문단/이미지)에서 나온 단서인지 찾아서
     /// 해당 기사의 상세 팝업을 열어줍니다.
     /// </summary>
     /// <returns>원본을 찾아서 열었으면 true, 못 찾았으면 false</returns>
@@ -240,10 +244,11 @@ public class NewsListManager : MonoBehaviour
 
         foreach (var data in allNewsData)
         {
+            bool isTitleMatch = !string.IsNullOrEmpty(data.titleClueID) && data.titleClueID == clueID;
             bool isBodyMatch = !string.IsNullOrEmpty(data.bodyClueID) && data.bodyClueID == clueID;
             bool isImageMatch = !string.IsNullOrEmpty(data.imageClueID) && data.imageClueID == clueID;
 
-            if (isBodyMatch || isImageMatch)
+            if (isTitleMatch || isBodyMatch || isImageMatch)
             {
                 // 뉴스 창 자체가 최소화되어 있었다면 먼저 복원
                 if (newsWindowManager != null)
