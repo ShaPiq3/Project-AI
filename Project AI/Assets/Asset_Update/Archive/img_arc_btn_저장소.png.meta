@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: c8120405229cd8a4588cd365864b9fd7
+guid: e310f8dbb4fb98448848134df5d81c27
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -1109576189438368140
-    second: img_IG_S1_S_0
+      213: 9047733930580544120
+    second: "img_arc_btn_\uC800\uC7A5\uC18C_0"
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: img_IG_S1_S_0
+      name: "img_arc_btn_\uC800\uC7A5\uC18C_0"
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 250
-        height: 200
+        width: 416
+        height: 368
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 4766b41a55ef990f0800000000000000
-      internalID: -1109576189438368140
+      spriteID: 87a808aa212009d70800000000000000
+      internalID: 9047733930580544120
       vertices: []
       indices: 
       edges: []
@@ -135,7 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      img_IG_S1_S_0: -1109576189438368140
+      "img_arc_btn_\uC800\uC7A5\uC18C_0": 9047733930580544120
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
