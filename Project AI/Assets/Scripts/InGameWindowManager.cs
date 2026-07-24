@@ -40,11 +40,34 @@ public class InGameWindowManager : MonoBehaviour
     // ★ [사이드바 내부의 메뉴 그룹 버튼]에 연결하는 핵심 함수
     public void RestoreWindow()
     {
+        Debug.Log($"[진단] RestoreWindow 호출됨! 대상 오브젝트: {gameObject.name}");
+
         // 1. 창 전체를 즉시 화면에 활성화합니다.
         this.gameObject.SetActive(true);
 
         // 2. 이 창을 형제 오브젝트들 중 가장 맨 아래(화면 맨 앞)로 강제 정렬합니다!
         this.transform.SetAsLastSibling();
+
+        RectTransform rectTransform = GetComponent<RectTransform>();
+        if (rectTransform == null)
+        {
+            Debug.LogError($"[진단] {gameObject.name}에 RectTransform이 없습니다!");
+        }
+        else if (WindowManager.Instance == null)
+        {
+            Debug.LogError($"[진단] WindowManager.Instance가 null입니다! 씬에 WindowManager가 없거나 아직 Awake되지 않았습니다.");
+        }
+        else
+        {
+            Vector2 beforePos = rectTransform.anchoredPosition;
+            Vector2 sizeBefore = rectTransform.rect.size;
+
+            Vector2 pushedPos = WindowManager.Instance.PushOutOfBlockingPanelsWithBounds(rectTransform, rectTransform.anchoredPosition);
+
+            Debug.Log($"[진단] {gameObject.name} | size:{sizeBefore} | before:{beforePos} -> after:{pushedPos} | pivot:{rectTransform.pivot} | anchorMin:{rectTransform.anchorMin} anchorMax:{rectTransform.anchorMax}");
+
+            rectTransform.anchoredPosition = pushedPos;
+        }
 
         // 3. 만약 서브 패널이 최소화 전부터 켜져 있었다면 서브 패널을 내 메인 화면보다 더 앞으로 강제 정렬
         if (subPanels != null)

@@ -130,6 +130,8 @@ public class DocumentQuestManager : MonoBehaviour
         }
     }
 
+    private bool triggerCountedForDataLog = false;
+
     public void TriggerScanComplete()
     {
         if (IsCompleted)
@@ -153,6 +155,13 @@ public class DocumentQuestManager : MonoBehaviour
         SetupFixedBlocks();
 
         StartCoroutine(ScanAndRevealRoutine());
+
+        // 💡 [변경] 카운트 중복 증가만 막습니다. 패널을 여는 로직(위쪽 전부)은 그대로 매번 실행됩니다.
+        if (!triggerCountedForDataLog && DataLogManager.Instance != null)
+        {
+            triggerCountedForDataLog = true;
+            DataLogManager.Instance.NotifyTriggerStarted();
+        }
     }
 
     private IEnumerator ScanAndRevealRoutine()
@@ -312,6 +321,14 @@ public class DocumentQuestManager : MonoBehaviour
         }
 
         ResetAllUI();
+
+        // 💡 [추가] 단서 수집 버튼 활성화 트리거 종료 알림
+        if (DataLogManager.Instance != null)
+        {
+            Debug.Log($"[진단-문서] NotifyTriggerEnded 호출! documentID:{documentID}");
+            DataLogManager.Instance.NotifyTriggerEnded();
+        }
+        triggerCountedForDataLog = false;
     }
 
     public static DocumentQuestManager GetByID(string id)
@@ -348,13 +365,6 @@ public class DocumentQuestManager : MonoBehaviour
             panelWindowManager.RestoreWindow();
         }
 
-        if (DataLogManager.Instance != null)
-        {
-            DataLogManager.Instance.OnClickDocumentPanel(this);
-        }
-        else
-        {
-            TriggerScanComplete();
-        }
+        TriggerScanComplete();
     }
 }

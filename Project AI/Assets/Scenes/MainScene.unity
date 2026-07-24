@@ -13580,10 +13580,10 @@ RectTransform:
   - {fileID: 1984468450}
   m_Father: {fileID: 1993294840}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 295, y: -25}
-  m_SizeDelta: {x: 150, y: 50}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &394306270
 MonoBehaviour:
@@ -13936,7 +13936,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 10}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &434950076
 MonoBehaviour:
@@ -14091,10 +14091,10 @@ RectTransform:
   - {fileID: 716754453}
   m_Father: {fileID: 1993294840}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 85, y: -25}
-  m_SizeDelta: {x: 150, y: 50}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &463035623
 MonoBehaviour:
@@ -16315,7 +16315,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &556040332
 RectTransform:
   m_ObjectHideFlags: 0
@@ -25214,7 +25214,7 @@ MonoBehaviour:
   loadingDuration: 1.5
   sentenceAppearInterval: 0.25
   documentID: T_Q3
-  panelWindowManager: {fileID: 0}
+  panelWindowManager: {fileID: 1812316848}
   successDialogueID: 21
   failureDialogueID: 22
 --- !u!114 &869748228
@@ -29894,6 +29894,9 @@ MonoBehaviour:
   hideEase: 8
   clueFilterPanel: {fileID: 2088523916}
   questStatusUI: {fileID: 1013929294}
+  clueCollectButton: {fileID: 686091208}
+  sidebarController: {fileID: 1991241176}
+  clueCollectTaskbarIndex: 4
   uiManager: {fileID: 1013929293}
   activeQuestIDs: []
 --- !u!4 &1013929296
@@ -42431,6 +42434,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 5627937350704371846, guid: e5375fc9b8d87d74f887c99484b83927, type: 3}
       insertIndex: -1
       addedObject: {fileID: 869748228}
+    - targetCorrespondingSourceObject: {fileID: 5036437353820788419, guid: e5375fc9b8d87d74f887c99484b83927, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1812316848}
   m_SourcePrefab: {fileID: 100100000, guid: e5375fc9b8d87d74f887c99484b83927, type: 3}
 --- !u!1 &1439697129
 GameObject:
@@ -50722,6 +50728,23 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 5036437353820788419, guid: e5375fc9b8d87d74f887c99484b83927, type: 3}
   m_PrefabInstance: {fileID: 1436685487}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1812316848
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1812316842}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2ef8287b8ce956844891a2fafee87589, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::InGameWindowManager
+  sidebarController: {fileID: 0}
+  myTaskbarIndex: 0
+  subPanels: []
+  animationSpeed: 15
+  scalePunchMultiplier: 1.1
 --- !u!1 &1812953040
 GameObject:
   m_ObjectHideFlags: 0
@@ -54092,7 +54115,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: -332.93054}
-  m_SizeDelta: {x: 380, y: 50}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1993294841
 MonoBehaviour:

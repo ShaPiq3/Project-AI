@@ -357,15 +357,6 @@ public class ChatDialogueManager : MonoBehaviour
             {
                 dialogueDictionary[data.id] = data;
             }
-
-            if (!dialogueDictionary.ContainsKey(data.id))
-            {
-                dialogueDictionary.Add(data.id, data);
-            }
-            else
-            {
-                dialogueDictionary[data.id] = data;
-            }
         }
     }
 
@@ -605,6 +596,8 @@ public class ChatDialogueManager : MonoBehaviour
                     {
                         DataLogManager.Instance.ToggleLogPanel();
                     }
+
+                    DataLogManager.Instance.NotifyTriggerStarted();
                 }
             }
 
@@ -624,6 +617,11 @@ public class ChatDialogueManager : MonoBehaviour
                         data.imageGenFalseDialogueID,
                         data.imageGenMalfunctionDialogueID
                     );
+
+                    if (DataLogManager.Instance != null)
+                    {
+                        DataLogManager.Instance.NotifyTriggerStarted();
+                    }
                 }
             }
 

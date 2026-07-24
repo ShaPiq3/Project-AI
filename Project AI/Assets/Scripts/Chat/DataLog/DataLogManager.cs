@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using DG.Tweening;
 
 public class DataLogManager : MonoBehaviour
@@ -22,6 +23,18 @@ public class DataLogManager : MonoBehaviour
     [Header("UI Reference")]
     public QuestStatusUI questStatusUI;
 
+    [Header("Trigger-Linked Button")]
+    [Tooltip("사이드바의 '단서 수집' 버튼. isTrigger/isImageGenTrigger/문서요약 중 하나라도 진행 중이면 자동으로 활성화되고, 전부 끝나면 비활성화됩니다.")]
+    [SerializeField] private Button clueCollectButton;
+
+    [Header("Sidebar MiniIcon 연동")]
+    [Tooltip("단서 수집 상태를 사이드바 미니아이콘으로 보여주기 위한 SidebarController 참조")]
+    [SerializeField] private SidebarController sidebarController;
+    [Tooltip("SidebarController의 Menu Mini Icon Rects 배열에서 '단서 수집' 아이콘의 인덱스")]
+    [SerializeField] private int clueCollectTaskbarIndex = -1;
+
+
+
     // 전체 단서 데이터베이스 (엑셀에서 파싱해서 담아둘 사전)
     private Dictionary<string, ClueData> clueDatabase = new Dictionary<string, ClueData>();
 
@@ -33,6 +46,8 @@ public class DataLogManager : MonoBehaviour
     // 💡 [변경] 파일탐색기 방식 다중 선택 삭제를 위한 선택 목록
     //     (기존 isDeleteMode / selectedSlot 방식은 제거)
     private List<ClueData> selectedForDeletion = new List<ClueData>();
+
+    private int activeTriggerCount = 0;
 
     public UIManager uiManager;
 
@@ -103,6 +118,11 @@ public class DataLogManager : MonoBehaviour
 
         // 게임 시작 시 엑셀 데이터 파싱
         LoadClueDatabase();
+
+        if (clueCollectButton != null)
+        {
+            clueCollectButton.interactable = false;
+        }
     }
 
     /// <summary>
@@ -161,6 +181,57 @@ public class DataLogManager : MonoBehaviour
         Debug.Log($"[디버그] StartQuest 저장값 -> questID:{questID}, correctDialogueID:{correctDialogueID}, incorrectDialogueID:{incorrectDialogueID}");
 
         questStatusUI?.UpdateDisplay();
+    }
+
+
+    /// <summary>
+    /// 💡 isTrigger, isImageGenTrigger, 문서요약 트리거가 시작될 때 호출합니다.
+    /// 여러 개가 동시에 진행 중일 수 있으므로 카운트를 늘립니다.
+    /// </summary>
+    public void NotifyTriggerStarted()
+    {
+        activeTriggerCount++;
+        Debug.Log($"[진단] NotifyTriggerStarted 호출됨! activeTriggerCount:{activeTriggerCount}");
+        UpdateClueCollectButtonState();
+    }
+
+    /// <summary>
+    /// 💡 트리거 하나가 완료(답변 생성/판정 완료)될 때 호출합니다.
+    /// 다른 트리거가 아직 진행 중이면 버튼은 계속 켜진 채로 유지됩니다.
+    /// </summary>
+    public void NotifyTriggerEnded()
+    {
+        activeTriggerCount = Mathf.Max(0, activeTriggerCount - 1);
+        Debug.Log($"[진단] NotifyTriggerEnded 호출됨! activeTriggerCount:{activeTriggerCount}");
+        UpdateClueCollectButtonState();
+    }
+
+    private void UpdateClueCollectButtonState()
+    {
+        bool isActive = activeTriggerCount > 0;
+
+        if (clueCollectButton != null)
+        {
+            clueCollectButton.interactable = isActive;
+            Debug.Log($"[진단] 버튼 interactable 설정: {clueCollectButton.interactable}");
+        }
+        else
+        {
+            Debug.LogWarning("[진단] clueCollectButton이 null입니다! Inspector에서 연결이 안 되어 있습니다.");
+        }
+
+        // 💡 [수정] 여기서는 미니아이콘을 "켜지" 않습니다. 끄는 것만 처리합니다.
+        // 켜는 건 오직 사용자가 버튼을 직접 클릭했을 때(OnClueCollectButtonClicked)만 합니다.
+        if (!isActive && sidebarController != null && clueCollectTaskbarIndex >= 0)
+        {
+            sidebarController.UpdateTaskbarStatus(clueCollectTaskbarIndex, 0);
+        }
+
+        // 💡 트리거가 전부 끝났다면, 켜져 있던 단서 수집 모드 자체도 꺼줍니다.
+        if (activeTriggerCount == 0 && IsClueSearchModeActive)
+        {
+            ToggleClueSearchMode();
+        }
     }
 
     /// <summary>
@@ -393,6 +464,13 @@ public class DataLogManager : MonoBehaviour
             clueFilterPanel.SetActive(IsClueSearchModeActive);
         }
 
+        // 💡 [추가] 트리거 완료로 자동으로 꺼지든, ESC/우클릭(ClueFilterPanelCloser)으로
+        // 사용자가 직접 끄든, 여기서 공통으로 미니아이콘을 끕니다.
+        if (!IsClueSearchModeActive && sidebarController != null && clueCollectTaskbarIndex >= 0)
+        {
+            sidebarController.UpdateTaskbarStatus(clueCollectTaskbarIndex, 0);
+        }
+
         Debug.Log($"[시스템] 단서 수집 모드: {IsClueSearchModeActive}");
     }
 
@@ -497,8 +575,26 @@ public class DataLogManager : MonoBehaviour
     }
 
     /// <summary>
+    /// 💡 [추가] 사이드바 "단서 수집" 버튼의 OnClick()에 연결하는 함수.
+    /// 버튼이 눌릴 수 있는 상태(activeTriggerCount > 0)일 때, 사용자가
+    /// 실제로 클릭한 시점에만 미니아이콘을 켭니다.
+    /// </summary>
+    public void OnClueCollectButtonClicked()
+    {
+        if (activeTriggerCount <= 0) return;
+
+        if (sidebarController != null && clueCollectTaskbarIndex >= 0)
+        {
+            sidebarController.UpdateTaskbarStatus(clueCollectTaskbarIndex, 2);
+        }
+
+        OpenClueSearchMode();
+    }
+
+    /// <summary>
     /// 여러 단서를 한 번에 삭제하고 UI는 마지막에 한 번만 새로고침합니다.
     /// </summary>
+    /// 
     public void RemoveCluesAndRefreshUI(List<ClueData> cluesToRemove)
     {
         foreach (var clue in cluesToRemove)
@@ -606,6 +702,7 @@ public class DataLogManager : MonoBehaviour
         selectedForDeletion.Clear();
         RefreshClueUI();
         HideLogPanel();
+        NotifyTriggerEnded();
 
         if (string.IsNullOrEmpty(currentQuestID) || !questDialogueConfigs.TryGetValue(currentQuestID, out QuestDialogueConfig config))
         {

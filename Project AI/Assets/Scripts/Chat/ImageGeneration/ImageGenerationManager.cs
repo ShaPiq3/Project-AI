@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using DG.Tweening;
+using Mono.Cecil.Cil;
 
 /// <summary>
 /// ImageGenSlotItems.csv 한 줄(이미지 하나)의 데이터
@@ -117,8 +118,10 @@ public class ImageGenerationManager : MonoBehaviour
         {
             panelRect.anchoredPosition = new Vector2(hiddenPositionX, panelRect.anchoredPosition.y);
         }
+
         if (panelCanvasGroup != null)
         {
+            panelCanvasGroup.alpha = 0f; // 💡 추가
             panelCanvasGroup.interactable = false;
             panelCanvasGroup.blocksRaycasts = false;
         }
@@ -497,8 +500,10 @@ public class ImageGenerationManager : MonoBehaviour
 
         // 오작동이어도 슬롯 데이터는 절대 초기화하지 않음 (요구사항)
         bool isResolved = (targetDialogueID == cfg.truthDialogueID || targetDialogueID == cfg.falseDialogueID);
+        Debug.Log($"[진단] isResolved:{isResolved}, targetDialogueID:{targetDialogueID}, truthID:{cfg.truthDialogueID}, falseID:{cfg.falseDialogueID}");
         if (isResolved)
         {
+            Debug.Log("[진단] LockAndClose 호출 직전");
             // 💡 퀘스트가 "확정"(진실 또는 거짓)되면 버튼/패널을 자동으로 다시 잠급니다.
             // 오작동일 때는 잠그지 않아서 슬롯을 유지한 채 바로 다시 시도할 수 있습니다.
             LockAndClose();
@@ -531,6 +536,12 @@ public class ImageGenerationManager : MonoBehaviour
         if (generateAnswerButton != null) generateAnswerButton.interactable = false;
 
         ClosePanel();
+
+        if (DataLogManager.Instance != null)
+        {
+            Debug.Log($"[진단-이미지생성] NotifyTriggerEnded 호출! currentQuestID였던 것:{currentQuestID}");
+            DataLogManager.Instance.NotifyTriggerEnded();
+        }
     }
 
     /// <summary>
@@ -587,6 +598,8 @@ public class ImageGenerationManager : MonoBehaviour
         panelRect.DOKill();
         if (panelCanvasGroup != null)
         {
+            panelCanvasGroup.DOKill(); // 💡 추가
+            panelCanvasGroup.DOFade(1f, tweenDuration); // 💡 추가
             panelCanvasGroup.interactable = true;
             panelCanvasGroup.blocksRaycasts = true;
         }
@@ -606,6 +619,8 @@ public class ImageGenerationManager : MonoBehaviour
         panelRect.DOKill();
         if (panelCanvasGroup != null)
         {
+            panelCanvasGroup.DOKill(); // 💡 추가
+            panelCanvasGroup.DOFade(0f, tweenDuration); // 💡 추가
             panelCanvasGroup.interactable = false;
             panelCanvasGroup.blocksRaycasts = false;
         }
