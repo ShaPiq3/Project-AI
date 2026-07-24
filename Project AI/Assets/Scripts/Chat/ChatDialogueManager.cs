@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -115,6 +116,32 @@ public class ChatDialogueManager : MonoBehaviour
         StartCoroutine(StartAbsoluteTimer());
     }
 
+    /// <summary>
+    /// 💡 [추가] 한 줄(row)을 콤마로 나누되, 큰따옴표(")로 감싼 구간 안의 콤마는
+    /// 구분자로 취급하지 않습니다. 예: "안녕, 반가워요" -> 하나의 컬럼으로 유지됨.
+    /// </summary>
+    private string[] SplitCsvLine(string line)
+    {
+        return Regex.Split(line, ",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
+    }
+
+    /// <summary>
+    /// 💡 [추가] CSV 셀 값에서 "바깥을 감싸는 큰따옴표 한 쌍"만 벗겨내고,
+    /// 셀 안에 실제 글자로 들어있는 큰따옴표(CSV 규칙상 ""로 이스케이프된 것)는
+    /// 하나의 " 로 되돌려줍니다. (인터뷰 인용문 등에서 실제 큰따옴표를 쓰고 싶을 때 사용)
+    /// 예) 셀 원본: "그는 ""정말 놀랍다""라고 말했다"
+    ///     변환 후: 그는 "정말 놀랍다"라고 말했다
+    /// </summary>
+    private string UnwrapCsvQuotes(string raw)
+    {
+        string s = raw.Trim();
+        if (s.Length >= 2 && s.StartsWith("\"") && s.EndsWith("\""))
+        {
+            s = s.Substring(1, s.Length - 2);
+        }
+        return s.Replace("\"\"", "\"");
+    }
+
     void ParseCSV()
     {
         if (csvFile == null) return;
@@ -123,15 +150,16 @@ public class ChatDialogueManager : MonoBehaviour
 
         for (int i = 1; i < rows.Length; i++)
         {
-            string[] columns = rows[i].Split(',');
+            // 💡 [변경] 단순 Split(',') 대신, "큰따옴표로 감싼 구간의 콤마는 무시"하는 파서 사용.
+            string[] columns = SplitCsvLine(rows[i]);
             if (columns.Length < 8) continue;
 
             DialogueData data = new DialogueData();
             int.TryParse(columns[0].Trim(), out data.id);
             data.speakerType = columns[1].Trim();
             data.speakerName = columns[2].Trim();
-            // 💡 [추가] '|' 기호를 줄바꿈으로 변환 (뉴스/커뮤니티 본문과 동일한 방식으로 통일)
-            data.dialogueText = columns[3].Trim().Replace("\"", "").Replace("\\n", "\n").Replace("|", "\n");
+            // 💡 [변경] .Replace("\"","") 대신 UnwrapCsvQuotes 사용 -> 인터뷰 인용문 등 실제 큰따옴표는 보존됨
+            data.dialogueText = UnwrapCsvQuotes(columns[3]).Replace("\\n", "\n").Replace("|", "\n");
             bool.TryParse(columns[4].Trim(), out data.hasImage);
             data.imagePath = columns[5].Trim();
             float.TryParse(columns[6].Trim(), out data.delayTime);
@@ -140,12 +168,11 @@ public class ChatDialogueManager : MonoBehaviour
             if (columns.Length >= 15)
             {
                 bool.TryParse(columns[8].Trim(), out data.isBranch);
-                // 💡 [추가] 분기 선택지 텍스트도 동일하게 '|' -> 줄바꿈 변환
-                data.branchText1 = columns[9].Trim().Replace("\"", "").Replace("\\n", "\n").Replace("|", "\n");
+                data.branchText1 = UnwrapCsvQuotes(columns[9]).Replace("\\n", "\n").Replace("|", "\n");
                 int.TryParse(columns[10].Trim(), out data.nextId1);
-                data.branchText2 = columns[11].Trim().Replace("\"", "").Replace("\\n", "\n").Replace("|", "\n");
+                data.branchText2 = UnwrapCsvQuotes(columns[11]).Replace("\\n", "\n").Replace("|", "\n");
                 int.TryParse(columns[12].Trim(), out data.nextId2);
-                data.branchText3 = columns[13].Trim().Replace("\"", "").Replace("\\n", "\n").Replace("|", "\n");
+                data.branchText3 = UnwrapCsvQuotes(columns[13]).Replace("\\n", "\n").Replace("|", "\n");
                 int.TryParse(columns[14].Trim(), out data.nextId3);
             }
             else
@@ -435,7 +462,6 @@ public class ChatDialogueManager : MonoBehaviour
 
     /// <summary>
     /// 💡 특정 대화ID의 delayTime(그 줄이 화면에 머무는 시간)을 조회합니다.
-    /// ImageGenerationManager가 오작동 결과 대화 재생이 끝나는 시점을 정확히 알기 위해 사용합니다.
     /// </summary>
     public float GetDialogueDelay(int id)
     {
@@ -544,7 +570,6 @@ public class ChatDialogueManager : MonoBehaviour
             }
 
             // 💡 isTrigger 블록과 완전히 별개(형제 관계)로 분리.
-            // isTrigger=FALSE 여도 isImageGenTrigger=TRUE 면 정상 동작해야 하기 때문.
             if (data.isImageGenTrigger)
             {
                 IsDialoguePaused = true;
@@ -583,8 +608,7 @@ public class ChatDialogueManager : MonoBehaviour
                 yield return new WaitForSeconds(data.delayTime);
             }
 
-            // 💡 이 줄까지가 오작동 결과 시퀀스의 끝이라고 표시된 경우,
-            // 말풍선을 다 보여준 뒤(위 delayTime까지 끝난 뒤) 정확히 이 시점에 버튼을 다시 열어줌
+            // 💡 이 줄까지가 오작동 결과 시퀀스의 끝이라고 표시된 경우
             if (data.isImageGenMalfunctionEnd)
             {
                 if (ImageGenerationManager.Instance != null)

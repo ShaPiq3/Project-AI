@@ -39,6 +39,10 @@ public class VNDialogueManager : MonoBehaviour
     [SerializeField] private float whiteinDuration = 1.5f;
     [SerializeField] private float fadeOutDuration = 1.5f;
 
+    [Header("Scene Transition")]
+    [Tooltip("대화가 끝났을 때 자동으로 이동할 씬 이름. Build Settings에 등록된 정확한 씬 이름과 일치해야 합니다.")]
+    [SerializeField] private string nextSceneName = "MainScene";
+
     private List<DialogueRow> dialogueRows;
     private int currentLineIndex = 0;
     private string currentBgmName = "";
@@ -59,6 +63,8 @@ public class VNDialogueManager : MonoBehaviour
     private Image leftDissolveTemp;
     private Image midDissolveTemp;
     private Image rightDissolveTemp;
+
+
 
     void Awake()
     {
@@ -259,13 +265,15 @@ public class VNDialogueManager : MonoBehaviour
 
     private void TriggerExitVisualNovel()
     {
-        Debug.Log("[시스템] 비주얼 노벨 시나리오 종료 -> 작동 정지 및 종료 처리");
+        Debug.Log("[시스템] 비주얼 노벨 시나리오 종료 -> MainScene으로 전환");
 
-#if UNITY_EDITOR
-        UnityEditor.EditorApplication.isPlaying = false;
-#else
-        Application.Quit();
-#endif
+        if (string.IsNullOrEmpty(nextSceneName))
+        {
+            Debug.LogError("[VNDialogueManager] nextSceneName이 비어있습니다! Inspector에서 이동할 씬 이름을 지정해주세요.");
+            return;
+        }
+
+        UnityEngine.SceneManagement.SceneManager.LoadScene(nextSceneName);
     }
 
     private void PlayLine(int index)

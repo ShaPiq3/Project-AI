@@ -54,6 +54,8 @@ public class ArchiveManager : MonoBehaviour
             archiveWindowManager.RestoreWindow();
         }
 
+        ActivateHierarchy(target);
+
         // 💡 [변경] 단서마다 스크롤뷰가 있는지 없는지 다를 수 있으므로,
         // 매번 자동으로 부모 계층에서 ScrollRect를 찾아봅니다.
         // 없으면(스크롤뷰 없는 문서) 스크롤 없이 창만 열어주는 걸로 충분합니다.
@@ -89,5 +91,24 @@ public class ArchiveManager : MonoBehaviour
             scrollRect.content.anchoredPosition.x,
             result.y - offsetY
         );
+    }
+
+    /// <summary>
+    /// target부터 최상위까지 올라가며, 비활성화된 부모 오브젝트(개별 문서 창 등)를 전부 활성화합니다.
+    /// 문서들이 서로 독립적이라 여러 개 동시에 열려있어도 문제없는 구조에 적합합니다.
+    /// </summary>
+    private void ActivateHierarchy(RectTransform target)
+    {
+        Transform current = target;
+        while (current != null)
+        {
+            if (!current.gameObject.activeSelf)
+            {
+                current.gameObject.SetActive(true);
+            }
+
+            current.SetAsLastSibling();
+            current = current.parent;
+        }
     }
 }

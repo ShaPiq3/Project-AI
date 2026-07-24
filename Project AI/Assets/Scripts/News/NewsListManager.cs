@@ -271,11 +271,6 @@ public class NewsListManager : MonoBehaviour
 
             if (isTitleMatch || isBodyMatch || isImageMatch || isTaggedBodyMatch)
             {
-                // 뉴스 창 자체가 최소화되어 있었다면 먼저 복원
-                if (newsWindowManager != null)
-                {
-                    newsWindowManager.RestoreWindow();
-                }
 
                 OpenDetailPopup(data);
                 return true;

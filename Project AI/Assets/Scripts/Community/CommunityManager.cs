@@ -234,10 +234,6 @@ public class CommunityManager : MonoBehaviour
 
             if (isTitleMatch || isPostMatch || isBodyMatch || isCommentMatch || isTaggedBodyMatch)
             {
-                if (communityWindowManager != null)
-                {
-                    communityWindowManager.RestoreWindow();
-                }
 
                 OpenDetailPage(post);
                 return true;

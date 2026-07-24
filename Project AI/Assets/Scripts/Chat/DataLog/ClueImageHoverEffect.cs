@@ -95,7 +95,11 @@ public class ClueImageHoverEffect : MonoBehaviour, IPointerEnterHandler, IPointe
         {
             imageComponent.color = originalColor;
         }
-        // 오브젝트가 비활성화될 때 아카이브 위치 등록도 함께 해제
+    }
+
+    private void OnDestroy()
+    {
+        // ✅ 오브젝트가 완전히 파괴될 때만 등록 해제
         if (ArchiveManager.Instance != null && !string.IsNullOrEmpty(targetClueID))
         {
             ArchiveManager.Instance.UnregisterClueLocation(targetClueID);
