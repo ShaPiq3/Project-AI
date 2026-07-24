@@ -318,6 +318,13 @@ public class DataLogManager : MonoBehaviour
             }
 
             isOpen = true;
+
+            // 💡 [추가] WindowManager에도 datalog가 열렸음을 알려서, 다른 창들을 밀어내고
+            // 드래그 시 벽처럼 막히도록 동기화합니다. (사이드바 버튼으로 열든, 대화 트리거로 열든 항상 호출됨)
+            if (WindowManager.Instance != null)
+            {
+                WindowManager.Instance.NotifyDatalogOpenedExternally();
+            }
         }
         else
         {
@@ -344,6 +351,12 @@ public class DataLogManager : MonoBehaviour
         }
 
         isOpen = false;
+
+        // 💡 [추가] WindowManager에도 datalog가 닫혔음을 알려서, 밀려있던 창들을 원위치시킵니다.
+        if (WindowManager.Instance != null)
+        {
+            WindowManager.Instance.NotifyDatalogClosedExternally();
+        }
     }
 
     /// <summary>

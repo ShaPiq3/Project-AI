@@ -500,6 +500,7 @@ MonoBehaviour:
   chatImage: {fileID: 8869199056267244857}
   chatTextLayoutElement: {fileID: 8202452685668583939}
   maxWidth: 328
+  defaultTypingSpeed: 0.03
 --- !u!114 &1068147355561032195
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -46,4 +46,15 @@ public class DialogueData
     public int imageGenFalseDialogueID;         // 💡 [신규] 거짓(오답) 판정 시 점프할 대화 ID
     public int imageGenMalfunctionDialogueID;   // 오작동 판정 시 점프할 대화 ID
     public bool isImageGenMalfunctionEnd;
+
+    // ==========================================================
+    // 💡 [씬 전환] 31, 32번째 컬럼
+    // ==========================================================
+    public bool isSceneTransition;   // 이 줄이 재생 완료된 직후 씬을 전환할지 여부
+    public string nextSceneName;     // 전환할 씬 이름 (Build Settings에 등록된 정확한 이름)
+
+    // ==========================================================
+    // 💡 [타이핑 속도] 33번째 컬럼
+    // ==========================================================
+    public float typingSpeed;
 }

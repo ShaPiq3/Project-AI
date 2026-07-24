@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 using TMPro;
 using DG.Tweening;
 
@@ -319,6 +320,44 @@ public class ChatDialogueManager : MonoBehaviour
                 data.isImageGenMalfunctionEnd = false;
             }
 
+            // 💡 [추가] 씬 전환 (31, 32번째 컬럼)
+            if (columns.Length >= 31)
+            {
+                bool.TryParse(columns[30].Trim(), out data.isSceneTransition);
+            }
+            else
+            {
+                data.isSceneTransition = false;
+            }
+
+            if (columns.Length >= 32)
+            {
+                data.nextSceneName = columns[31].Trim();
+            }
+            else
+            {
+                data.nextSceneName = "";
+            }
+
+            // 💡 [추가] 타이핑 속도 (33번째 컬럼)
+            if (columns.Length >= 33)
+            {
+                float.TryParse(columns[32].Trim(), out data.typingSpeed);
+            }
+            else
+            {
+                data.typingSpeed = 0f;
+            }
+
+            if (!dialogueDictionary.ContainsKey(data.id))
+            {
+                dialogueDictionary.Add(data.id, data);
+            }
+            else
+            {
+                dialogueDictionary[data.id] = data;
+            }
+
             if (!dialogueDictionary.ContainsKey(data.id))
             {
                 dialogueDictionary.Add(data.id, data);
@@ -367,7 +406,7 @@ public class ChatDialogueManager : MonoBehaviour
             if (windowManager != null)
             {
                 WindowManager.Instance.isChatOpen = true;
-                WindowManager.Instance.RefreshAllWindows();
+                WindowManager.Instance.PushWindowsLeft(WindowManager.Instance.GetChatPanelWidth(), tweenDuration); // 💡 추가
             }
         }
 
@@ -396,7 +435,7 @@ public class ChatDialogueManager : MonoBehaviour
             if (windowManager != null)
             {
                 WindowManager.Instance.isChatOpen = true;
-                WindowManager.Instance.RefreshAllWindows();
+                WindowManager.Instance.PushWindowsLeft(WindowManager.Instance.GetChatPanelWidth(), tweenDuration); // 💡 추가
             }
         }
         TryStartDialogue();
@@ -424,7 +463,7 @@ public class ChatDialogueManager : MonoBehaviour
 
         if (windowManager != null)
         {
-            windowManager.isChatOpen = false;
+            windowManager.PullWindowsRight(windowManager.GetChatPanelWidth(), tweenDuration); // 💡 추가 (isChatOpen=false 처리도 이 안에서 함)
         }
 
         dialoguePanelRect.DOKill();
@@ -518,7 +557,7 @@ public class ChatDialogueManager : MonoBehaviour
                 if (windowManager != null)
                 {
                     WindowManager.Instance.isChatOpen = true;
-                    WindowManager.Instance.RefreshAllWindows();
+                    WindowManager.Instance.PushWindowsLeft(WindowManager.Instance.GetChatPanelWidth(), tweenDuration); // 💡 추가
                 }
             }
         }
@@ -603,6 +642,15 @@ public class ChatDialogueManager : MonoBehaviour
                     LayoutRebuilder.ForceRebuildLayoutImmediate(chatContent.GetComponent<RectTransform>());
 
                     if (chatScrollRect != null) chatScrollRect.verticalNormalizedPosition = 0f;
+
+                    if (controller != null)
+                    {
+                        while (!controller.IsTypingComplete)
+                        {
+                            if (chatScrollRect != null) chatScrollRect.verticalNormalizedPosition = 0f;
+                            yield return null;
+                        }
+                    }
                 }
 
                 yield return new WaitForSeconds(data.delayTime);
@@ -681,6 +729,12 @@ public class ChatDialogueManager : MonoBehaviour
             {
                 currentId = data.overrideNextId != 0 ? data.overrideNextId : currentId + 1;
             }
+
+            if (data.isSceneTransition)
+            {
+                TriggerSceneTransition(data.nextSceneName);
+                yield break;
+            }
         }
     }
 
@@ -689,6 +743,21 @@ public class ChatDialogueManager : MonoBehaviour
         yield return new WaitForSeconds(delay);
         IsDialoguePaused = false;
         IsTriggerActive = false;
+    }
+
+    // <summary>
+    /// 💡 [추가] 대화 CSV에서 isSceneTransition=TRUE로 표시된 줄까지 재생을 마치면 호출됩니다.
+    /// </summary>
+    private void TriggerSceneTransition(string sceneName)
+    {
+        if (string.IsNullOrEmpty(sceneName))
+        {
+            Debug.LogError("[ChatDialogueManager] isSceneTransition이 TRUE인데 nextSceneName이 비어있습니다! CSV를 확인하세요.");
+            return;
+        }
+
+        Debug.Log($"[시스템] 대화 종료 -> 씬 전환: {sceneName}");
+        SceneManager.LoadScene(sceneName);
     }
 
     private void ShowBranchUI(DialogueData data)

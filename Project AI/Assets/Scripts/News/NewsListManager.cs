@@ -233,6 +233,10 @@ public class NewsListManager : MonoBehaviour
         if (openNewsWindows.TryGetValue(data.id, out NewsCard existingWindow) && existingWindow != null)
         {
             existingWindow.transform.SetAsLastSibling();
+
+            PopupSpawnAnimation existingAnim = existingWindow.GetComponent<PopupSpawnAnimation>();
+            if (existingAnim != null) existingAnim.PlayPopAnimation();
+
             return;
         }
 
@@ -248,6 +252,9 @@ public class NewsListManager : MonoBehaviour
             RectTransform cardRect = newWindow.GetComponent<RectTransform>();
             windowManager.RepositionPopupWindow(cardRect);
         }
+
+        PopupSpawnAnimation newAnim = newWindow.GetComponent<PopupSpawnAnimation>();
+        if (newAnim != null) newAnim.PlayPopAnimation();
     }
 
     /// <summary>

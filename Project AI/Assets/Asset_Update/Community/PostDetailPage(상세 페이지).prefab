@@ -2479,6 +2479,7 @@ GameObject:
   - component: {fileID: 1069406661022692004}
   - component: {fileID: 7717921518863229491}
   - component: {fileID: 1543439075926663525}
+  - component: {fileID: 2439987028195633080}
   m_Layer: 5
   m_Name: "PostDetailPage(\uC0C1\uC138 \uD398\uC774\uC9C0)"
   m_TagString: Untagged
@@ -2629,6 +2630,20 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &2439987028195633080
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7294876630385585422}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 47eaafb32066cf744963917ae2cdfff5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PopupSpawnAnimation
+  animationSpeed: 15
+  scalePunchMultiplier: 1.1
 --- !u!1 &7559631374288287733
 GameObject:
   m_ObjectHideFlags: 0

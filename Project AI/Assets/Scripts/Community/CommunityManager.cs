@@ -196,6 +196,11 @@ public class CommunityManager : MonoBehaviour
         if (openPostWindows.TryGetValue(data.postID, out PostDetailPageUI existingWindow) && existingWindow != null)
         {
             existingWindow.transform.SetAsLastSibling();
+
+            PopupSpawnAnimation existingAnim = existingWindow.GetComponent<PopupSpawnAnimation>();
+            if (existingAnim != null) existingAnim.PlayPopAnimation();
+
+
             return;
         }
 
@@ -211,6 +216,9 @@ public class CommunityManager : MonoBehaviour
             RectTransform detailRect = newWindow.GetComponent<RectTransform>();
             windowManager.RepositionPopupWindow(detailRect);
         }
+
+        PopupSpawnAnimation newAnim = newWindow.GetComponent<PopupSpawnAnimation>();
+        if (newAnim != null) newAnim.PlayPopAnimation();
     }
 
     /// <summary>

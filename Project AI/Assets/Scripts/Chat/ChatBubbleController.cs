@@ -1,31 +1,44 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
 public class ChatBubbleController : MonoBehaviour
 {
     [Header("UI 요소 연결")]
-    public GameObject bubbleBgObject;   // Bubble_Bg 오브젝트 (대사 없을 때 숨기기 위함)
-    public TextMeshProUGUI nameText;     // USER_ChatName 내에 있는 NameText 연결용 (NPC는 인스펙터에서 비워둠)
-    public TextMeshProUGUI chatText;     // 대사 텍스트 컴포넌트
-    public Image chatImage;               // 독립된 순수 Image 컴포넌트
+    public GameObject bubbleBgObject;
+    public TextMeshProUGUI nameText;
+    public TextMeshProUGUI chatText;
+    public Image chatImage;
 
     [Header("말풍선 크기 제한")]
-    public LayoutElement chatTextLayoutElement;  // chatText 오브젝트에 붙은 LayoutElement 연결
+    public LayoutElement chatTextLayoutElement;
     public float maxWidth = 500f;
 
+    [Header("타이핑 효과 설정")]
+    [Tooltip("한 글자가 나타나는 간격 (초). CSV에서 개별 지정이 없을 때(0 이하) 쓰이는 기본값입니다.")]
+    public float defaultTypingSpeed = 0.03f;
+
+    private string fullDialogueText = "";
+    private float currentTypingSpeed = 0.03f;
+    private bool isNpc = false;
+    private Coroutine typingCoroutine;
+
+    public bool IsTypingComplete { get; private set; } = true;
 
     public void SetupBubble(DialogueData data)
     {
-        // --- [수정] 보낸 사람의 이름을 텍스트 컴포넌트에 반영 ---
         if (nameText != null)
         {
             nameText.text = data.speakerName;
         }
 
-        chatText.text = data.dialogueText;
+        fullDialogueText = data.dialogueText;
+        currentTypingSpeed = data.typingSpeed > 0f ? data.typingSpeed : defaultTypingSpeed;
+        isNpc = (data.speakerType != "USER");
 
-        // 이미지 제어 로직 추가
+        chatText.text = fullDialogueText;
+
         if (data.hasImage)
         {
             chatImage.gameObject.SetActive(true);
@@ -44,35 +57,86 @@ public class ChatBubbleController : MonoBehaviour
             chatImage.gameObject.SetActive(false);
         }
 
-        // 대사(text)가 비어있고 이미지만 있는 경우에만 배경 숨김
         bool hasText = !string.IsNullOrEmpty(data.dialogueText);
-        bool hasImage = data.hasImage;
-
         bubbleBgObject.SetActive(hasText);
 
-        // GetPreferredValues에서 가로 제한(maxWidth)을 넣어 계산
         if (hasText)
         {
             float targetMaxWidth = (data.speakerType == "USER") ? 468f : 328f;
 
-            // 1. 텍스트가 targetMaxWidth를 넘는지 확인
             if (chatText.preferredWidth > targetMaxWidth)
             {
-                // 넘으면 targetMaxWidth로 고정하여 줄바꿈 유도
                 chatTextLayoutElement.preferredWidth = targetMaxWidth;
             }
             else
             {
-                // 안 넘으면 텍스트 크기만큼만 차지하도록 설정
                 chatTextLayoutElement.preferredWidth = -1;
             }
-
             chatText.textWrappingMode = TextWrappingModes.Normal;
         }
+
         StartCoroutine(RebuildLayoutNextFrame());
+
+        if (hasText)
+        {
+            chatText.text = "";
+            if (typingCoroutine != null) StopCoroutine(typingCoroutine);
+            typingCoroutine = StartCoroutine(TypeTextCoroutine());
+        }
+        else
+        {
+            IsTypingComplete = true;
+        }
     }
 
-    private System.Collections.IEnumerator RebuildLayoutNextFrame()
+    private IEnumerator TypeTextCoroutine()
+    {
+        IsTypingComplete = false;
+
+        // 💡 실제 줄바꿈이 몇 줄로 될지 미리 확인 (렌더링만 하고 즉시 다시 비움)
+        chatText.text = fullDialogueText;
+        chatText.ForceMeshUpdate();
+        int lineCount = chatText.textInfo.lineCount;
+        chatText.text = "";
+        yield return null;
+
+        // 💡 [핵심] 한 줄이면 오른쪽→왼쪽, 두 줄 이상이면 왼쪽→오른쪽(원래 방식)
+        bool useRightToLeft = isNpc && lineCount <= 1;
+
+        if (useRightToLeft)
+        {
+            for (int i = fullDialogueText.Length; i >= 0; i--)
+            {
+                chatText.text = fullDialogueText.Substring(i);
+                yield return new WaitForSeconds(currentTypingSpeed);
+            }
+            chatText.text = fullDialogueText;
+        }
+        else
+        {
+            for (int i = 1; i <= fullDialogueText.Length; i++)
+            {
+                chatText.text = fullDialogueText.Substring(0, i);
+                yield return new WaitForSeconds(currentTypingSpeed);
+            }
+        }
+
+        IsTypingComplete = true;
+        typingCoroutine = null;
+    }
+
+    public void CompleteTypingInstantly()
+    {
+        if (typingCoroutine != null)
+        {
+            StopCoroutine(typingCoroutine);
+            typingCoroutine = null;
+        }
+        chatText.text = fullDialogueText;
+        IsTypingComplete = true;
+    }
+
+    private IEnumerator RebuildLayoutNextFrame()
     {
         yield return new WaitForEndOfFrame();
         Canvas.ForceUpdateCanvases();

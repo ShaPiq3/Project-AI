@@ -591,6 +591,11 @@ public class ImageGenerationManager : MonoBehaviour
             panelCanvasGroup.blocksRaycasts = true;
         }
         panelRect.DOAnchorPosX(shownPositionX, tweenDuration).SetEase(Ease.OutQuad);
+
+        if (WindowManager.Instance != null)
+        {
+            WindowManager.Instance.NotifyImageGenOpenedExternally();
+        }
     }
 
     public void ClosePanel()
@@ -605,5 +610,10 @@ public class ImageGenerationManager : MonoBehaviour
             panelCanvasGroup.blocksRaycasts = false;
         }
         panelRect.DOAnchorPosX(hiddenPositionX, tweenDuration).SetEase(Ease.InQuad);
+
+        if (WindowManager.Instance != null)
+        {
+            WindowManager.Instance.NotifyImageGenClosedExternally();
+        }
     }
 }
