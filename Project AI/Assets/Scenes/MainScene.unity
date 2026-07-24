@@ -1799,7 +1799,7 @@ GameObject:
   - component: {fileID: 72464295}
   - component: {fileID: 72464297}
   m_Layer: 5
-  m_Name: back_Btn
+  m_Name: "\uB4A4\uB85C\uAC00\uAE30_Btn"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1844,7 +1844,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 2510587824817993987, guid: 8143ff29a68cfcd4ab94e126ad50599d, type: 3}
+  m_Sprite: {fileID: 6551205261222892576, guid: b62702b6d0befa94aa97986b287c45ee, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -8348,7 +8348,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 7855507215018773084, guid: d93ed10d7f87e9e4b9090aa9ab02fda9, type: 3}
+  m_Sprite: {fileID: 88197800659836690, guid: 78d2c0a3f253ae442a3038fa60f18baa, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -29771,7 +29771,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 7855507215018773084, guid: d93ed10d7f87e9e4b9090aa9ab02fda9, type: 3}
+  m_Sprite: {fileID: 7570649126344461918, guid: 6dde8402a14a08643af85c44beec7301, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -31546,7 +31546,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 7855507215018773084, guid: d93ed10d7f87e9e4b9090aa9ab02fda9, type: 3}
+  m_Sprite: {fileID: 5860866601927906139, guid: f74fe3bae1a7a7749a37276240388d9b, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -35838,7 +35838,7 @@ GameObject:
   - component: {fileID: 1339730534}
   - component: {fileID: 1339730533}
   m_Layer: 5
-  m_Name: Promes_Btn
+  m_Name: "\uB4A4\uB85C\uAC00\uAE30_Btn"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -35939,7 +35939,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 2510587824817993987, guid: 8143ff29a68cfcd4ab94e126ad50599d, type: 3}
+  m_Sprite: {fileID: 6551205261222892576, guid: b62702b6d0befa94aa97986b287c45ee, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -43477,7 +43477,7 @@ GameObject:
   - component: {fileID: 1478080878}
   - component: {fileID: 1478080877}
   m_Layer: 5
-  m_Name: Pr_AD_Btn
+  m_Name: "doc_\uD504\uB85C\uBA54\uC2A4\uD53C\uB4DC\uBC31_Btn"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -46804,7 +46804,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 7855507215018773084, guid: d93ed10d7f87e9e4b9090aa9ab02fda9, type: 3}
+  m_Sprite: {fileID: -2369230002145957471, guid: 690c03c827159004e89dff4586178b49, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -57075,7 +57075,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 7855507215018773084, guid: d93ed10d7f87e9e4b9090aa9ab02fda9, type: 3}
+  m_Sprite: {fileID: 2283889030456754956, guid: 16f0eff7f8fa8604094818a7289e5b4e, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
