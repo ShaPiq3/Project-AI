@@ -2,78 +2,126 @@
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
-/// <summary>
-/// 아카이브, 뉴스 등 어느 창이든 상관없이 "수집 가능한 이미지" 오브젝트에 붙이세요.
-/// 다른 단서(ClueTextHoverEffect/ClueImageHoverEffect)와 동일하게
-/// DataLogManager.IsClueSearchModeActive("단서 수집 모드")가 켜져 있을 때만 동작합니다.
-/// 기존에 그 이미지에 다른 클릭 동작(확대보기 등)이 있어도 상관없도록 별도 리스너로 추가하세요.
-/// </summary>
 public class CollectibleImageIcon : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler
 {
     [Tooltip("ImageGenSlotItems.csv 의 ImageID 와 동일하게 입력")]
     public string imageID;
 
-    [Header("호버 시 색 표시 (선택 사항)")]
-    [SerializeField] private Color highlightColor = new Color(1f, 1f, 0.6f, 1f);
+    [Header("자동 하이라이트 설정")]
+    [SerializeField] private Color highlightOverlayColor = new Color(1f, 1f, 0f, 0.35f); // 반투명 노란색 덮개
 
-    private Image image;
-    private Color originalColor;
+    private GameObject generatedHighlightObj;
 
     private void Awake()
     {
-        image = GetComponent<Image>();
-        if (image != null)
-        {
-            originalColor = image.color;
-        }
+        CreateHighlightObjectAutomatically();
     }
 
-    /// <summary>CSV로 동적 생성되는 아이템(예: 뉴스)에서 Instantiate 직후 호출해서 자동 연결할 때 사용</summary>
+    /// <summary>
+    /// 원본 Image 컴포넌트의 크기, RectTransform, Sprite를 그대로 복사하여 
+    /// 자식 하이라이트 오브젝트를 코드로 자동 생성합니다.
+    /// </summary>
+    private void CreateHighlightObjectAutomatically()
+    {
+        Image myImage = GetComponent<Image>();
+        if (myImage == null) return;
+
+        // 1. 자식 GameObject 생성
+        generatedHighlightObj = new GameObject("Auto_Highlight_Overlay");
+        generatedHighlightObj.transform.SetParent(transform, false);
+
+        // 2. RectTransform 설정 (부모 크기에 100% 딱 맞게 앵커 설정)
+        RectTransform rect = generatedHighlightObj.AddComponent<RectTransform>();
+        rect.anchorMin = Vector2.zero;
+        rect.anchorMax = Vector2.one;
+        rect.sizeDelta = Vector2.zero;
+        rect.anchoredPosition = Vector2.zero;
+
+        // 3. Image 컴포넌트 설정 및 원본 Sprite 복사
+        Image highlightImg = generatedHighlightObj.AddComponent<Image>();
+        highlightImg.sprite = myImage.sprite;
+        highlightImg.type = myImage.type; // Sliced 등 원본 타일링 형태 유지
+        highlightImg.color = highlightOverlayColor;
+
+        // 💡 매우 중요: 하이라이트 이미지가 마우스 커서를 가려서 이벤트가 튀지 않도록 끔
+        highlightImg.raycastTarget = false;
+
+        // 시작할 땐 꺼둠
+        generatedHighlightObj.SetActive(false);
+    }
+
     public void Init(string id)
     {
         imageID = id;
     }
 
-    /// <summary>
-    /// 💡 [변경] 예전에는 ImageGenerationManager.IsCollectingMode를 확인했는데,
-    /// 이 값을 세팅하는 곳이 어디에도 없어서 항상 false로 고정되어 클릭이 막혀있었습니다.
-    /// 다른 단서들과 동일하게 DataLogManager의 단서 수집 모드를 기준으로 통일합니다.
-    /// </summary>
-    private bool IsInteractable()
+    private bool IsInteractable(out string failReason)
     {
-        if (DataLogManager.Instance == null) return false;
-        if (!DataLogManager.Instance.IsClueSearchModeActive) return false;
-        if (string.IsNullOrEmpty(imageID)) return false;
-        if (ImageGenerationManager.Instance == null || !ImageGenerationManager.Instance.IsImageValidForCurrentQuest(imageID)) return false;
+        if (DataLogManager.Instance == null)
+        {
+            failReason = "DataLogManager.Instance가 null입니다.";
+            return false;
+        }
+        if (!DataLogManager.Instance.IsClueSearchModeActive)
+        {
+            failReason = "단서 수집 모드가 꺼져있습니다.";
+            return false;
+        }
+        if (string.IsNullOrEmpty(imageID))
+        {
+            failReason = "imageID가 비어있습니다.";
+            return false;
+        }
+        if (ImageGenerationManager.Instance == null)
+        {
+            failReason = "ImageGenerationManager.Instance가 null입니다.";
+            return false;
+        }
+        if (!ImageGenerationManager.Instance.IsImageValidForCurrentQuest(imageID))
+        {
+            failReason = $"현재 퀘스트에 유효하지 않은 imageID('{imageID}')입니다.";
+            return false;
+        }
+        if (ImageGenerationManager.Instance.IsImageAlreadyRegistered(imageID))
+        {
+            failReason = $"이미 슬롯에 등록된 imageID('{imageID}')입니다.";
+            return false;
+        }
 
-        // 💡 [추가] 이미 이 이미지가 슬롯에 등록된 상태라면 더 이상 호버/클릭 반응하지 않음
-        if (ImageGenerationManager.Instance.IsImageAlreadyRegistered(imageID)) return false;
-
+        failReason = "통과";
         return true;
     }
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        if (!IsInteractable()) return;
-        if (image != null)
+        if (!IsInteractable(out _)) return;
+
+        if (generatedHighlightObj != null)
         {
-            image.color = highlightColor;
+            generatedHighlightObj.SetActive(true);
         }
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
-        if (image != null)
+        if (generatedHighlightObj != null)
         {
-            image.color = originalColor;
+            generatedHighlightObj.SetActive(false);
         }
     }
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        if (!IsInteractable()) return;
-        if (ImageGenerationManager.Instance == null) return;
+        if (!IsInteractable(out _)) return;
 
-        ImageGenerationManager.Instance.RegisterImageToSlot(imageID);
+        if (generatedHighlightObj != null)
+        {
+            generatedHighlightObj.SetActive(false);
+        }
+
+        if (ImageGenerationManager.Instance != null)
+        {
+            ImageGenerationManager.Instance.RegisterImageToSlot(imageID);
+        }
     }
 }

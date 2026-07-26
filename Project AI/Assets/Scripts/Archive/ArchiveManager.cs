@@ -55,7 +55,7 @@ public class ArchiveManager : MonoBehaviour
             archiveWindowManager.RestoreWindow();
         }
 
-        ActivateHierarchy(target); // 💡 여기선 SetActive + SetAsLastSibling만
+        ActivateHierarchy(target); // 💡 계층 활성화 및 최상위 창만 맨 앞으로 이동
 
         ScrollRect parentScrollRect = target.GetComponentInParent<ScrollRect>();
         StartCoroutine(OpenClueSourceRoutine(target, parentScrollRect));
@@ -67,10 +67,8 @@ public class ArchiveManager : MonoBehaviour
     {
         ScrollRect[] innerScrollRects = target.GetComponentsInChildren<ScrollRect>(true);
 
-        // 💡 [변경] 팝업 스케일 애니메이션이 끝날 때까지 넉넉히 기다림
-        //    (RestoreWindow의 AnimatePopUp이 스케일을 계속 바꾸는 동안은
-        //     스크롤/레이아웃 계산이 매 프레임 어긋남)
-        yield return new WaitForSeconds(0.5f); // 필요시 값 조절 (팝업 연출 시간보다 조금 더 길게)
+        // 💡 팝업 스케일 애니메이션이 끝날 때까지 넉넉히 기다림
+        yield return new WaitForSeconds(0.5f);
 
         for (int i = 0; i < 3; i++)
         {
@@ -109,7 +107,6 @@ public class ArchiveManager : MonoBehaviour
         ScrollToTarget(scrollRect, target);
     }
 
-
     /// <summary>
     /// 스크롤뷰 안의 특정 자식(target)이 보이도록 Content 위치를 이동시킵니다.
     /// </summary>
@@ -117,9 +114,6 @@ public class ArchiveManager : MonoBehaviour
     {
         if (scrollRect == null || target == null || scrollRect.viewport == null || scrollRect.content == null) return;
 
-        // 💡 [변경] Canvas.ForceUpdateCanvases()만으로는 Layout Group이 
-        // 방금 활성화된 자식들의 위치를 완전히 재계산했다고 보장할 수 없으므로,
-        // Content 전체를 강제로 즉시 리빌드해서 target.localPosition이 최신 값이 되도록 함
         LayoutRebuilder.ForceRebuildLayoutImmediate(scrollRect.content);
         Canvas.ForceUpdateCanvases();
 
@@ -140,23 +134,43 @@ public class ArchiveManager : MonoBehaviour
     }
 
     /// <summary>
-    /// target부터 최상위까지 올라가며, 비활성화된 부모 오브젝트(개별 문서 창 등)를 전부 활성화합니다.
-    /// 문서들이 서로 독립적이라 여러 개 동시에 열려있어도 문제없는 구조에 적합합니다.
+    /// target부터 최상위까지 올라가며, 비활성화된 부모 오브젝트를 전부 활성화하고
+    /// 단서가 포함된 최상위 창(Window)만 화면 맨 앞으로 가져옵니다.
     /// </summary>
     private void ActivateHierarchy(RectTransform target)
     {
         Transform current = target;
+        Transform topWindow = null;
+
         while (current != null)
         {
+            // 1. 비활성화된 부모 패널들은 전부 켜줍니다.
             if (!current.gameObject.activeSelf)
             {
                 current.gameObject.SetActive(true);
             }
 
-            current.SetAsLastSibling();
+            // 2. InGameWindowManager가 붙어있거나 Canvas 바로 아래에 있는 최상위 창 패널을 탐색합니다.
+            if (current.GetComponent<InGameWindowManager>() != null || (current.parent != null && current.parent.GetComponent<Canvas>() != null))
+            {
+                if (topWindow == null)
+                {
+                    topWindow = current;
+                }
+            }
+
             current = current.parent;
         }
-        // 💡 [삭제] 여기서 즉시 리셋하지 않음 - 코루틴에서 애니메이션 끝난 뒤 처리
+
+        // 3. 내부 자식 요소(Row_Logo 등)의 순서는 건드리지 않고, '최상위 창'만 맨 앞으로 올립니다.
+        if (topWindow != null)
+        {
+            topWindow.SetAsLastSibling();
+        }
+        else if (target != null)
+        {
+            target.root.SetAsLastSibling();
+        }
     }
 
     private void ResetInternalScrollViews(RectTransform target)

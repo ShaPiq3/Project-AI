@@ -17,7 +17,7 @@ public class VNDialogueManager : MonoBehaviour
     [SerializeField] private Image standingMidImage;
     [SerializeField] private Image standingRightImage;
 
-    [Tooltip("선택지가 뜰 때 비활성화(숨김) 처리할 대사창(말상자) 부모 오브젝트를 드래그 앤 드롭해 주세요.")]
+    [Tooltip("선택지 출현 시 혹은 특정 이펙트(hide_window) 재생 시 숨길 대사창(말상자) 부모 오브젝트를 드래그 앤 드롭해 주세요.")]
     [SerializeField] private GameObject dialogueWindow;
 
     [Header("Audio References")]
@@ -39,10 +39,6 @@ public class VNDialogueManager : MonoBehaviour
     [SerializeField] private float whiteinDuration = 1.5f;
     [SerializeField] private float fadeOutDuration = 1.5f;
 
-    [Header("Scene Transition")]
-    [Tooltip("대화가 끝났을 때 자동으로 이동할 씬 이름. Build Settings에 등록된 정확한 씬 이름과 일치해야 합니다.")]
-    [SerializeField] private string nextSceneName = "MainScene";
-
     private List<DialogueRow> dialogueRows;
     private int currentLineIndex = 0;
     private string currentBgmName = "";
@@ -50,10 +46,12 @@ public class VNDialogueManager : MonoBehaviour
 
     private Coroutine typingCoroutine;
     private Coroutine fadeCoroutine;
+    private Coroutine effectSequenceCoroutine;
     private bool isTyping = false;
     private string completeDialogue = "";
 
     private bool isChoiceActive = false;
+    private bool isEffectPlaying = false;
 
     private Image fullScreenFadeImage;
     private Image baseBlackImage;
@@ -63,8 +61,6 @@ public class VNDialogueManager : MonoBehaviour
     private Image leftDissolveTemp;
     private Image midDissolveTemp;
     private Image rightDissolveTemp;
-
-
 
     void Awake()
     {
@@ -77,16 +73,16 @@ public class VNDialogueManager : MonoBehaviour
         CreateBgEffectOverlayObject();
 
         if (backgroundImage != null)
-            bgDissolveTemp = CreateDissolveTempObject("BG_Dissolve_Temp", backgroundImage.transform.parent, backgroundImage.transform.GetSiblingIndex() + 1);
+            bgDissolveTemp = CreateDissolveTempObject(backgroundImage, "BG_Dissolve_Temp");
 
         if (standingLeftImage != null)
-            leftDissolveTemp = CreateDissolveTempObject("Left_Dissolve_Temp", standingLeftImage.transform.parent, standingLeftImage.transform.GetSiblingIndex() + 1);
+            leftDissolveTemp = CreateDissolveTempObject(standingLeftImage, "Left_Dissolve_Temp");
 
         if (standingMidImage != null)
-            midDissolveTemp = CreateDissolveTempObject("Mid_Dissolve_Temp", standingMidImage.transform.parent, standingMidImage.transform.GetSiblingIndex() + 1);
+            midDissolveTemp = CreateDissolveTempObject(standingMidImage, "Mid_Dissolve_Temp");
 
         if (standingRightImage != null)
-            rightDissolveTemp = CreateDissolveTempObject("Right_Dissolve_Temp", standingRightImage.transform.parent, standingRightImage.transform.GetSiblingIndex() + 1);
+            rightDissolveTemp = CreateDissolveTempObject(standingRightImage, "Right_Dissolve_Temp");
     }
 
     void Start()
@@ -96,7 +92,7 @@ public class VNDialogueManager : MonoBehaviour
 
         if (dialogueRows != null)
         {
-            dialogueRows.RemoveAll(row => row == null || (string.IsNullOrEmpty(row.speaker) && string.IsNullOrEmpty(row.dialogue)));
+            dialogueRows.RemoveAll(row => row == null || (string.IsNullOrEmpty(row.speaker) && string.IsNullOrEmpty(row.dialogue) && string.IsNullOrEmpty(row.effect) && string.IsNullOrEmpty(row.choice1)));
         }
 
         if (choiceContainer != null) choiceContainer.SetActive(false);
@@ -119,7 +115,7 @@ public class VNDialogueManager : MonoBehaviour
 
     void Update()
     {
-        if (isChoiceActive) return;
+        if (isChoiceActive || isEffectPlaying) return;
 
 #if ENABLE_INPUT_SYSTEM
         if (UnityEngine.InputSystem.Keyboard.current != null && UnityEngine.InputSystem.Keyboard.current.spaceKey.wasPressedThisFrame)
@@ -179,18 +175,20 @@ public class VNDialogueManager : MonoBehaviour
         SetStretchAnchor(overlayObj.GetComponent<RectTransform>());
     }
 
-    private Image CreateDissolveTempObject(string name, Transform parent, int siblingIndex)
+    private Image CreateDissolveTempObject(Image sourceImage, string name)
     {
-        if (parent == null) return null;
-        GameObject obj = new GameObject(name);
-        obj.transform.SetParent(parent, false);
-        obj.transform.SetSiblingIndex(siblingIndex);
-        Image img = obj.AddComponent<Image>();
-        img.color = new Color(1, 1, 1, 0f);
-        img.raycastTarget = false;
-        img.gameObject.SetActive(false);
-        SetStretchAnchor(obj.GetComponent<RectTransform>());
-        return img;
+        if (sourceImage == null) return null;
+
+        Image tempImg = Instantiate(sourceImage, sourceImage.transform.parent);
+        tempImg.name = name;
+        tempImg.transform.SetSiblingIndex(sourceImage.transform.GetSiblingIndex());
+
+        var extraManager = tempImg.GetComponent<VNDialogueManager>();
+        if (extraManager != null) Destroy(extraManager);
+
+        tempImg.color = new Color(1f, 1f, 1f, 0f);
+        tempImg.gameObject.SetActive(false);
+        return tempImg;
     }
 
     private void SetStretchAnchor(RectTransform rect)
@@ -205,7 +203,7 @@ public class VNDialogueManager : MonoBehaviour
 
     private void OnScreenClicked()
     {
-        if (isChoiceActive) return;
+        if (isChoiceActive || isEffectPlaying) return;
         HandleInput();
     }
 
@@ -265,15 +263,13 @@ public class VNDialogueManager : MonoBehaviour
 
     private void TriggerExitVisualNovel()
     {
-        Debug.Log("[시스템] 비주얼 노벨 시나리오 종료 -> MainScene으로 전환");
+        Debug.Log("[시스템] 비주얼 노벨 시나리오 종료 -> 작동 정지 및 종료 처리");
 
-        if (string.IsNullOrEmpty(nextSceneName))
-        {
-            Debug.LogError("[VNDialogueManager] nextSceneName이 비어있습니다! Inspector에서 이동할 씬 이름을 지정해주세요.");
-            return;
-        }
-
-        UnityEngine.SceneManagement.SceneManager.LoadScene(nextSceneName);
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#else
+        Application.Quit();
+#endif
     }
 
     private void PlayLine(int index)
@@ -289,14 +285,7 @@ public class VNDialogueManager : MonoBehaviour
 
         DialogueRow row = dialogueRows[index];
 
-        // 🌟 [핵심 변경] 재생 직전, 이번 행에 선택지가 있는지 "선행 검사"합니다.
         bool hasChoice = !string.IsNullOrEmpty(row.choice1);
-
-        if (dialogueWindow != null)
-        {
-            // 선택지가 있으면 처음부터 대사창을 켜지 않고 완전히 꺼둡니다. 텀이 생기지 않습니다.
-            dialogueWindow.SetActive(!hasChoice);
-        }
 
         string effectRaw = !string.IsNullOrEmpty(row.effect) ? row.effect.Trim() : "";
         List<string> activeEffects = new List<string>();
@@ -309,7 +298,28 @@ public class VNDialogueManager : MonoBehaviour
             }
         }
 
+        bool hasDialogueText = !string.IsNullOrEmpty(row.dialogue);
+        bool hasActiveEffects = (activeEffects.Count > 0);
+
+        // 🌟 [명령어 구별] 임시 숨김(hide_window)과 무조건 유지 숨김(hide_window_keep) 분석
+        bool shouldHideWindow = activeEffects.Contains("hide_window");
+        bool shouldKeepHideWindow = activeEffects.Contains("hide_window_keep");
+
+        if (dialogueWindow != null)
+        {
+            // 둘 중 하나라도 걸려있으면 연출을 위해 대사창을 강제로 꺼둡니다.
+            if ((hasActiveEffects && hasDialogueText) || shouldHideWindow || shouldKeepHideWindow)
+            {
+                dialogueWindow.SetActive(false);
+            }
+            else
+            {
+                dialogueWindow.SetActive(!hasChoice);
+            }
+        }
+
         if (fadeCoroutine != null) StopCoroutine(fadeCoroutine);
+        if (effectSequenceCoroutine != null) StopCoroutine(effectSequenceCoroutine);
 
         if (!activeEffects.Contains("whitein_bg") && !activeEffects.Contains("fadein_bg"))
         {
@@ -319,24 +329,18 @@ public class VNDialogueManager : MonoBehaviour
         if (backgroundImage != null) backgroundImage.color = Color.white;
         if (bgDissolveTemp != null) bgDissolveTemp.gameObject.SetActive(false);
 
-        if (speakerText != null && !string.IsNullOrEmpty(row.speaker)) speakerText.text = row.speaker;
-        else if (speakerText != null) speakerText.text = "";
-
-        completeDialogue = !string.IsNullOrEmpty(row.dialogue) ? row.dialogue : "";
         if (typingCoroutine != null) StopCoroutine(typingCoroutine);
 
-        // 🌟 선택지가 없을 때만 타이핑 연출을 시작합니다.
-        if (!hasChoice)
-        {
-            typingCoroutine = StartCoroutine(TypeTextCoroutine(completeDialogue, row));
-        }
-        else
-        {
-            // 선택지가 있다면 텍스트 처리 단계를 즉시 통과시키고 선택지 버튼을 바로 출력합니다.
-            if (dialogueText != null) dialogueText.text = "";
-            CheckAndShowChoices(row);
-        }
+        effectSequenceCoroutine = StartCoroutine(PlayEffectsAndDialogueSequence(row, activeEffects, hasChoice, shouldHideWindow, shouldKeepHideWindow));
+    }
 
+    private IEnumerator PlayEffectsAndDialogueSequence(DialogueRow row, List<string> activeEffects, bool hasChoice, bool shouldHideWindow, bool shouldKeepHideWindow)
+    {
+        isEffectPlaying = true;
+
+        float maxEffectDuration = 0f;
+
+        // 1. 배경 이미지 변경 연출
         bool isFadeBG = activeEffects.Contains("fadein_bg");
         bool isDissolveBG = activeEffects.Contains("dissolve_bg");
 
@@ -345,8 +349,11 @@ public class VNDialogueManager : MonoBehaviour
             Sprite nextBgSprite = Resources.Load<Sprite>($"Backgrounds/{row.background}");
             if (nextBgSprite != null)
             {
-                if (isDissolveBG && backgroundImage.sprite != null && backgroundImage.gameObject.activeSelf)
+                if (isDissolveBG && backgroundImage.sprite != nextBgSprite && backgroundImage.gameObject.activeSelf)
+                {
                     fadeCoroutine = StartCoroutine(DissolveImageCoroutine(backgroundImage, bgDissolveTemp, nextBgSprite, dissolveDuration));
+                    maxEffectDuration = Mathf.Max(maxEffectDuration, dissolveDuration);
+                }
                 else
                 {
                     backgroundImage.sprite = nextBgSprite;
@@ -355,6 +362,7 @@ public class VNDialogueManager : MonoBehaviour
             }
         }
 
+        // 2. 캐릭터 스탠딩 이미지 변경 연출
         bool isFadeLeft = activeEffects.Contains("fadein_left");
         bool isFadeMid = activeEffects.Contains("fadein_mid");
         bool isFadeRight = activeEffects.Contains("fadein_right");
@@ -363,10 +371,16 @@ public class VNDialogueManager : MonoBehaviour
         bool isDissolveMid = activeEffects.Contains("dissolve_mid");
         bool isDissolveRight = activeEffects.Contains("dissolve_right");
 
+        if (isDissolveLeft || isDissolveMid || isDissolveRight)
+        {
+            maxEffectDuration = Mathf.Max(maxEffectDuration, dissolveStandingDuration);
+        }
+
         UpdateStandingCharacter(row.standingLeft, standingLeftImage, leftDissolveTemp, isFadeLeft, isDissolveLeft, dissolveStandingDuration);
         UpdateStandingCharacter(row.standingMid, standingMidImage, midDissolveTemp, isFadeMid, isDissolveMid, dissolveStandingDuration);
         UpdateStandingCharacter(row.standingRight, standingRightImage, rightDissolveTemp, isFadeRight, isDissolveRight, dissolveStandingDuration);
 
+        // 3. 오디오 연출 재생
         if (!string.IsNullOrEmpty(row.bgm) && bgmSource != null)
         {
             if (row.bgm.Equals("StopBGM", System.StringComparison.OrdinalIgnoreCase))
@@ -413,6 +427,7 @@ public class VNDialogueManager : MonoBehaviour
             if (sfxClip != null) sfxSource.PlayOneShot(sfxClip);
         }
 
+        // 4. 화면 이펙트 연출 재생
         if (activeEffects.Count > 0)
         {
             if (activeEffects.Contains("fadein_bg"))
@@ -421,17 +436,26 @@ public class VNDialogueManager : MonoBehaviour
                 {
                     bgEffectOverlayImage.color = Color.black;
                     fadeCoroutine = StartCoroutine(OverlayFadeInCoroutine(bgEffectOverlayImage, Color.black, fadeOutDuration));
+                    maxEffectDuration = Mathf.Max(maxEffectDuration, fadeOutDuration);
                 }
             }
 
             if (activeEffects.Contains("fadein_target"))
             {
-                if (backgroundImage != null) fadeCoroutine = StartCoroutine(FadeInTargetCoroutine(backgroundImage));
+                if (backgroundImage != null)
+                {
+                    fadeCoroutine = StartCoroutine(FadeInTargetCoroutine(backgroundImage));
+                    maxEffectDuration = Mathf.Max(maxEffectDuration, fadeDuration);
+                }
             }
 
             if (activeEffects.Contains("whiteout_bg"))
             {
-                if (bgEffectOverlayImage != null) fadeCoroutine = StartCoroutine(OverlayFadeCoroutine(bgEffectOverlayImage, Color.white, whiteoutDuration));
+                if (bgEffectOverlayImage != null)
+                {
+                    fadeCoroutine = StartCoroutine(OverlayFadeCoroutine(bgEffectOverlayImage, Color.white, whiteoutDuration));
+                    maxEffectDuration = Mathf.Max(maxEffectDuration, whiteoutDuration);
+                }
             }
 
             if (activeEffects.Contains("whitein_bg"))
@@ -440,17 +464,75 @@ public class VNDialogueManager : MonoBehaviour
                 {
                     bgEffectOverlayImage.color = Color.white;
                     fadeCoroutine = StartCoroutine(OverlayFadeInCoroutine(bgEffectOverlayImage, Color.white, whiteinDuration));
+                    maxEffectDuration = Mathf.Max(maxEffectDuration, whiteinDuration);
                 }
             }
 
             if (activeEffects.Contains("fadeout_bg"))
             {
-                if (bgEffectOverlayImage != null) fadeCoroutine = StartCoroutine(OverlayFadeCoroutine(bgEffectOverlayImage, Color.black, fadeOutDuration));
+                if (bgEffectOverlayImage != null)
+                {
+                    fadeCoroutine = StartCoroutine(OverlayFadeCoroutine(bgEffectOverlayImage, Color.black, fadeOutDuration));
+                    maxEffectDuration = Mathf.Max(maxEffectDuration, fadeOutDuration);
+                }
             }
 
-            if (isFadeLeft && standingLeftImage != null) fadeCoroutine = StartCoroutine(FadeInTargetCoroutine(standingLeftImage));
-            if (isFadeMid && standingMidImage != null) fadeCoroutine = StartCoroutine(FadeInTargetCoroutine(standingMidImage));
-            if (isFadeRight && standingRightImage != null) fadeCoroutine = StartCoroutine(FadeInTargetCoroutine(standingRightImage));
+            if (isFadeLeft && standingLeftImage != null)
+            {
+                fadeCoroutine = StartCoroutine(FadeInTargetCoroutine(standingLeftImage));
+                maxEffectDuration = Mathf.Max(maxEffectDuration, fadeDuration);
+            }
+            if (isFadeMid && standingMidImage != null)
+            {
+                fadeCoroutine = StartCoroutine(FadeInTargetCoroutine(standingMidImage));
+                maxEffectDuration = Mathf.Max(maxEffectDuration, fadeDuration);
+            }
+            if (isFadeRight && standingRightImage != null)
+            {
+                fadeCoroutine = StartCoroutine(FadeInTargetCoroutine(standingRightImage));
+                maxEffectDuration = Mathf.Max(maxEffectDuration, fadeDuration);
+            }
+        }
+
+        // 5. 모든 연출 재생이 끝날 때까지 대기
+        if (maxEffectDuration > 0f)
+        {
+            yield return new WaitForSeconds(maxEffectDuration);
+        }
+
+        isEffectPlaying = false;
+
+        bool hasDialogueText = !string.IsNullOrEmpty(row.dialogue);
+
+        if (!hasChoice)
+        {
+            if (speakerText != null && !string.IsNullOrEmpty(row.speaker))
+            {
+                speakerText.text = row.speaker;
+            }
+
+            // 🌟 [조건 처리] 'hide_window_keep'을 사용했다면 연출이 끝나도 대사창을 활성화하지 않습니다.
+            // 다음 마우스 클릭이나 키보드 입력이 일어날 때까지 화면은 대사창이 없는 채로 유지됩니다.
+            if (dialogueWindow != null)
+            {
+                dialogueWindow.SetActive(!shouldKeepHideWindow);
+            }
+
+            // 'hide_window_keep'일 때는 타이핑을 생략하거나 바로 다음 줄 클릭 대기 상태로 이행합니다.
+            if (hasDialogueText && !shouldKeepHideWindow)
+            {
+                completeDialogue = row.dialogue;
+                typingCoroutine = StartCoroutine(TypeTextCoroutine(completeDialogue, row));
+            }
+            else
+            {
+                isTyping = false;
+            }
+        }
+        else
+        {
+            if (dialogueText != null) dialogueText.text = "";
+            CheckAndShowChoices(row);
         }
     }
 
@@ -539,27 +621,37 @@ public class VNDialogueManager : MonoBehaviour
     private void UpdateStandingCharacter(string spriteName, Image mainImage, Image tempImage, bool isFade, bool isDissolve, float duration)
     {
         if (mainImage == null) return;
+
         if (string.IsNullOrEmpty(spriteName))
         {
             mainImage.gameObject.SetActive(false);
             if (tempImage != null) tempImage.gameObject.SetActive(false);
+            return;
+        }
+
+        Sprite nextSprite = Resources.Load<Sprite>($"Sprites/{spriteName}");
+        if (nextSprite == null)
+        {
+            mainImage.gameObject.SetActive(false);
+            if (tempImage != null) tempImage.gameObject.SetActive(false);
+            return;
+        }
+
+        if (mainImage.gameObject.activeSelf && mainImage.sprite == nextSprite)
+        {
+            return;
+        }
+
+        if (isDissolve)
+        {
+            fadeCoroutine = StartCoroutine(DissolveImageCoroutine(mainImage, tempImage, nextSprite, duration));
         }
         else
         {
-            Sprite nextSprite = Resources.Load<Sprite>($"Sprites/{spriteName}");
-            if (nextSprite != null)
-            {
-                if (isDissolve && mainImage.gameObject.activeSelf && mainImage.sprite != null && mainImage.sprite != nextSprite)
-                    fadeCoroutine = StartCoroutine(DissolveImageCoroutine(mainImage, tempImage, nextSprite, duration));
-                else
-                {
-                    mainImage.gameObject.SetActive(true);
-                    mainImage.sprite = nextSprite;
-                    mainImage.color = new Color(1f, 1f, 1f, isFade ? 0f : 1f);
-                    mainImage.material = null;
-                }
-            }
-            else mainImage.gameObject.SetActive(false);
+            mainImage.gameObject.SetActive(true);
+            mainImage.sprite = nextSprite;
+            mainImage.color = new Color(1f, 1f, 1f, isFade ? 0f : 1f);
+            mainImage.material = null;
         }
     }
 
@@ -592,24 +684,33 @@ public class VNDialogueManager : MonoBehaviour
     private IEnumerator DissolveImageCoroutine(Image mainImage, Image tempImage, Sprite nextSprite, float duration)
     {
         if (mainImage == null || tempImage == null || nextSprite == null) yield break;
-        tempImage.gameObject.SetActive(true);
-        tempImage.sprite = mainImage.sprite;
-        tempImage.color = new Color(1, 1, 1, 1f);
-        mainImage.gameObject.SetActive(true);
+
+        if (mainImage.gameObject.activeSelf && mainImage.sprite != null)
+        {
+            tempImage.gameObject.SetActive(true);
+            tempImage.sprite = mainImage.sprite;
+            tempImage.color = new Color(1f, 1f, 1f, 1f);
+        }
+        else
+        {
+            tempImage.gameObject.SetActive(false);
+        }
+
+        mainImage.color = new Color(1f, 1f, 1f, 0f);
         mainImage.sprite = nextSprite;
-        mainImage.color = new Color(1, 1, 1, 0f);
+        mainImage.gameObject.SetActive(true);
 
         float elapsed = 0.0f;
         while (elapsed < duration)
         {
             elapsed += Time.deltaTime;
             float progress = Mathf.Clamp01(elapsed / duration);
-            mainImage.color = new Color(1, 1, 1, progress);
-            tempImage.color = new Color(1, 1, 1, 1f - progress);
+
+            mainImage.color = new Color(1f, 1f, 1f, progress);
             yield return null;
         }
-        mainImage.color = new Color(1, 1, 1, 1f);
-        tempImage.color = new Color(1, 1, 1, 0f);
+
+        mainImage.color = new Color(1f, 1f, 1f, 1f);
         tempImage.gameObject.SetActive(false);
     }
 

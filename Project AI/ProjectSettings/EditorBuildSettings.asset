@@ -12,7 +12,7 @@ EditorBuildSettings:
     path: Assets/Scenes/VncScene.unity
     guid: 5b456eac4471ccc449851a03a6c21ba0
   - enabled: 1
-    path: Assets/Scenes/VNScene.unity
+    path: Assets/Scenes/VNScene_1.unity
     guid: c4d4d1028b8817c4eb67af4c169a0ae6
   - enabled: 1
     path: Assets/Scenes/MainScene.unity
