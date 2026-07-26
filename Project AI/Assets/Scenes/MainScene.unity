@@ -65050,7 +65050,7 @@ MonoBehaviour:
   myTaskbarIndex: 0
   subPanels: []
   animationSpeed: 15
-  scalePunchMultiplier: 1.1
+  scalePunchMultiplier: 1
 --- !u!114 &2088523919
 MonoBehaviour:
   m_ObjectHideFlags: 0

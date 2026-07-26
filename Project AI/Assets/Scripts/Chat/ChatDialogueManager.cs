@@ -653,10 +653,6 @@ public class ChatDialogueManager : MonoBehaviour
                     {
                         DataLogManager.Instance.NotifyTriggerStarted();
 
-                        // 💡 [추가] 이미지 생성 트리거가 켜질 때는 단서 수집(DataLog) 버튼을 강제로 꺼둠
-                        // (NotifyTriggerStarted가 activeTriggerCount를 올려서 clueCollectButton도 같이
-                        //  켜버리는 기존 동작을 여기서 다시 덮어씁니다)
-                        DataLogManager.Instance.SetClueCollectButtonInteractable(false);
                     }
                 }
             }
@@ -677,7 +673,7 @@ public class ChatDialogueManager : MonoBehaviour
 
                     if (chatScrollRect != null) chatScrollRect.verticalNormalizedPosition = 0f;
 
-                    if (controller != null && !isUser)
+                    if (controller != null && isUser) // 💡 [변경] USER일 때만 타이핑 완료를 기다림
                     {
                         while (!controller.IsTypingComplete)
                         {

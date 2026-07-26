@@ -77,18 +77,16 @@ public class ChatBubbleController : MonoBehaviour
 
         StartCoroutine(RebuildLayoutNextFrame());
 
-        if (hasText)
-        {
-            if (isNpc)
+        if(hasText) { 
+            if (!isNpc) // 💡 [변경] USER일 때 타이핑 효과 적용
             {
-                // NPC는 기존 타이핑 효과 유지
                 chatText.text = "";
                 if (typingCoroutine != null) StopCoroutine(typingCoroutine);
                 typingCoroutine = StartCoroutine(TypeTextCoroutine());
             }
             else
             {
-                // 💡 USER는 타이핑 효과 없이 즉시 전체 텍스트 표시
+                // 💡 [변경] NPC는 타이핑 효과 없이 즉시 전체 텍스트 표시
                 if (typingCoroutine != null)
                 {
                     StopCoroutine(typingCoroutine);
@@ -115,8 +113,8 @@ public class ChatBubbleController : MonoBehaviour
         chatText.text = "";
         yield return null;
 
-        // 💡 [핵심] 한 줄이면 오른쪽→왼쪽, 두 줄 이상이면 왼쪽→오른쪽(원래 방식)
-        bool useRightToLeft = isNpc && lineCount <= 1;
+        
+        bool useRightToLeft = !isNpc && lineCount <= 1;
 
         if (useRightToLeft)
         {

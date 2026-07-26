@@ -138,7 +138,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DocumentBubbleController
   loadingGroup: {fileID: 8810899651133068199}
   loadingFillImage: {fileID: 972275899774495163}
-  completeGroup: {fileID: 6364450648511559925}
+  loadingText: {fileID: 4364675678978425912}
   completeText: {fileID: 749109546880347344}
   completeMessage: "\uB2E4\uC6B4\uB85C\uB4DC \uC644\uB8CC"
   defaultLoadingDuration: 2
