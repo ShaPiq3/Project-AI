@@ -197,6 +197,18 @@ public class DataLogManager : MonoBehaviour
     }
 
     /// <summary>
+    /// 💡 [추가] 다른 트리거(이미지 생성 등)와 상호 배타적으로 동작하도록,
+    /// 내부 카운터와 무관하게 clueCollectButton의 interactable을 강제로 설정합니다.
+    /// </summary>
+    public void SetClueCollectButtonInteractable(bool value)
+    {
+        if (clueCollectButton != null)
+        {
+            clueCollectButton.interactable = value;
+        }
+    }
+
+    /// <summary>
     /// 💡 트리거 하나가 완료(답변 생성/판정 완료)될 때 호출합니다.
     /// 다른 트리거가 아직 진행 중이면 버튼은 계속 켜진 채로 유지됩니다.
     /// </summary>

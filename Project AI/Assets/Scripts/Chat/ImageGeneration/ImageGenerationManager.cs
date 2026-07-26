@@ -145,6 +145,18 @@ public class ImageGenerationManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 💡 [추가] 다른 트리거(단서 수집 등)와 상호 배타적으로 동작하도록,
+    /// toggleButton의 interactable을 강제로 설정합니다.
+    /// </summary>
+    public void SetToggleButtonInteractable(bool value)
+    {
+        if (toggleButton != null)
+        {
+            toggleButton.interactable = value;
+        }
+    }
+
     // =========================================================
     // CSV 파싱
     // =========================================================
@@ -647,5 +659,20 @@ public class ImageGenerationManager : MonoBehaviour
         if (!layoutByQuestID.TryGetValue(currentQuestID, out var layouts)) return false;
 
         return layouts.Exists(l => l.keyword == itemData.keyword);
+    }
+
+    /// <summary>
+    /// 💡 [추가] 이 imageID에 해당하는 슬롯이 현재 활성 퀘스트에서 이미 채워졌는지(등록 완료됐는지) 확인합니다.
+    /// CollectibleImageIcon이 "이미 등록한 이미지는 더 이상 호버/클릭 반응 안 함" 처리를 할 때 사용합니다.
+    /// </summary>
+    public bool IsImageAlreadyRegistered(string imageID)
+    {
+        if (!isUnlocked || currentQuestID == null) return false;
+        if (string.IsNullOrEmpty(imageID)) return false;
+        if (!itemsByImageID.TryGetValue(imageID, out var itemData)) return false;
+        if (!runtimeByQuestID.TryGetValue(currentQuestID, out var runtimeSlots)) return false;
+
+        var slot = runtimeSlots.Find(s => s.keyword == itemData.keyword);
+        return slot != null && slot.isFilled && slot.filledUniqueID == itemData.uniqueID;
     }
 }

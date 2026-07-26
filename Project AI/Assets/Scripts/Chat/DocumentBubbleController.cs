@@ -1,11 +1,14 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using TMPro; // 💡 추가
 using System.Collections;
 
 /// <summary>
 /// 채팅창 안에 "문서 요약 패널 열기" 전용으로 뜨는 특수 말풍선.
-/// 표시되면 로딩바가 차오르고, 다 차면 버튼 없이 바로 문서 패널이 열립니다.
+/// 표시되면 대기 상태로 있다가, 클릭하면 로딩바가 차오르고 다 차면 문서 패널이 열립니다.
+/// 로딩이 끝나면 "다운로드 완료" 텍스트가 표시됩니다.
+/// 한 번 로딩이 끝난 뒤에는 버블을 다시 클릭하면 로딩 없이 바로 문서 패널이 재오픈됩니다.
 /// </summary>
 public class DocumentBubbleController : MonoBehaviour, IPointerClickHandler
 {
@@ -13,33 +16,52 @@ public class DocumentBubbleController : MonoBehaviour, IPointerClickHandler
     [SerializeField] private GameObject loadingGroup;   // 로딩바 전체를 감싸는 오브젝트
     [SerializeField] private Image loadingFillImage;    // Fill Amount로 차오르는 이미지
 
+    [Header("완료 표시 UI")]
+    [SerializeField] private GameObject completeGroup;      // "다운로드 완료" 문구를 감싸는 오브젝트 (없으면 completeText만 써도 됨)
+    [SerializeField] private TMP_Text completeText;         // 완료 텍스트
+    [SerializeField] private string completeMessage = "다운로드 완료";
+
     [Header("기본값")]
     [SerializeField] private float defaultLoadingDuration = 2f;
 
     private string targetDocumentID;
+    private float loadingDuration;
+
+    private bool isLoading = false;
     private bool isLoadingComplete = false;
 
-    /// <summary>
-    /// ChatDialogueManager가 이 버블을 생성한 직후 호출합니다.
-    /// </summary>
     public void Setup(DialogueData data)
     {
         targetDocumentID = data.documentID;
+        loadingDuration = data.bubbleLoadingDuration > 0f ? data.bubbleLoadingDuration : defaultLoadingDuration;
+
+        isLoading = false;
         isLoadingComplete = false;
 
-        float duration = data.bubbleLoadingDuration > 0f ? data.bubbleLoadingDuration : defaultLoadingDuration;
-
-        // 시작 상태: 로딩바 보임
-        if (loadingGroup != null) loadingGroup.SetActive(true);
+        if (loadingGroup != null) loadingGroup.SetActive(false);
         if (loadingFillImage != null) loadingFillImage.fillAmount = 0f;
 
-        StartCoroutine(LoadThenOpenDocument(duration));
+        // 💡 추가: 완료 문구는 처음엔 꺼둠
+        if (completeGroup != null) completeGroup.SetActive(false);
+        if (completeText != null)
+        {
+            completeText.text = completeMessage;
+            completeText.gameObject.SetActive(false);
+        }
     }
 
     private IEnumerator LoadThenOpenDocument(float duration)
     {
-        float elapsed = 0f;
+        isLoading = true;
 
+        if (loadingGroup != null) loadingGroup.SetActive(true);
+        if (loadingFillImage != null) loadingFillImage.fillAmount = 0f;
+
+        // 💡 로딩 재시작 시 완료 문구는 다시 숨김
+        if (completeGroup != null) completeGroup.SetActive(false);
+        if (completeText != null) completeText.gameObject.SetActive(false);
+
+        float elapsed = 0f;
         while (elapsed < duration)
         {
             elapsed += Time.deltaTime;
@@ -51,16 +73,20 @@ public class DocumentBubbleController : MonoBehaviour, IPointerClickHandler
         }
 
         if (loadingFillImage != null) loadingFillImage.fillAmount = 1f;
+
+        // 💡 [추가] 로딩바가 다 찬 시점에 완료 문구 표시
+        if (completeGroup != null) completeGroup.SetActive(true);
+        if (completeText != null) completeText.gameObject.SetActive(true);
+
+        isLoading = false;
         isLoadingComplete = true;
 
-        // 💡 로딩이 끝나면 버튼 없이 바로 문서 패널을 엽니다.
         OpenDocument();
     }
 
     private void OpenDocument()
     {
         DocumentQuestManager targetDoc = DocumentQuestManager.GetByID(targetDocumentID);
-
         if (targetDoc != null)
         {
             targetDoc.OpenFromChatBubble();
@@ -70,9 +96,18 @@ public class DocumentBubbleController : MonoBehaviour, IPointerClickHandler
             Debug.LogWarning($"[DocumentBubbleController] documentID '{targetDocumentID}' 에 해당하는 DocumentQuestManager를 찾지 못했습니다.");
         }
     }
+
     public void OnPointerClick(PointerEventData eventData)
     {
-        if (!isLoadingComplete) return; // 로딩 중에는 클릭 무시
-        OpenDocument();
+        if (isLoading) return;
+
+        if (isLoadingComplete)
+        {
+            OpenDocument();
+        }
+        else
+        {
+            StartCoroutine(LoadThenOpenDocument(loadingDuration));
+        }
     }
 }

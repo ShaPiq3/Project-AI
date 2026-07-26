@@ -44,10 +44,10 @@ public class CollectibleImageIcon : MonoBehaviour, IPointerClickHandler, IPointe
         if (DataLogManager.Instance == null) return false;
         if (!DataLogManager.Instance.IsClueSearchModeActive) return false;
         if (string.IsNullOrEmpty(imageID)) return false;
-
-        // 💡 [변경] IsUnlocked만으로는 다른 퀘스트가 언락됐을 때도 반응해버리므로,
-        // 이 이미지가 "현재 활성화된 퀘스트"에 실제로 속하는 키워드인지까지 확인
         if (ImageGenerationManager.Instance == null || !ImageGenerationManager.Instance.IsImageValidForCurrentQuest(imageID)) return false;
+
+        // 💡 [추가] 이미 이 이미지가 슬롯에 등록된 상태라면 더 이상 호버/클릭 반응하지 않음
+        if (ImageGenerationManager.Instance.IsImageAlreadyRegistered(imageID)) return false;
 
         return true;
     }
