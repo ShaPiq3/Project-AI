@@ -19,6 +19,7 @@ public class DataLogManager : MonoBehaviour
 
     [Header("Filter Settings")]
     [SerializeField] private GameObject clueFilterPanel;
+    [SerializeField] private CanvasGroup clueFilterPanelCanvasGroup;
 
     [Header("UI Reference")]
     public QuestStatusUI questStatusUI;
@@ -450,6 +451,14 @@ public class DataLogManager : MonoBehaviour
         if (clueFilterPanel != null)
         {
             clueFilterPanel.SetActive(true);
+            clueFilterPanel.transform.SetAsLastSibling();
+
+            if (clueFilterPanelCanvasGroup != null)
+            {
+                clueFilterPanelCanvasGroup.DOKill();
+                clueFilterPanelCanvasGroup.alpha = 0f;
+                clueFilterPanelCanvasGroup.DOFade(1f, duration).SetUpdate(true);
+            }
         }
 
         Debug.Log("[시스템] 단서 수집 모드: True");
@@ -461,11 +470,35 @@ public class DataLogManager : MonoBehaviour
 
         if (clueFilterPanel != null)
         {
-            clueFilterPanel.SetActive(IsClueSearchModeActive);
+            if (IsClueSearchModeActive)
+            {
+                // 💡 [변경] 켤 때: SetActive 먼저 하고 알파 0에서 1로 페이드인
+                clueFilterPanel.SetActive(true);
+                clueFilterPanel.transform.SetAsLastSibling();
+
+                if (clueFilterPanelCanvasGroup != null)
+                {
+                    clueFilterPanelCanvasGroup.DOKill();
+                    clueFilterPanelCanvasGroup.alpha = 0f;
+                    clueFilterPanelCanvasGroup.DOFade(1f, duration).SetUpdate(true);
+                }
+            }
+            else
+            {
+                // 💡 [변경] 끌 때: 페이드아웃 후 완료되면 SetActive(false)
+                if (clueFilterPanelCanvasGroup != null)
+                {
+                    clueFilterPanelCanvasGroup.DOKill();
+                    clueFilterPanelCanvasGroup.DOFade(0f, duration).SetUpdate(true)
+                        .OnComplete(() => clueFilterPanel.SetActive(false));
+                }
+                else
+                {
+                    clueFilterPanel.SetActive(false);
+                }
+            }
         }
 
-        // 💡 [추가] 트리거 완료로 자동으로 꺼지든, ESC/우클릭(ClueFilterPanelCloser)으로
-        // 사용자가 직접 끄든, 여기서 공통으로 미니아이콘을 끕니다.
         if (!IsClueSearchModeActive && sidebarController != null && clueCollectTaskbarIndex >= 0)
         {
             sidebarController.UpdateTaskbarStatus(clueCollectTaskbarIndex, 0);

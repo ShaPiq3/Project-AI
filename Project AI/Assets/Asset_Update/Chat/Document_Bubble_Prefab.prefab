@@ -137,7 +137,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DocumentBubbleController
   loadingGroup: {fileID: 8810899651133068199}
-  loadingFillImage: {fileID: 3843358980429492831}
+  loadingFillImage: {fileID: 972275899774495163}
   defaultLoadingDuration: 2
 --- !u!114 &3510587115836303303
 MonoBehaviour:

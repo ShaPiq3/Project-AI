@@ -631,4 +631,21 @@ public class ImageGenerationManager : MonoBehaviour
             WindowManager.Instance.NotifyImageGenClosedExternally();
         }
     }
+
+    /// <summary>
+    /// 💡 [추가] 이 imageID가 "현재 활성화된 퀘스트(currentQuestID)"에 실제로 속하는 키워드인지 확인합니다.
+    /// CollectibleImageIcon이 호버/클릭 가능 여부를 판단할 때 사용합니다.
+    /// (IsUnlocked만으로는 다른 퀘스트의 이미지까지 전부 반응하는 문제가 있었음)
+    /// </summary>
+    public bool IsImageValidForCurrentQuest(string imageID)
+    {
+        if (!isUnlocked || currentQuestID == null) return false;
+        if (string.IsNullOrEmpty(imageID)) return false;
+
+        if (!itemsByImageID.TryGetValue(imageID, out var itemData)) return false;
+
+        if (!layoutByQuestID.TryGetValue(currentQuestID, out var layouts)) return false;
+
+        return layouts.Exists(l => l.keyword == itemData.keyword);
+    }
 }

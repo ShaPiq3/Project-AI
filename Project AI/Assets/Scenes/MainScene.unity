@@ -9163,7 +9163,7 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 1
         m_CallState: 2
-      - m_Target: {fileID: 221967712}
+      - m_Target: {fileID: 119939549}
         m_TargetAssemblyTypeName: UnityEngine.RectTransform, UnityEngine
         m_MethodName: SetAsLastSibling
         m_Mode: 1
@@ -14983,7 +14983,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -48.4, y: -22}
+  m_AnchoredPosition: {x: -54.9, y: -19.700012}
   m_SizeDelta: {x: 24, y: 24}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &407395809
@@ -20240,8 +20240,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: 0.000012398, y: -62.32248}
-  m_SizeDelta: {x: 550, y: 45.155}
+  m_AnchoredPosition: {x: 0.000011444, y: -62.32248}
+  m_SizeDelta: {x: 700, y: 45.155}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &661708626
 MonoBehaviour:
@@ -20263,7 +20263,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: -4695351444135382289, guid: aeb58b42ff2f9d2469878ad5195b41a4, type: 3}
+  m_Sprite: {fileID: -4695351444135382289, guid: 6802745bf923d6e42b6b7aab527a7518, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -21158,7 +21158,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 0, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 306.099}
+  m_AnchoredPosition: {x: 0, y: 246.1}
   m_SizeDelta: {x: 88, y: 55}
   m_Pivot: {x: 0, y: 0.5}
 --- !u!114 &710149495
@@ -24042,8 +24042,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0.00087953, y: -41.663776}
-  m_SizeDelta: {x: 550, y: 485.6725}
+  m_AnchoredPosition: {x: 0, y: -54.848606}
+  m_SizeDelta: {x: 700, y: 459.3028}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &743086808
 MonoBehaviour:
@@ -26444,7 +26444,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::InGameWindowManager
   sidebarController: {fileID: 1991241176}
-  myTaskbarIndex: 0
+  myTaskbarIndex: 1
   subPanels:
   - {fileID: 1223892938}
   animationSpeed: 15
@@ -31815,7 +31815,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::InGameWindowManager
   sidebarController: {fileID: 1991241176}
-  myTaskbarIndex: 1
+  myTaskbarIndex: 2
   subPanels:
   - {fileID: 0}
   animationSpeed: 15
@@ -31932,8 +31932,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: -0.5}
-  m_SizeDelta: {x: -20, y: -13}
+  m_AnchoredPosition: {x: -5, y: -0.5}
+  m_SizeDelta: {x: -10, y: -13}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &973843217
 MonoBehaviour:
@@ -32946,6 +32946,7 @@ MonoBehaviour:
   showEase: 27
   hideEase: 8
   clueFilterPanel: {fileID: 2088523916}
+  clueFilterPanelCanvasGroup: {fileID: 2088523922}
   questStatusUI: {fileID: 1013929294}
   clueCollectButton: {fileID: 686091208}
   sidebarController: {fileID: 1991241176}
@@ -35431,8 +35432,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 9.341108, y: -0.2652}
-  m_SizeDelta: {x: 510.754, y: 30.5303}
+  m_AnchoredPosition: {x: 14.92, y: 0.00010157}
+  m_SizeDelta: {x: 670.16, y: 45.155}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1114577588
 MonoBehaviour:
@@ -35548,7 +35549,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0}
+  m_Color: {r: 0.9450981, g: 0.96470594, b: 0.9803922, a: 0}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -35637,7 +35638,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: -340, y: 32}
-  m_SizeDelta: {x: 550, y: 570}
+  m_SizeDelta: {x: 700, y: 570}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1114883231
 MonoBehaviour:
@@ -35659,7 +35660,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 387913662003068899, guid: 4c0488ed5caccec41b22f0d773fc8038, type: 3}
+  m_Sprite: {fileID: 387913662003068899, guid: 6f2784ce0657d364c81be97843e9e407, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -37481,6 +37482,7 @@ MonoBehaviour:
   contentText: {fileID: 0}
   clueImage: {fileID: 0}
   selectionToggle: {fileID: 0}
+  containerAspectRatioFitter: {fileID: 0}
   clueData:
     clueID: 
     sourceType: 
@@ -39888,7 +39890,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1345440032}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2ef8287b8ce956844891a2fafee87589, type: 3}
   m_Name: 
@@ -44946,7 +44948,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 0, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 366.099}
+  m_AnchoredPosition: {x: 0, y: 306.1}
   m_SizeDelta: {x: 88, y: 55}
   m_Pivot: {x: 0, y: 0.5}
 --- !u!114 &1417961709
@@ -46703,7 +46705,7 @@ MonoBehaviour:
   m_fontSizeMax: 72
   m_fontStyle: 0
   m_HorizontalAlignment: 1
-  m_VerticalAlignment: 256
+  m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
   m_characterHorizontalScale: 1
@@ -47878,7 +47880,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 0, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 246.1}
+  m_AnchoredPosition: {x: 0, y: 185.6}
   m_SizeDelta: {x: 88, y: 55}
   m_Pivot: {x: 0, y: 0.5}
 --- !u!114 &1511556346
@@ -47974,7 +47976,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: -550, y: 2}
+  m_SizeDelta: {x: -700, y: 2}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &1526658920
 MonoBehaviour:
@@ -51251,7 +51253,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 686268647362353937, guid: 42971248c8245bf4a9102808c5fc2380, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 686268647362353937, guid: 42971248c8245bf4a9102808c5fc2380, type: 3}
       propertyPath: m_AnchorMin.x
@@ -51259,7 +51261,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 686268647362353937, guid: 42971248c8245bf4a9102808c5fc2380, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 686268647362353937, guid: 42971248c8245bf4a9102808c5fc2380, type: 3}
       propertyPath: m_SizeDelta.x
@@ -53301,7 +53303,8 @@ PrefabInstance:
       propertyPath: m_hasFontAssetChanged
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 5092653498902326135, guid: 42971248c8245bf4a9102808c5fc2380, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
@@ -54719,6 +54722,7 @@ MonoBehaviour:
   contentText: {fileID: 0}
   clueImage: {fileID: 0}
   selectionToggle: {fileID: 0}
+  containerAspectRatioFitter: {fileID: 0}
   clueData:
     clueID: 
     sourceType: 
@@ -60657,23 +60661,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SidebarController
   sidebarRect: {fileID: 1331481951}
   menuTextRects:
+  - {fileID: 1173034674}
   - {fileID: 1542495395}
   - {fileID: 1305755455}
-  - {fileID: 1566176391}
   - {fileID: 831853675}
-  - {fileID: 1173034674}
   menuButtonRects:
+  - {fileID: 686091204}
   - {fileID: 282981179}
   - {fileID: 588976402}
-  - {fileID: 326468770}
   - {fileID: 889606545}
-  - {fileID: 686091204}
   menuMiniIconRects:
+  - {fileID: 2073428933}
   - {fileID: 1417961708}
   - {fileID: 710149494}
-  - {fileID: 301333631}
   - {fileID: 1511556345}
-  - {fileID: 2073428933}
   openButton: {fileID: 1854114210}
   closeButton: {fileID: 295656532}
   slideSpeed: 10
@@ -64028,6 +64029,7 @@ MonoBehaviour:
   contentText: {fileID: 0}
   clueImage: {fileID: 0}
   selectionToggle: {fileID: 0}
+  containerAspectRatioFitter: {fileID: 0}
   clueData:
     clueID: 
     sourceType: 
@@ -64271,7 +64273,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 0, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 185.6}
+  m_AnchoredPosition: {x: 0, y: 369}
   m_SizeDelta: {x: 88, y: 55}
   m_Pivot: {x: 0, y: 0.5}
 --- !u!114 &2073428934
@@ -64590,7 +64592,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0.000030517578, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2075066355
@@ -64633,7 +64635,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uAC80\uC0C9\uC5B4\uB97C \uC785\uB825\uD558\uC138\uC694"
+  m_text: 
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: a928e4c073e46fd47a5fe8c0ae8e75d5, type: 2}
   m_sharedMaterial: {fileID: -5358017098838946083, guid: a928e4c073e46fd47a5fe8c0ae8e75d5, type: 2}
@@ -64668,7 +64670,7 @@ MonoBehaviour:
   m_fontSizeMax: 72
   m_fontStyle: 0
   m_HorizontalAlignment: 1
-  m_VerticalAlignment: 256
+  m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
   m_characterHorizontalScale: 1
@@ -65005,6 +65007,7 @@ GameObject:
   - component: {fileID: 2088523919}
   - component: {fileID: 2088523918}
   - component: {fileID: 2088523921}
+  - component: {fileID: 2088523922}
   m_Layer: 5
   m_Name: ClueFilterPanel
   m_TagString: Untagged
@@ -65044,7 +65047,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::InGameWindowManager
   sidebarController: {fileID: 1991241176}
-  myTaskbarIndex: 4
+  myTaskbarIndex: 0
   subPanels: []
   animationSpeed: 15
   scalePunchMultiplier: 1.1
@@ -65098,6 +65101,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fc9be68e1ce79964bb0ced2dc631ab89, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ClueFilterPanelCloser
+--- !u!225 &2088523922
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2088523916}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &2091693443
 GameObject:
   m_ObjectHideFlags: 0
@@ -65134,7 +65149,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -20.599976, y: -22}
+  m_AnchoredPosition: {x: -25.557098, y: -19.700012}
   m_SizeDelta: {x: 24, y: 24}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2091693445

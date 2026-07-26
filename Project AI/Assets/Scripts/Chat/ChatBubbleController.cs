@@ -79,9 +79,24 @@ public class ChatBubbleController : MonoBehaviour
 
         if (hasText)
         {
-            chatText.text = "";
-            if (typingCoroutine != null) StopCoroutine(typingCoroutine);
-            typingCoroutine = StartCoroutine(TypeTextCoroutine());
+            if (isNpc)
+            {
+                // NPC는 기존 타이핑 효과 유지
+                chatText.text = "";
+                if (typingCoroutine != null) StopCoroutine(typingCoroutine);
+                typingCoroutine = StartCoroutine(TypeTextCoroutine());
+            }
+            else
+            {
+                // 💡 USER는 타이핑 효과 없이 즉시 전체 텍스트 표시
+                if (typingCoroutine != null)
+                {
+                    StopCoroutine(typingCoroutine);
+                    typingCoroutine = null;
+                }
+                chatText.text = fullDialogueText;
+                IsTypingComplete = true;
+            }
         }
         else
         {

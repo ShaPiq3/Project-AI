@@ -1,37 +1,27 @@
+ï»¿using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
-/// <summary>
-/// ImageGenerationManager °¡ »ı¼º/°»½ÅÇÏ´Â ½½·Ô ÇÏ³ªÀÇ UI.
-///
-/// »óÅÂ:
-///  1) Àá±è(ºó ½½·Ô) - ÀÚ¹°¼è ¾ÆÀÌÄÜ + Å°¿öµå ÅØ½ºÆ®(¾îµÎ¿î/±âº» »ö), Toggle Å¬¸¯ ºÒ°¡
-///  2) Ã¤¿öÁü - Ã¤¿öÁü ¾ÆÀÌÄÜ + Å°¿öµå ÅØ½ºÆ® »öÀÌ ¹Ù²ñ(´Ü¼­ ¼öÁı ÀÎ½Ä) + µî·ÏµÈ ÀÌ¹ÌÁö°¡ Ç×»ó Ç¥½ÃµÊ
-///
-/// Toggle Àº "»èÁ¦ÇÏ°í ½ÍÀº ½½·ÔÀ» ¼±ÅÃ"ÇÏ´Â ¿ëµµÀÏ »ÓÀÌ°í,
-/// ½ÇÁ¦ »èÁ¦´Â ÆĞ³Î¿¡ Ç×»ó ¶°ÀÖ´Â º°µµÀÇ »èÁ¦ ¹öÆ°(ImageGenerationManager.deleteSelectedButton)ÀÌ
-/// Å¬¸¯µÆÀ» ¶§, ¼±ÅÃ(Toggle On)µÈ ½½·Ôµé¸¸ ¸ğ¾Æ¼­ ÇÑ ¹ø¿¡ Ã³¸®ÇÕ´Ï´Ù.
-/// (»èÁ¦µÇ¸é ½½·Ô ÀÚÃ¼´Â »ç¶óÁöÁö ¾Ê°í "Àá±ä Å°¿öµå ½½·Ô" »óÅÂ·Î µÇµ¹¾Æ°¨)
-/// </summary>
 public class ImageGenSlotButton : MonoBehaviour
 {
-    [Header("ÅØ½ºÆ® / ¾ÆÀÌÄÜ")]
+    [Header("í…ìŠ¤íŠ¸ / ì•„ì´ì½˜")]
     [SerializeField] private TMP_Text keywordText;
-    [SerializeField] private Image stateIcon;       // ¿ŞÂÊ ÀÛÀº ¾ÆÀÌÄÜ (ÀÚ¹°¼è / Ã¤¿öÁü)
+    [SerializeField] private Image stateIcon;
     [SerializeField] private Sprite lockedIconSprite;
     [SerializeField] private Sprite filledIconSprite;
 
-    [Header("´Ü¼­ ¼öÁı ¿©ºÎ¿¡ µû¸¥ ÅØ½ºÆ® »ö")]
-    [SerializeField] private Color lockedTextColor = new Color(0.55f, 0.55f, 0.55f); // È¸»ö (¹Ì¼öÁı)
-    [SerializeField] private Color filledTextColor = Color.black;                     // ¼öÁıµÊ
+    [Header("ë‹¨ì„œ ìˆ˜ì§‘ ì—¬ë¶€ì— ë”°ë¥¸ í…ìŠ¤íŠ¸ ìƒ‰")]
+    [SerializeField] private Color lockedTextColor = new Color(0.55f, 0.55f, 0.55f);
+    [SerializeField] private Color filledTextColor = Color.black;
 
-    [Header("µî·ÏµÈ ÀÌ¹ÌÁö (Ã¤¿öÁö¸é Ç×»ó Ç¥½Ã)")]
+    [Header("ë“±ë¡ëœ ì´ë¯¸ì§€ (ì±„ì›Œì§€ë©´ í•­ìƒ í‘œì‹œ)")]
     [SerializeField] private Image previewImage;
-    [SerializeField] private GameObject previewRoot;    // previewImage ¸¦ °¨½Î´Â ¿ÀºêÁ§Æ® (¾øÀ¸¸é previewImage.gameObject »ç¿ë)
+    [SerializeField] private GameObject previewRoot;
+    [SerializeField] private AspectRatioFitter previewAspectRatioFitter; // ğŸ’¡ ì¶”ê°€: previewRootì— ë¶™ì€ ì»´í¬ë„ŒíŠ¸
 
-    [Header("»èÁ¦ ´ë»ó ¼±ÅÃ¿ë Ã¼Å©¹Ú½º")]
-    [Tooltip("»èÁ¦ÇÏ°í ½ÍÀ» ¶§ Ã¼Å©ÇÏ´Â ¿ëµµ. ºó ½½·ÔÀº Ã¼Å© ºÒ°¡")]
+    [Header("ì‚­ì œ ëŒ€ìƒ ì„ íƒìš© ì²´í¬ë°•ìŠ¤")]
+    [Tooltip("ì‚­ì œí•˜ê³  ì‹¶ì„ ë•Œ ì²´í¬í•˜ëŠ” ìš©ë„. ë¹ˆ ìŠ¬ë¡¯ì€ ì²´í¬ ë¶ˆê°€")]
     [SerializeField] private Toggle selectToggle;
 
     public int SlotIndex { get; private set; }
@@ -58,16 +48,35 @@ public class ImageGenSlotButton : MonoBehaviour
 
         if (previewImage != null && filled && !string.IsNullOrEmpty(data.filledDisplayImagePath))
         {
-            // ÇÁ·ÎÁ§Æ®ÀÇ ¸®¼Ò½º ·Îµù ¹æ½Ä¿¡ ¸Â°Ô ±³Ã¼ÇÏ¼¼¿ä (Resources.Load / Addressables µî)
             Sprite sprite = Resources.Load<Sprite>(data.filledDisplayImagePath);
-            if (sprite != null) previewImage.sprite = sprite;
+            if (sprite != null)
+            {
+                previewImage.sprite = sprite;
+
+                // ğŸ’¡ ì´ë¯¸ì§€ ë¹„ìœ¨ì— ë§ì¶° AspectRatioFitter ê°’ ê°±ì‹ 
+                if (previewAspectRatioFitter != null)
+                {
+                    float ratio = sprite.rect.width / sprite.rect.height;
+                    previewAspectRatioFitter.aspectRatio = ratio;
+                }
+            }
         }
 
         if (selectToggle != null)
         {
             selectToggle.onValueChanged.RemoveAllListeners();
-            selectToggle.interactable = filled;      // ºó ½½·ÔÀº ¼±ÅÃ(Ã¼Å©) ºÒ°¡
-            selectToggle.SetIsOnWithoutNotify(false); // ¸Å¹ø ´Ù½Ã ±×¸± ¶§´Â ¼±ÅÃ ÇØÁ¦µÈ »óÅÂ·Î ½ÃÀÛ
+            selectToggle.interactable = filled;
+            selectToggle.SetIsOnWithoutNotify(false);
         }
+
+        // ğŸ’¡ ë‹¤ìŒ í”„ë ˆì„ì— ë ˆì´ì•„ì›ƒ ì¬ê³„ì‚°
+        StartCoroutine(RebuildLayoutNextFrame());
+    }
+
+    private IEnumerator RebuildLayoutNextFrame()
+    {
+        yield return new WaitForEndOfFrame();
+        Canvas.ForceUpdateCanvases();
+        LayoutRebuilder.ForceRebuildLayoutImmediate(GetComponent<RectTransform>());
     }
 }

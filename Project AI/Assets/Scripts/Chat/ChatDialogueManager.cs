@@ -667,7 +667,7 @@ public class ChatDialogueManager : MonoBehaviour
 
                     if (chatScrollRect != null) chatScrollRect.verticalNormalizedPosition = 0f;
 
-                    if (controller != null)
+                    if (controller != null && !isUser)
                     {
                         while (!controller.IsTypingComplete)
                         {

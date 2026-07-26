@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
+using System.Collections;
 
 /// <summary>
 /// 아카이브(텍스트/이미지가 제각각 섞여있고, 스크롤뷰가 있는 문서도 없는 문서도 있는 구조)를 위한 매니저.
@@ -54,19 +55,60 @@ public class ArchiveManager : MonoBehaviour
             archiveWindowManager.RestoreWindow();
         }
 
-        ActivateHierarchy(target);
+        ActivateHierarchy(target); // 💡 여기선 SetActive + SetAsLastSibling만
 
-        // 💡 [변경] 단서마다 스크롤뷰가 있는지 없는지 다를 수 있으므로,
-        // 매번 자동으로 부모 계층에서 ScrollRect를 찾아봅니다.
-        // 없으면(스크롤뷰 없는 문서) 스크롤 없이 창만 열어주는 걸로 충분합니다.
         ScrollRect parentScrollRect = target.GetComponentInParent<ScrollRect>();
-        if (parentScrollRect != null)
-        {
-            ScrollToTarget(parentScrollRect, target);
-        }
+        StartCoroutine(OpenClueSourceRoutine(target, parentScrollRect));
 
         return true;
     }
+
+    private IEnumerator OpenClueSourceRoutine(RectTransform target, ScrollRect parentScrollRect)
+    {
+        ScrollRect[] innerScrollRects = target.GetComponentsInChildren<ScrollRect>(true);
+
+        // 💡 [변경] 팝업 스케일 애니메이션이 끝날 때까지 넉넉히 기다림
+        //    (RestoreWindow의 AnimatePopUp이 스케일을 계속 바꾸는 동안은
+        //     스크롤/레이아웃 계산이 매 프레임 어긋남)
+        yield return new WaitForSeconds(0.5f); // 필요시 값 조절 (팝업 연출 시간보다 조금 더 길게)
+
+        for (int i = 0; i < 3; i++)
+        {
+            yield return null;
+
+            foreach (var sr in innerScrollRects)
+            {
+                if (sr.content != null)
+                {
+                    LayoutRebuilder.ForceRebuildLayoutImmediate(sr.content);
+                }
+            }
+
+            Canvas.ForceUpdateCanvases();
+        }
+
+        foreach (var sr in innerScrollRects)
+        {
+            sr.verticalNormalizedPosition = 1f;
+            sr.horizontalNormalizedPosition = 0f;
+        }
+
+        if (parentScrollRect != null)
+        {
+            LayoutRebuilder.ForceRebuildLayoutImmediate(parentScrollRect.content);
+            Canvas.ForceUpdateCanvases();
+            ScrollToTarget(parentScrollRect, target);
+        }
+    }
+
+    private System.Collections.IEnumerator ScrollToTargetNextFrame(ScrollRect scrollRect, RectTransform target)
+    {
+        yield return null; // 한 프레임 대기
+        LayoutRebuilder.ForceRebuildLayoutImmediate(scrollRect.content);
+        Canvas.ForceUpdateCanvases();
+        ScrollToTarget(scrollRect, target);
+    }
+
 
     /// <summary>
     /// 스크롤뷰 안의 특정 자식(target)이 보이도록 Content 위치를 이동시킵니다.
@@ -75,6 +117,10 @@ public class ArchiveManager : MonoBehaviour
     {
         if (scrollRect == null || target == null || scrollRect.viewport == null || scrollRect.content == null) return;
 
+        // 💡 [변경] Canvas.ForceUpdateCanvases()만으로는 Layout Group이 
+        // 방금 활성화된 자식들의 위치를 완전히 재계산했다고 보장할 수 없으므로,
+        // Content 전체를 강제로 즉시 리빌드해서 target.localPosition이 최신 값이 되도록 함
+        LayoutRebuilder.ForceRebuildLayoutImmediate(scrollRect.content);
         Canvas.ForceUpdateCanvases();
 
         Vector2 viewportLocalPosition = scrollRect.viewport.localPosition;
@@ -109,6 +155,21 @@ public class ArchiveManager : MonoBehaviour
 
             current.SetAsLastSibling();
             current = current.parent;
+        }
+        // 💡 [삭제] 여기서 즉시 리셋하지 않음 - 코루틴에서 애니메이션 끝난 뒤 처리
+    }
+
+    private void ResetInternalScrollViews(RectTransform target)
+    {
+        ScrollRect[] innerScrollRects = target.GetComponentsInChildren<ScrollRect>(true);
+        foreach (var sr in innerScrollRects)
+        {
+            if (sr.content != null)
+            {
+                LayoutRebuilder.ForceRebuildLayoutImmediate(sr.content);
+            }
+            sr.verticalNormalizedPosition = 1f;   // 맨 위
+            sr.horizontalNormalizedPosition = 0f; // 맨 왼쪽
         }
     }
 }
