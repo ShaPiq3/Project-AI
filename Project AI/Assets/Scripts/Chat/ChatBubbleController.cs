@@ -10,6 +10,7 @@ public class ChatBubbleController : MonoBehaviour
     public TextMeshProUGUI nameText;
     public TextMeshProUGUI chatText;
     public Image chatImage;
+    public AudioSource bubbleAudioSource;
 
     [Header("말풍선 크기 제한")]
     public LayoutElement chatTextLayoutElement;
@@ -94,6 +95,8 @@ public class ChatBubbleController : MonoBehaviour
                 }
                 chatText.text = fullDialogueText;
                 IsTypingComplete = true;
+
+                if (bubbleAudioSource != null) bubbleAudioSource.Play();
             }
         }
         else

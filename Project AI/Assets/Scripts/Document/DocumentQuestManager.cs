@@ -131,7 +131,7 @@ public class DocumentQuestManager : MonoBehaviour
     }
 
     private bool triggerCountedForDataLog = false;
-
+    private Coroutine scanRoutine;
     public void TriggerScanComplete()
     {
         if (IsCompleted)
@@ -154,13 +154,28 @@ public class DocumentQuestManager : MonoBehaviour
 
         SetupFixedBlocks();
 
-        StartCoroutine(ScanAndRevealRoutine());
+        scanRoutine = StartCoroutine(ScanAndRevealRoutine()); // 💡 [변경] 참조 저장
 
         // 💡 [변경] 카운트 중복 증가만 막습니다. 패널을 여는 로직(위쪽 전부)은 그대로 매번 실행됩니다.
         if (!triggerCountedForDataLog && DataLogManager.Instance != null)
         {
             triggerCountedForDataLog = true;
             DataLogManager.Instance.NotifyTriggerStarted();
+        }
+    }
+
+    // 💡 [추가] 이 패널이 비활성화될 때(창이 닫힐 때), 아직 완료되지 않았다면
+    // 진행 중이던 스캔을 취소하고 처음 상태(원본 문서 화면)로 되돌립니다.
+    private void OnDisable()
+    {
+        if (!IsCompleted && isScanning)
+        {
+            if (scanRoutine != null)
+            {
+                StopCoroutine(scanRoutine);
+                scanRoutine = null;
+            }
+            ResetAllUI();
         }
     }
 
@@ -262,6 +277,7 @@ public class DocumentQuestManager : MonoBehaviour
 
     private void ExecuteSummary()
     {
+        if (IsCompleted) return;
         int userCorrectCount = 0;
         List<int> selectedIndices = new List<int>();
 
@@ -304,6 +320,7 @@ public class DocumentQuestManager : MonoBehaviour
         // 완료 처리 및 저장 (재스캔 방지)
         IsCompleted = true;
 
+        if (summaryExecuteBtn != null) summaryExecuteBtn.interactable = false;
         string json = JsonUtility.ToJson(result);
         PlayerPrefs.SetString("QuestResult_" + result.questTitle, json);
         PlayerPrefs.Save();
@@ -365,6 +382,15 @@ public class DocumentQuestManager : MonoBehaviour
             panelWindowManager.RestoreWindow();
         }
 
-        TriggerScanComplete();
+        // 💡 [변경] 이미 완료된 문서라면 스캔을 다시 돌리지 않고,
+        // 완료된 결과 화면 상태를 바로 적용합니다.
+        if (IsCompleted)
+        {
+            ApplyCompletedUIState();
+        }
+        else
+        {
+            TriggerScanComplete();
+        }
     }
 }

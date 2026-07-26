@@ -29,6 +29,8 @@ public class ChatDialogueManager : MonoBehaviour
     [SerializeField] private float tweenDuration = 0.5f;
     [SerializeField] private float targetPositionX = 0f;
     [SerializeField] private float hidePositionX = 600f;
+    [SerializeField] private AudioSource chatPanelAudioSource;
+    [SerializeField] private AudioSource branchClickAudioSource;
 
     [Header("선택지 프리팹 설정")]
     public GameObject branchGroupPrefab;
@@ -419,6 +421,8 @@ public class ChatDialogueManager : MonoBehaviour
             }
 
             dialoguePanelRect.DOAnchorPosX(targetPositionX, tweenDuration).SetEase(Ease.OutQuad);
+
+            if (chatPanelAudioSource != null) chatPanelAudioSource.Play();
 
             if (windowManager != null)
             {
@@ -851,6 +855,8 @@ public class ChatDialogueManager : MonoBehaviour
             Destroy(activeBranchInstance);
         }
         isWaitingForBranchSelection = false;
+
+        if (branchClickAudioSource != null) branchClickAudioSource.Play();
     }
 
     // ===================== VHS Noise Scene Transition (신규 추가분) =====================

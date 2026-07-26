@@ -237,6 +237,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SoundManager
   audioSource: {fileID: 0}
   clickClip: {fileID: 8300000, guid: 3458510fb6d9f2d44ab80a3ee542ddcc, type: 3}
+  notification06: {fileID: 0}
+  notification11: {fileID: 0}
+  notification14: {fileID: 0}
+  notification15: {fileID: 0}
+  chatMessageReceived06: {fileID: 0}
 --- !u!1 &1025843337275169979
 GameObject:
   m_ObjectHideFlags: 0
@@ -1917,6 +1922,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SoundManager
   audioSource: {fileID: 0}
   clickClip: {fileID: 8300000, guid: 3458510fb6d9f2d44ab80a3ee542ddcc, type: 3}
+  notification06: {fileID: 0}
+  notification11: {fileID: 0}
+  notification14: {fileID: 0}
+  notification15: {fileID: 0}
+  chatMessageReceived06: {fileID: 0}
 --- !u!1 &8955523794291167864
 GameObject:
   m_ObjectHideFlags: 0

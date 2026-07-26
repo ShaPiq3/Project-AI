@@ -75,8 +75,10 @@ public class DocumentBubbleController : MonoBehaviour, IPointerClickHandler
         isLoadingComplete = true;
 
         OpenDocument();
-    }
 
+        Image bubbleImage = GetComponent<Image>();
+        if (bubbleImage != null) bubbleImage.raycastTarget = false;
+    }
     private void OpenDocument()
     {
         DocumentQuestManager targetDoc = DocumentQuestManager.GetByID(targetDocumentID);
@@ -93,14 +95,9 @@ public class DocumentBubbleController : MonoBehaviour, IPointerClickHandler
     public void OnPointerClick(PointerEventData eventData)
     {
         if (isLoading) return;
+        if (isLoadingComplete) return;
 
-        if (isLoadingComplete)
-        {
-            OpenDocument();
-        }
-        else
-        {
-            StartCoroutine(LoadThenOpenDocument(loadingDuration));
-        }
+        StartCoroutine(LoadThenOpenDocument(loadingDuration));
+
     }
 }

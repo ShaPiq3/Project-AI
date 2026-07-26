@@ -49,7 +49,9 @@ public class ImageGenSlotButton : MonoBehaviour
         if (previewImage != null && filled && !string.IsNullOrEmpty(data.filledDisplayImagePath))
         {
             Sprite sprite = Resources.Load<Sprite>(data.filledDisplayImagePath);
+            Debug.Log($"[디버그] 슬롯 이미지 로드 시도: path='{data.filledDisplayImagePath}', 성공 여부: {sprite != null}");
             if (sprite != null)
+                if (sprite != null)
             {
                 previewImage.sprite = sprite;
 

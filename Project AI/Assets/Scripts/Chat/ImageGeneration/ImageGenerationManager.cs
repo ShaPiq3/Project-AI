@@ -71,6 +71,8 @@ public class ImageGenerationManager : MonoBehaviour
     [SerializeField] private Button generateAnswerButton; // 답변 생성 버튼
     [SerializeField] private TMP_Text progressText; // 💡 "2/3" 형태로 진행도를 보여줄 텍스트 (DataLogManager의 questStatusUI와 동일한 역할)
     [SerializeField] private Button deleteSelectedButton;  // 항상 떠있는 삭제 버튼 (체크된 슬롯을 지움)
+    [SerializeField] private AudioSource panelAudioSource;
+    [SerializeField] private AudioSource imageRegisteredAudioSource; // 💡 추가
 
     [Header("애니메이션 설정")]
     [SerializeField] private float tweenDuration = 0.4f;
@@ -418,6 +420,7 @@ public class ImageGenerationManager : MonoBehaviour
         targetSlot.filledDisplayImagePath = itemData.slotDisplayImagePath;
 
         RefreshSlotUI(targetSlot.slotIndex);
+        if (imageRegisteredAudioSource != null) imageRegisteredAudioSource.Play();
     }
 
     /// <summary>슬롯 버튼 자체를 클릭해서 등록 취소하고 싶을 때 (선택 기능)</summary>
@@ -616,6 +619,8 @@ public class ImageGenerationManager : MonoBehaviour
             panelCanvasGroup.blocksRaycasts = true;
         }
         panelRect.DOAnchorPosX(shownPositionX, tweenDuration).SetEase(Ease.OutQuad);
+
+        if (panelAudioSource != null) panelAudioSource.Play(); // 💡 변경
 
         if (WindowManager.Instance != null)
         {

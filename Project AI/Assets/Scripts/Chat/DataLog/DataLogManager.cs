@@ -11,6 +11,8 @@ public class DataLogManager : MonoBehaviour
     [SerializeField] private RectTransform logPanelRect;
     [SerializeField] private GameObject clueSlotPrefab;
     [SerializeField] private Transform clueContainer;
+    [SerializeField] private AudioSource logPanelAudioSource;
+    [SerializeField] private AudioSource clueCollectedAudioSource;
 
     [Header("DOTween Settings")]
     [SerializeField] private float duration = 0.4f;
@@ -325,6 +327,8 @@ public class DataLogManager : MonoBehaviour
         // 💡 여기서 UI 생성 함수 호출
         CreateClueSlot(collectedClue);
         Debug.Log($"단서 수집 성공: {collectedClue.clueID}");
+
+        if (clueCollectedAudioSource != null) clueCollectedAudioSource.Play();
     }
 
 
@@ -403,6 +407,8 @@ public class DataLogManager : MonoBehaviour
 
             isOpen = true;
 
+            if (logPanelAudioSource != null) logPanelAudioSource.Play();
+
             // 💡 [추가] WindowManager에도 datalog가 열렸음을 알려서, 다른 창들을 밀어내고
             // 드래그 시 벽처럼 막히도록 동기화합니다. (사이드바 버튼으로 열든, 대화 트리거로 열든 항상 호출됨)
             if (WindowManager.Instance != null)
@@ -473,6 +479,8 @@ public class DataLogManager : MonoBehaviour
             }
         }
 
+        if (SoundManager.Instance != null) SoundManager.Instance.PlayClueSearchModeOnSound();
+
         Debug.Log("[시스템] 단서 수집 모드: True");
     }
 
@@ -494,6 +502,8 @@ public class DataLogManager : MonoBehaviour
                     clueFilterPanelCanvasGroup.alpha = 0f;
                     clueFilterPanelCanvasGroup.DOFade(1f, duration).SetUpdate(true);
                 }
+
+                if (SoundManager.Instance != null) SoundManager.Instance.PlayClueSearchModeOnSound();
             }
             else
             {
