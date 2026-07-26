@@ -40,6 +40,30 @@ public class ChatDialogueManager : MonoBehaviour
     [Header("WindowManager 연동")]
     [SerializeField] private WindowManager windowManager;
 
+    [Header("VHS Noise Scene Transition (isSceneTransition=TRUE)")]
+    [Tooltip("Custom/VHSNoiseTransition 쉐이더로 만든 머티리얼. 비워두면 노이즈 없이 기존 방식(즉시 전환)으로 동작합니다.")]
+    [SerializeField] private Material vhsNoiseMaterial;
+    [Tooltip("비워두면 이 오브젝트에 자동으로 AudioSource를 하나 추가해서 사용합니다.")]
+    [SerializeField] private AudioSource vhsSfxSource;
+    [SerializeField] private AudioClip vhsNoiseSfxClip;
+    [Range(0f, 1f)][SerializeField] private float vhsNoiseSfxVolume = 1f;
+    [SerializeField] private AudioClip vhsCollapseSfxClip;
+    [Range(0f, 1f)][SerializeField] private float vhsCollapseSfxVolume = 1f;
+    [SerializeField] private float vhsNoiseBuildDuration = 0.45f;
+    [SerializeField] private float vhsNoiseHoldDuration = 0.35f;
+    [SerializeField] private float vhsCollapseDuration = 0.35f;
+    [SerializeField] private float vhsHoldBlackDuration = 0.2f;
+    [Range(0f, 1f)][SerializeField] private float vhsMaxNoiseCoverage = 0.55f;
+    [SerializeField] private AnimationCurve vhsBuildCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
+    [SerializeField] private AnimationCurve vhsCollapseCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
+
+    private Image vhsNoiseOverlayImage;
+    private Material vhsNoiseMaterialInstance;
+    private static readonly int VhsNoiseIntensityID = Shader.PropertyToID("_NoiseIntensity");
+    private static readonly int VhsGlitchAmountID = Shader.PropertyToID("_GlitchAmount");
+    private static readonly int VhsCollapseAmountID = Shader.PropertyToID("_CollapseAmount");
+    private static readonly int VhsMaxNoiseCoverageID = Shader.PropertyToID("_MaxNoiseCoverage");
+
     private Dictionary<int, DialogueData> dialogueDictionary = new Dictionary<int, DialogueData>();
 
     private bool isChatWindowOpened = false;
@@ -84,6 +108,8 @@ public class ChatDialogueManager : MonoBehaviour
         // 💡 싱글톤 초기화
         if (Instance == null) Instance = this;
         else Destroy(gameObject);
+
+        CreateVhsNoiseOverlayObject(); // 추가: VHS 노이즈 전환용 오버레이 생성
     }
 
     void Start()
@@ -160,7 +186,7 @@ public class ChatDialogueManager : MonoBehaviour
             data.speakerType = columns[1].Trim();
             data.speakerName = columns[2].Trim();
             // 💡 [변경] .Replace("\"","") 대신 UnwrapCsvQuotes 사용 -> 인터뷰 인용문 등 실제 큰따옴표는 보존됨
-            data.dialogueText = UnwrapCsvQuotes(columns[3]).Replace("\\n", "\n").Replace("|", "\n");
+            data.dialogueText = UnwrapCsvQuotes(columns[3]).Replace("\\n", "\n").Replace("|", "\n").Replace("`", ",");
             bool.TryParse(columns[4].Trim(), out data.hasImage);
             data.imagePath = columns[5].Trim();
             float.TryParse(columns[6].Trim(), out data.delayTime);
@@ -169,11 +195,11 @@ public class ChatDialogueManager : MonoBehaviour
             if (columns.Length >= 15)
             {
                 bool.TryParse(columns[8].Trim(), out data.isBranch);
-                data.branchText1 = UnwrapCsvQuotes(columns[9]).Replace("\\n", "\n").Replace("|", "\n");
+                data.branchText1 = UnwrapCsvQuotes(columns[9]).Replace("\\n", "\n").Replace("|", "\n").Replace("`", ",");
                 int.TryParse(columns[10].Trim(), out data.nextId1);
-                data.branchText2 = UnwrapCsvQuotes(columns[11]).Replace("\\n", "\n").Replace("|", "\n");
+                data.branchText2 = UnwrapCsvQuotes(columns[11]).Replace("\\n", "\n").Replace("|", "\n").Replace("`", ",");
                 int.TryParse(columns[12].Trim(), out data.nextId2);
-                data.branchText3 = UnwrapCsvQuotes(columns[13]).Replace("\\n", "\n").Replace("|", "\n");
+                data.branchText3 = UnwrapCsvQuotes(columns[13]).Replace("\\n", "\n").Replace("|", "\n").Replace("`", ",");
                 int.TryParse(columns[14].Trim(), out data.nextId3);
             }
             else
@@ -755,7 +781,16 @@ public class ChatDialogueManager : MonoBehaviour
         }
 
         Debug.Log($"[시스템] 대화 종료 -> 씬 전환: {sceneName}");
-        SceneManager.LoadScene(sceneName);
+
+        // 머티리얼이 연결되어 있으면 VHS 노이즈 연출 후 전환, 아니면 기존처럼 즉시 전환
+        if (vhsNoiseMaterialInstance != null && vhsNoiseOverlayImage != null)
+        {
+            StartCoroutine(VhsNoiseThenLoadSceneCoroutine(sceneName));
+        }
+        else
+        {
+            SceneManager.LoadScene(sceneName);
+        }
     }
 
     private void ShowBranchUI(DialogueData data)
@@ -810,5 +845,104 @@ public class ChatDialogueManager : MonoBehaviour
             Destroy(activeBranchInstance);
         }
         isWaitingForBranchSelection = false;
+    }
+
+    // ===================== VHS Noise Scene Transition (신규 추가분) =====================
+
+    private void CreateVhsNoiseOverlayObject()
+    {
+        if (vhsNoiseMaterial == null) return; // 머티리얼 미설정 시 기존 동작 유지 (오버레이 생성 안 함)
+
+        Canvas parentCanvas = dialoguePanelRect != null
+            ? dialoguePanelRect.GetComponentInParent<Canvas>()
+            : FindAnyObjectByType<Canvas>();
+        if (parentCanvas == null)
+        {
+            Debug.LogWarning("[ChatDialogueManager] VHS 노이즈 오버레이를 붙일 Canvas를 찾지 못했습니다.");
+            return;
+        }
+
+        GameObject noiseObj = new GameObject("VHS_Noise_Overlay_Panel");
+        noiseObj.transform.SetParent(parentCanvas.transform, false);
+        noiseObj.transform.SetAsLastSibling(); // 캔버스 맨 위 = 다른 모든 UI보다 위에 그려짐
+
+        vhsNoiseOverlayImage = noiseObj.AddComponent<Image>();
+        vhsNoiseOverlayImage.color = new Color(1f, 1f, 1f, 0f);
+        vhsNoiseOverlayImage.raycastTarget = false;
+        vhsNoiseOverlayImage.canvasRenderer.cullTransparentMesh = false; // alpha=0이어도 렌더 스킵 안 하게 함
+
+        RectTransform rt = noiseObj.GetComponent<RectTransform>();
+        rt.anchorMin = Vector2.zero;
+        rt.anchorMax = Vector2.one;
+        rt.offsetMin = Vector2.zero;
+        rt.offsetMax = Vector2.zero;
+
+        vhsNoiseMaterialInstance = Instantiate(vhsNoiseMaterial);
+        vhsNoiseOverlayImage.material = vhsNoiseMaterialInstance;
+        vhsNoiseMaterialInstance.SetFloat(VhsMaxNoiseCoverageID, vhsMaxNoiseCoverage);
+        SetVhsIntensity(0f, 0f, 0f);
+
+        noiseObj.SetActive(false); // 평소엔 꺼둠. 코루틴 실행 시에만 켜짐
+
+        if (vhsSfxSource == null)
+        {
+            vhsSfxSource = gameObject.AddComponent<AudioSource>();
+            vhsSfxSource.playOnAwake = false;
+        }
+    }
+
+    private void SetVhsIntensity(float noise, float glitch, float collapse)
+    {
+        if (vhsNoiseMaterialInstance == null) return;
+        vhsNoiseMaterialInstance.SetFloat(VhsNoiseIntensityID, noise);
+        vhsNoiseMaterialInstance.SetFloat(VhsGlitchAmountID, glitch);
+        vhsNoiseMaterialInstance.SetFloat(VhsCollapseAmountID, collapse);
+    }
+
+    private IEnumerator VhsNoiseThenLoadSceneCoroutine(string sceneName)
+    {
+        vhsNoiseOverlayImage.gameObject.SetActive(true);
+        vhsNoiseOverlayImage.raycastTarget = true;
+
+        if (vhsNoiseSfxClip != null && vhsSfxSource != null)
+        {
+            vhsSfxSource.PlayOneShot(vhsNoiseSfxClip, vhsNoiseSfxVolume);
+        }
+
+        // 1단계: 노이즈/글리치 상승
+        float elapsed = 0f;
+        while (elapsed < vhsNoiseBuildDuration)
+        {
+            elapsed += Time.deltaTime;
+            float p = vhsBuildCurve.Evaluate(Mathf.Clamp01(elapsed / vhsNoiseBuildDuration));
+            SetVhsIntensity(p, p, 0f);
+            yield return null;
+        }
+        SetVhsIntensity(1f, 1f, 0f);
+
+        // 2단계: 노이즈 유지
+        yield return new WaitForSeconds(vhsNoiseHoldDuration);
+
+        // 3단계: CRT 붕괴(암전)
+        if (vhsCollapseSfxClip != null && vhsSfxSource != null)
+        {
+            vhsSfxSource.Stop(); // 노이즈 효과음을 끊어서 붕괴 효과음이 묻히지 않게 함
+            vhsSfxSource.PlayOneShot(vhsCollapseSfxClip, vhsCollapseSfxVolume);
+        }
+
+        elapsed = 0f;
+        while (elapsed < vhsCollapseDuration)
+        {
+            elapsed += Time.deltaTime;
+            float p = vhsCollapseCurve.Evaluate(Mathf.Clamp01(elapsed / vhsCollapseDuration));
+            SetVhsIntensity(1f, 1f, p);
+            yield return null;
+        }
+        SetVhsIntensity(1f, 1f, 1f);
+
+        // 4단계: 완전 암전 유지
+        yield return new WaitForSeconds(vhsHoldBlackDuration);
+
+        SceneManager.LoadScene(sceneName);
     }
 }

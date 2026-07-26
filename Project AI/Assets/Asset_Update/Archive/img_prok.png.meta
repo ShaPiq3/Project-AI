@@ -1,10 +1,16 @@
 fileFormatVersion: 2
-guid: fc00ff1c438b4b44784b14451bb18a31
+guid: f5b915ba2f07d0749837361921e9e68d
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -5253714595229667096
-    second: img_NewsMainWindow_0
+      213: 8076839620555147642
+    second: img_prok_0
+  - first:
+      213: 302759720085043220
+    second: img_prok_1
+  - first:
+      213: -957431776729218080
+    second: img_prok_2
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -96,40 +102,71 @@ TextureImporter:
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
-  - serializedVersion: 4
-    buildTarget: WebGL
-    maxTextureSize: 2048
-    resizeAlgorithm: 0
-    textureFormat: -1
-    textureCompression: 1
-    compressionQuality: 50
-    crunchedCompression: 0
-    allowsAlphaSplitting: 0
-    overridden: 0
-    ignorePlatformSupport: 0
-    androidETC2FallbackOverride: 0
-    forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: img_NewsMainWindow_0
+      name: img_prok_0
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 680
-        height: 543
+        width: 2376
+        height: 2376
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 8e0fc08396e0717b0800000000000000
-      internalID: -5253714595229667096
+      spriteID: a798dfa87d2b61070800000000000000
+      internalID: 8076839620555147642
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: img_prok_1
+      rect:
+        serializedVersion: 2
+        x: 660
+        y: 605
+        width: 588
+        height: 363
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 41837ff7c5e933400800000000000000
+      internalID: 302759720085043220
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: img_prok_2
+      rect:
+        serializedVersion: 2
+        x: 916
+        y: 175
+        width: 1370
+        height: 2132
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0e3426b2fd486b2f0800000000000000
+      internalID: -957431776729218080
       vertices: []
       indices: 
       edges: []
@@ -138,7 +175,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: fa0c77a180a8735439edab3678961ff4
     internalID: 0
     vertices: []
     indices: 
@@ -148,7 +185,9 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      img_NewsMainWindow_0: -5253714595229667096
+      img_prok_0: 8076839620555147642
+      img_prok_1: 302759720085043220
+      img_prok_2: -957431776729218080
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

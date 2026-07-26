@@ -103,10 +103,10 @@ TextureImporter:
       name: img_ArchiveBtn_0
       rect:
         serializedVersion: 2
-        x: 0
-        y: 0
-        width: 43
-        height: 43
+        x: 7
+        y: 3
+        width: 82
+        height: 90
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}

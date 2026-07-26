@@ -1,10 +1,19 @@
 fileFormatVersion: 2
-guid: d78957bc1688b6d429f89e09e871daf8
+guid: 402963b63c4ac964abf4e399ea5ca91b
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 8003615586865048295
-    second: slotimg2_0
+      213: -5884601765112982524
+    second: img_plaude_0
+  - first:
+      213: -7589170842576154864
+    second: img_plaude_1
+  - first:
+      213: 3074276430863198711
+    second: img_plaude_2
+  - first:
+      213: -1959209517606974219
+    second: img_plaude_3
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,23 +109,89 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: slotimg2_0
+      name: img_plaude_0
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 2107
-        height: 1756
+        width: 2500
+        height: 2500
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 7eaeed5a8fd821f60800000000000000
-      internalID: 8003615586865048295
+      spriteID: 404ddc16fd1b55ea0800000000000000
+      internalID: -5884601765112982524
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: img_plaude_1
+      rect:
+        serializedVersion: 2
+        x: 1318
+        y: 1368
+        width: 927
+        height: 538
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 01f0f7ce359dda690800000000000000
+      internalID: -7589170842576154864
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: img_plaude_2
+      rect:
+        serializedVersion: 2
+        x: 287
+        y: 510
+        width: 887
+        height: 503
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7f9e4fa20260aaa20800000000000000
+      internalID: 3074276430863198711
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: img_plaude_3
+      rect:
+        serializedVersion: 2
+        x: 1255
+        y: 326
+        width: 717
+        height: 1037
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5fcc876f25d7fc4e0800000000000000
+      internalID: -1959209517606974219
       vertices: []
       indices: 
       edges: []
@@ -125,7 +200,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: 891f7ea085497d04eaa10e48efec88ef
     internalID: 0
     vertices: []
     indices: 
@@ -135,7 +210,10 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      slotimg2_0: 8003615586865048295
+      img_plaude_0: -5884601765112982524
+      img_plaude_1: -7589170842576154864
+      img_plaude_2: 3074276430863198711
+      img_plaude_3: -1959209517606974219
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

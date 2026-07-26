@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 53faa8a97886e5a47aa09d42ded230b6
+guid: 107479dd4f440e04a8104705534f2c0d
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -3875520075356974855
-    second: 830a5a19e4a48748_0
+      213: -2337076767023922141
+    second: slotimg5_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -96,30 +96,17 @@ TextureImporter:
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
-  - serializedVersion: 4
-    buildTarget: WebGL
-    maxTextureSize: 2048
-    resizeAlgorithm: 0
-    textureFormat: -1
-    textureCompression: 1
-    compressionQuality: 50
-    crunchedCompression: 0
-    allowsAlphaSplitting: 0
-    overridden: 0
-    ignorePlatformSupport: 0
-    androidETC2FallbackOverride: 0
-    forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: 830a5a19e4a48748_0
+      name: slotimg5_0
       rect:
         serializedVersion: 2
-        x: 141
-        y: 223
-        width: 1236
-        height: 1619
+        x: 214
+        y: 0
+        width: 231
+        height: 308
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -128,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 9f0d37c5603673ac0800000000000000
-      internalID: -3875520075356974855
+      spriteID: 32488b01019019fd0800000000000000
+      internalID: -2337076767023922141
       vertices: []
       indices: 
       edges: []
@@ -148,7 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      830a5a19e4a48748_0: -3875520075356974855
+      slotimg5_0: -2337076767023922141
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

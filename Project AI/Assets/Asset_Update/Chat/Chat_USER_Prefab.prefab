@@ -93,8 +93,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 13
-  m_fontSizeBase: 13
+  m_fontSize: 16
+  m_fontSizeBase: 16
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -594,6 +594,7 @@ MonoBehaviour:
   chatImage: {fileID: 8869199056267244857}
   chatTextLayoutElement: {fileID: 6017059747939871283}
   maxWidth: 468
+  defaultTypingSpeed: 0
 --- !u!114 &4076235150453293208
 MonoBehaviour:
   m_ObjectHideFlags: 0
