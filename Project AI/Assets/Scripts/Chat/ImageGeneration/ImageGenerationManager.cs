@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using DG.Tweening;
-using Mono.Cecil.Cil;
+
 
 /// <summary>
 /// ImageGenSlotItems.csv 한 줄(이미지 하나)의 데이터

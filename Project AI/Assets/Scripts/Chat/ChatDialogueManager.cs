@@ -854,11 +854,26 @@ public class ChatDialogueManager : MonoBehaviour
         SetBranchButton(1, data.branchText2, data.nextId2);
         SetBranchButton(2, data.branchText3, data.nextId3);
 
-        Canvas.ForceUpdateCanvases();
-        LayoutRebuilder.ForceRebuildLayoutImmediate(chatContent.GetComponent<RectTransform>());
-        if (chatScrollRect != null) chatScrollRect.verticalNormalizedPosition = 0f;
+        StartCoroutine(ScrollToBottomAfterLayout());
     }
 
+    private IEnumerator ScrollToBottomAfterLayout()
+    {
+        // 1프레임 대기: Branch_Group_Prefab 내부의 
+        // VerticalLayoutGroup + ContentSizeFitter가 자기 크기를 먼저 확정하게 함
+        yield return null;
+
+        Canvas.ForceUpdateCanvases();
+        LayoutRebuilder.ForceRebuildLayoutImmediate(chatContent.GetComponent<RectTransform>());
+
+        // 1프레임 더 대기: ScrollRect의 content bounds 캐시가 갱신될 시간을 줌
+        yield return null;
+
+        if (chatScrollRect != null)
+        {
+            chatScrollRect.verticalNormalizedPosition = 0f;
+        }
+    }
     private void SetBranchButton(int index, string text, int nextId)
     {
         if (activeBranchButtons == null || index >= activeBranchButtons.Length) return;
