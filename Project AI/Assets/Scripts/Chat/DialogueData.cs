@@ -57,4 +57,6 @@ public class DialogueData
     // 💡 [타이핑 속도] 33번째 컬럼
     // ==========================================================
     public float typingSpeed;
+    public bool isPanelTrigger;   // 이 대화 행에서 특정 패널을 팝업으로 열지 여부
+    public string panelID;
 }

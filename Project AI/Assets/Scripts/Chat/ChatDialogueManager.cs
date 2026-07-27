@@ -377,6 +377,25 @@ public class ChatDialogueManager : MonoBehaviour
                 data.typingSpeed = 0f;
             }
 
+            // 💡 [추가] 특정 패널 팝업 (34, 35번째 컬럼)
+            if (columns.Length >= 34)
+            {
+                bool.TryParse(columns[33].Trim(), out data.isPanelTrigger);
+            }
+            else
+            {
+                data.isPanelTrigger = false;
+            }
+
+            if (columns.Length >= 35)
+            {
+                data.panelID = columns[34].Trim();
+            }
+            else
+            {
+                data.panelID = "";
+            }
+
             if (!dialogueDictionary.ContainsKey(data.id))
             {
                 dialogueDictionary.Add(data.id, data);
@@ -724,6 +743,22 @@ public class ChatDialogueManager : MonoBehaviour
                 }
 
                 IsDialoguePaused = true;
+            }
+
+            // 💡 [추가] 특정 말풍선에서 특정 패널을 팝업으로 염 (대화는 막지 않음)
+            if (data.isPanelTrigger && !string.IsNullOrEmpty(data.panelID))
+            {
+                Debug.Log($"[디버그] isPanelTrigger 발동! panelID:'{data.panelID}'");
+                PopupPanelController targetPanel = PopupPanelController.GetByID(data.panelID);
+                Debug.Log($"[디버그] GetByID 결과: {(targetPanel == null ? "null (못 찾음)" : targetPanel.name)}");
+                if (targetPanel != null)
+                {
+                    targetPanel.OpenPanel();
+                }
+                else
+                {
+                    Debug.LogWarning($"[ChatDialogueManager] panelID '{data.panelID}'에 해당하는 PopupPanelController를 찾을 수 없습니다.");
+                }
             }
 
             if (data.isBranch)

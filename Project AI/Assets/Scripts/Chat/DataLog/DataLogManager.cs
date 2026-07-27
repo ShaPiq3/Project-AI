@@ -30,6 +30,11 @@ public class DataLogManager : MonoBehaviour
     [Tooltip("사이드바의 '단서 수집' 버튼. isTrigger/isImageGenTrigger/문서요약 중 하나라도 진행 중이면 자동으로 활성화되고, 전부 끝나면 비활성화됩니다.")]
     [SerializeField] private Button clueCollectButton;
 
+    [Header("단서 수집 버튼 스프라이트")]
+    [SerializeField] private Image clueCollectButtonImage;   // clueCollectButton에 붙은 Image 컴포넌트
+    [SerializeField] private Sprite clueCollectNormalSprite;  // 평소(꺼짐) 스프라이트
+    [SerializeField] private Sprite clueCollectActiveSprite;  // 단서 수집 모드 켜짐 스프라이트
+
     [Header("Sidebar MiniIcon 연동")]
     [Tooltip("단서 수집 상태를 사이드바 미니아이콘으로 보여주기 위한 SidebarController 참조")]
     [SerializeField] private SidebarController sidebarController;
@@ -126,6 +131,17 @@ public class DataLogManager : MonoBehaviour
         {
             clueCollectButton.interactable = false;
         }
+
+        UpdateClueCollectButtonSprite(false);
+    }
+
+    private void UpdateClueCollectButtonSprite(bool isActive)
+    {
+        if (clueCollectButtonImage == null) return;
+
+        clueCollectButtonImage.sprite = isActive
+            ? clueCollectActiveSprite
+            : clueCollectNormalSprite;
     }
 
     /// <summary>
@@ -235,14 +251,13 @@ public class DataLogManager : MonoBehaviour
             Debug.LogWarning("[진단] clueCollectButton이 null입니다! Inspector에서 연결이 안 되어 있습니다.");
         }
 
-        // 💡 [수정] 여기서는 미니아이콘을 "켜지" 않습니다. 끄는 것만 처리합니다.
-        // 켜는 건 오직 사용자가 버튼을 직접 클릭했을 때(OnClueCollectButtonClicked)만 합니다.
+        UpdateClueCollectButtonSprite(isActive); // 💡 추가 - interactable과 동시에 바뀜
+
         if (!isActive && sidebarController != null && clueCollectTaskbarIndex >= 0)
         {
             sidebarController.UpdateTaskbarStatus(clueCollectTaskbarIndex, 0);
         }
 
-        // 💡 트리거가 전부 끝났다면, 켜져 있던 단서 수집 모드 자체도 꺼줍니다.
         if (activeTriggerCount == 0 && IsClueSearchModeActive)
         {
             ToggleClueSearchMode();
@@ -480,7 +495,6 @@ public class DataLogManager : MonoBehaviour
         }
 
         if (SoundManager.Instance != null) SoundManager.Instance.PlayClueSearchModeOnSound();
-
         Debug.Log("[시스템] 단서 수집 모드: True");
     }
 
@@ -525,7 +539,6 @@ public class DataLogManager : MonoBehaviour
         {
             sidebarController.UpdateTaskbarStatus(clueCollectTaskbarIndex, 0);
         }
-
         Debug.Log($"[시스템] 단서 수집 모드: {IsClueSearchModeActive}");
     }
 

@@ -73,6 +73,10 @@ public class ImageGenerationManager : MonoBehaviour
     [SerializeField] private Button deleteSelectedButton;  // 항상 떠있는 삭제 버튼 (체크된 슬롯을 지움)
     [SerializeField] private AudioSource panelAudioSource;
     [SerializeField] private AudioSource imageRegisteredAudioSource; // 💡 추가
+    [SerializeField] private Image toggleButtonImage;         // 💡 추가: toggleButton의 Image 컴포넌트
+    [SerializeField] private Sprite toggleButtonClosedSprite;  // 💡 추가: 패널 닫힘 상태 스프라이트
+    [SerializeField] private Sprite toggleButtonOpenSprite;    // 💡 추가: 패널 열림 상태 스프라이트
+
 
     [Header("애니메이션 설정")]
     [SerializeField] private float tweenDuration = 0.4f;
@@ -82,6 +86,9 @@ public class ImageGenerationManager : MonoBehaviour
     [Header("슬롯 UI")]
     [SerializeField] private Transform slotContainer;
     [SerializeField] private GameObject slotButtonPrefab; // ImageGenSlotButton 붙은 프리팹
+
+    [Header("UI Manager (확인 팝업용)")]
+    public UIManager uiManager;
 
     // ---- 파싱된 정적 데이터 ----
     private Dictionary<string, ImageGenSlotItemData> itemsByImageID = new Dictionary<string, ImageGenSlotItemData>();
@@ -144,7 +151,10 @@ public class ImageGenerationManager : MonoBehaviour
         {
             deleteSelectedButton.onClick.AddListener(OnDeleteSelectedClicked);
             // 항상 떠있고 항상 눌러볼 수 있음 (선택된 게 없으면 아무 일도 안 일어남)
+            deleteSelectedButton.interactable = false;
         }
+
+        UpdateToggleButtonSprite();
     }
 
     /// <summary>
@@ -157,6 +167,15 @@ public class ImageGenerationManager : MonoBehaviour
         {
             toggleButton.interactable = value;
         }
+    }
+
+    private void UpdateToggleButtonSprite()
+    {
+        if (toggleButtonImage == null) return;
+
+        toggleButtonImage.sprite = isPanelOpen
+            ? toggleButtonOpenSprite
+            : toggleButtonClosedSprite;
     }
 
     // =========================================================
@@ -357,6 +376,7 @@ public class ImageGenerationManager : MonoBehaviour
         }
 
         RefreshGenerateButtonState();
+        RefreshDeleteButtonInteractable();
     }
 
     /// <summary>슬롯 UI를 하나만 다시 그림 (등록/해제 시 호출)</summary>
@@ -369,7 +389,8 @@ public class ImageGenerationManager : MonoBehaviour
         {
             ui.Setup(slot);
         }
-        RefreshGenerateButtonState();
+        RefreshGenerateButtonState(); 
+        RefreshDeleteButtonInteractable();
     }
 
     private void RefreshGenerateButtonState()
@@ -447,8 +468,6 @@ public class ImageGenerationManager : MonoBehaviour
     {
         if (currentQuestID == null) return;
 
-        // ClearSlot -> RefreshSlotUI 가 목록을 즉시 재구성하므로,
-        // 순회 도중 변경되지 않도록 대상 인덱스를 먼저 리스트로 뽑아둔다.
         var targetIndexes = new List<int>();
         foreach (var ui in activeSlotButtons)
         {
@@ -458,9 +477,39 @@ public class ImageGenerationManager : MonoBehaviour
             }
         }
 
-        foreach (int slotIndex in targetIndexes)
+        if (targetIndexes.Count == 0) return; // 안전장치 (버튼이 잠겨있으니 사실상 도달 안 함)
+
+        int count = targetIndexes.Count;
+
+        if (uiManager != null)
         {
-            ClearSlot(slotIndex);
+            uiManager.ShowConfirmPopup(
+                $"선택한 {count}개의 이미지를 삭제하시겠습니까?",
+                () =>
+                {
+                    // 예 -> 실제 삭제 진행
+                    foreach (int slotIndex in targetIndexes)
+                    {
+                        ClearSlot(slotIndex);
+                    }
+                    RefreshDeleteButtonInteractable();
+                },
+                () =>
+                {
+                    // 아니오 -> 아무 것도 안 함
+                    Debug.Log("[ImageGenerationManager] 삭제 취소");
+                }
+            );
+        }
+        else
+        {
+            // uiManager 미연결 시 기존 방식(즉시 삭제)으로 폴백
+            Debug.LogWarning("[ImageGenerationManager] uiManager가 인스펙터에 연결되지 않아 확인 팝업 없이 바로 삭제합니다.");
+            foreach (int slotIndex in targetIndexes)
+            {
+                ClearSlot(slotIndex);
+            }
+            RefreshDeleteButtonInteractable();
         }
     }
 
@@ -626,6 +675,8 @@ public class ImageGenerationManager : MonoBehaviour
         {
             WindowManager.Instance.NotifyImageGenOpenedExternally();
         }
+
+        UpdateToggleButtonSprite();
     }
 
     public void ClosePanel()
@@ -647,6 +698,8 @@ public class ImageGenerationManager : MonoBehaviour
         {
             WindowManager.Instance.NotifyImageGenClosedExternally();
         }
+
+        UpdateToggleButtonSprite();
     }
 
     /// <summary>
@@ -679,5 +732,19 @@ public class ImageGenerationManager : MonoBehaviour
 
         var slot = runtimeSlots.Find(s => s.keyword == itemData.keyword);
         return slot != null && slot.isFilled && slot.filledUniqueID == itemData.uniqueID;
+    }
+
+    public void SetSlotSelected(ImageGenSlotButton slotButton, bool isSelected)
+    {
+        RefreshDeleteButtonInteractable();
+    }
+
+    private void RefreshDeleteButtonInteractable()
+    {
+        bool anySelected = activeSlotButtons.Exists(b => b.IsSelectedForDelete);
+        if (deleteSelectedButton != null)
+        {
+            deleteSelectedButton.interactable = anySelected; // ✅ 항상 보이되 잠금/해제만
+        }
     }
 }

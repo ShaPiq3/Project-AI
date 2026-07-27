@@ -16325,10 +16325,10 @@ RectTransform:
   - {fileID: 1984468450}
   m_Father: {fileID: 1993294840}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 295, y: -25}
+  m_SizeDelta: {x: 150, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &394306270
 MonoBehaviour:
@@ -17169,7 +17169,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 10}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &434950076
 MonoBehaviour:
@@ -17415,10 +17415,10 @@ RectTransform:
   - {fileID: 716754453}
   m_Father: {fileID: 1993294840}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 85, y: -25}
+  m_SizeDelta: {x: 150, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &463035623
 MonoBehaviour:
@@ -19842,7 +19842,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &556040332
 RectTransform:
   m_ObjectHideFlags: 0
@@ -23259,7 +23259,7 @@ MonoBehaviour:
     m_SelectOnDown: {fileID: 0}
     m_SelectOnLeft: {fileID: 0}
     m_SelectOnRight: {fileID: 0}
-  m_Transition: 1
+  m_Transition: 0
   m_Colors:
     m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
     m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
@@ -31928,11 +31928,15 @@ MonoBehaviour:
   deleteSelectedButton: {fileID: 242652023}
   panelAudioSource: {fileID: 1020359339}
   imageRegisteredAudioSource: {fileID: 890332431}
+  toggleButtonImage: {fileID: 0}
+  toggleButtonClosedSprite: {fileID: 0}
+  toggleButtonOpenSprite: {fileID: 0}
   tweenDuration: 0.4
   shownPositionX: 250
   hiddenPositionX: 600
   slotContainer: {fileID: 558604373}
   slotButtonPrefab: {fileID: 7136726821231719044, guid: 5c886b4dc146719459b6413dbfb0926a, type: 3}
+  uiManager: {fileID: 1013929293}
 --- !u!4 &890332430
 Transform:
   m_ObjectHideFlags: 0
@@ -36610,6 +36614,9 @@ MonoBehaviour:
   clueFilterPanelCanvasGroup: {fileID: 2088523922}
   questStatusUI: {fileID: 1013929294}
   clueCollectButton: {fileID: 686091208}
+  clueCollectButtonImage: {fileID: 1622329027}
+  clueCollectNormalSprite: {fileID: 8140008070646643174, guid: 4d545f4aba91b144287b73a24db8e577, type: 3}
+  clueCollectActiveSprite: {fileID: -807567498834681819, guid: 73703ea83a23d8c49be437acf7228d3c, type: 3}
   sidebarController: {fileID: 1991241176}
   clueCollectTaskbarIndex: -1
   uiManager: {fileID: 1013929293}
@@ -50823,6 +50830,7 @@ GameObject:
   - component: {fileID: 1422512774}
   - component: {fileID: 1422512775}
   - component: {fileID: 1422512776}
+  - component: {fileID: 1422512777}
   m_Layer: 5
   m_Name: "\uC544\uCE74\uC774\uBE0C_\uD504\uB85C\uBA54\uC2A4_\uAC1C\uC694"
   m_TagString: Untagged
@@ -50943,6 +50951,23 @@ MonoBehaviour:
   sidebarController: {fileID: 0}
   myTaskbarIndex: -37
   subPanels: []
+  animationSpeed: 15
+  scalePunchMultiplier: 1.1
+--- !u!114 &1422512777
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1422512768}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: db1c9b456482d3042b521d93929f5c08, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PopupPanelController
+  panelID: Guide_1
+  closeButton: {fileID: 540283354}
+  openAudioSource: {fileID: 0}
   animationSpeed: 15
   scalePunchMultiplier: 1.1
 --- !u!1 &1425379003
@@ -51720,7 +51745,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2124005776984596129, guid: e5375fc9b8d87d74f887c99484b83927, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2619389377060711871, guid: e5375fc9b8d87d74f887c99484b83927, type: 3}
       propertyPath: m_IsActive
@@ -51728,7 +51753,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3921812016220515475, guid: e5375fc9b8d87d74f887c99484b83927, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5036437353820788419, guid: e5375fc9b8d87d74f887c99484b83927, type: 3}
       propertyPath: m_IsActive
@@ -66422,7 +66447,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: -332.93054}
-  m_SizeDelta: {x: 0, y: 0}
+  m_SizeDelta: {x: 380, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1993294841
 MonoBehaviour:
@@ -72281,11 +72306,11 @@ MonoBehaviour:
     m_Top: 0
     m_Bottom: 0
   m_ChildAlignment: 1
-  m_Spacing: 10
+  m_Spacing: 5
   m_ChildForceExpandWidth: 1
   m_ChildForceExpandHeight: 0
   m_ChildControlWidth: 1
-  m_ChildControlHeight: 1
+  m_ChildControlHeight: 0
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0

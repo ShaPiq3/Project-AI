@@ -9,8 +9,12 @@ public class ChatBubbleController : MonoBehaviour
     public GameObject bubbleBgObject;
     public TextMeshProUGUI nameText;
     public TextMeshProUGUI chatText;
+    public GameObject imageContainer;
     public Image chatImage;
     public AudioSource bubbleAudioSource;
+
+    [Header("이미지 크기 제한")]
+    public float imageFixedWidth = 140f;
 
     [Header("말풍선 크기 제한")]
     public LayoutElement chatTextLayoutElement;
@@ -42,11 +46,24 @@ public class ChatBubbleController : MonoBehaviour
 
         if (data.hasImage)
         {
+            if (imageContainer != null) imageContainer.SetActive(true);
             chatImage.gameObject.SetActive(true);
             Sprite loadedSprite = Resources.Load<Sprite>(data.imagePath);
             if (loadedSprite != null)
             {
                 chatImage.sprite = loadedSprite;
+
+                // 💡 [변경] AspectRatioFitter 대신, 폭 고정 + 비율 계산한 높이를
+                // LayoutElement에 직접 써넣음 (VerticalLayoutGroup이 1단계 계산에서부터 정확한 값을 알게 됨)
+                float ratio = loadedSprite.rect.width / loadedSprite.rect.height;
+                float calculatedHeight = imageFixedWidth / ratio;
+
+                LayoutElement containerLayoutElement = imageContainer.GetComponent<LayoutElement>();
+                if (containerLayoutElement != null)
+                {
+                    containerLayoutElement.preferredWidth = imageFixedWidth;
+                    containerLayoutElement.preferredHeight = calculatedHeight;
+                }
             }
             else
             {
@@ -55,6 +72,7 @@ public class ChatBubbleController : MonoBehaviour
         }
         else
         {
+            if (imageContainer != null) imageContainer.SetActive(false);
             chatImage.gameObject.SetActive(false);
         }
 

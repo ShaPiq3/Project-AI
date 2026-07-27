@@ -27,6 +27,19 @@ public class ImageGenSlotButton : MonoBehaviour
     public int SlotIndex { get; private set; }
     public bool IsSelectedForDelete => selectToggle != null && selectToggle.isOn;
 
+    private void Awake()
+    {
+        if (selectToggle != null)
+        {
+            selectToggle.onValueChanged.AddListener(OnToggleChanged);
+        }
+    }
+
+    private void OnToggleChanged(bool isOn)
+    {
+        ImageGenerationManager.Instance.SetSlotSelected(this, isOn);
+    }
+
     public void Setup(ImageGenSlotRuntime data)
     {
         SlotIndex = data.slotIndex;
@@ -66,7 +79,7 @@ public class ImageGenSlotButton : MonoBehaviour
 
         if (selectToggle != null)
         {
-            selectToggle.onValueChanged.RemoveAllListeners();
+            
             selectToggle.interactable = filled;
             selectToggle.SetIsOnWithoutNotify(false);
         }
