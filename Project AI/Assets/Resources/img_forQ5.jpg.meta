@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: af09e8071bb30a14da1da012e54ed890
+guid: c816416bee2f8f74fa8b5cd41bf4321d
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -2011785441564255731
-    second: img_arc_btn_promes_0
+      213: 2050985000629417581
+    second: img_forQ5_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: img_arc_btn_promes_0
+      name: img_forQ5_0
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 416
-        height: 368
+        width: 3000
+        height: 4000
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: d0a924fbcc3b414e0800000000000000
-      internalID: -2011785441564255731
+      spriteID: d66bb22ddff867c10800000000000000
+      internalID: 2050985000629417581
       vertices: []
       indices: 
       edges: []
@@ -135,7 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      img_arc_btn_promes_0: -2011785441564255731
+      img_forQ5_0: 2050985000629417581
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

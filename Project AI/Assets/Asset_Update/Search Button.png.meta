@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 6f2784ce0657d364c81be97843e9e407
+guid: 0e4f1b66ee6302b43a21720fd57e967d
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 387913662003068899
-    second: img_community_panel_0
+      213: 7538162381943032261
+    second: Search Button_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: img_community_panel_0
+      name: Search Button_0
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 1400
-        height: 1140
+        width: 104
+        height: 104
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 3efb63b9b65226500800000000000000
-      internalID: 387913662003068899
+      spriteID: 5c94dea5fbeec9860800000000000000
+      internalID: 7538162381943032261
       vertices: []
       indices: 
       edges: []
@@ -135,7 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      img_community_panel_0: 387913662003068899
+      Search Button_0: 7538162381943032261
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

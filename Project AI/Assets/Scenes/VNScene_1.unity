@@ -3179,7 +3179,7 @@ MonoBehaviour:
   whiteoutDuration: 1.5
   whiteinDuration: 1.5
   fadeOutDuration: 1.5
-  nextSceneName: MainScene
+  nextSceneName: StartScene
 --- !u!82 &1669045238
 AudioSource:
   m_ObjectHideFlags: 0

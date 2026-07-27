@@ -121,18 +121,24 @@ public class VNDialogueManager : MonoBehaviour
 
     void Update()
     {
+        // 선택지가 활성화되어 있거나 연출이 재생 중일 때는 모든 입력 무시
         if (isChoiceActive || isEffectPlaying) return;
 
 #if ENABLE_INPUT_SYSTEM
-        if (UnityEngine.InputSystem.Keyboard.current != null && UnityEngine.InputSystem.Keyboard.current.spaceKey.wasPressedThisFrame)
+        // 🌟 Unity New Input System 사용 시 (스페이스바 OR 마우스 좌클릭 OR 터치)
+        bool spacePressed = UnityEngine.InputSystem.Keyboard.current != null && UnityEngine.InputSystem.Keyboard.current.spaceKey.wasPressedThisFrame;
+        bool mousePressed = UnityEngine.InputSystem.Mouse.current != null && UnityEngine.InputSystem.Mouse.current.leftButton.wasPressedThisFrame;
+
+        if (spacePressed || mousePressed)
         {
             HandleInput();
         }
 #else
-        if (Input.GetKeyDown(KeyCode.Space) || Input.GetMouseButtonDown(0))
-        {
-            HandleInput();
-        }
+    // 🌟 Unity Legacy Input 사용 시 (스페이스바 OR 마우스 좌클릭)
+    if (Input.GetKeyDown(KeyCode.Space) || Input.GetMouseButtonDown(0))
+    {
+        HandleInput();
+    }
 #endif
     }
 

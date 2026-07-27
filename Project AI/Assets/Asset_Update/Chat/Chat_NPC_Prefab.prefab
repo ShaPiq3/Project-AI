@@ -540,7 +540,7 @@ MonoBehaviour:
   imageFixedWidth: 200
   chatTextLayoutElement: {fileID: 8202452685668583939}
   maxWidth: 328
-  defaultTypingSpeed: 0
+  defaultTypingSpeed: 3
 --- !u!114 &1068147355561032195
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 6f2784ce0657d364c81be97843e9e407
+guid: 4036b47a9096e7c449f801855e12718f
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 387913662003068899
-    second: img_community_panel_0
+      213: 7888696697056293133
+    second: "card-\uC601\uC0C1 \uC544\uCE74\uC774\uBE0C-1_0"
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: img_community_panel_0
+      name: "card-\uC601\uC0C1 \uC544\uCE74\uC774\uBE0C-1_0"
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 1400
-        height: 1140
+        width: 416
+        height: 368
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 3efb63b9b65226500800000000000000
-      internalID: 387913662003068899
+      spriteID: d0176d099d74a7d60800000000000000
+      internalID: 7888696697056293133
       vertices: []
       indices: 
       edges: []
@@ -135,7 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      img_community_panel_0: 387913662003068899
+      "card-\uC601\uC0C1 \uC544\uCE74\uC774\uBE0C-1_0": 7888696697056293133
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
