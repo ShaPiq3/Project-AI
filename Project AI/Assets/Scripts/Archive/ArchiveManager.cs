@@ -41,14 +41,26 @@ public class ArchiveManager : MonoBehaviour
 
     /// <summary>
     /// DataLogManager가 "원본 보기"를 요청할 때 호출.
-    /// 등록된 위치를 찾아 보여줍니다.
-    /// 그 위치가 스크롤뷰 안에 있으면 스크롤을 이동시키고,
-    /// 스크롤뷰가 없는 문서라면 스크롤 없이 창을 열어주는 것만으로 처리합니다.
+    /// 등록된 clueID 위치를 찾아 OpenPanel로 넘겨줍니다.
     /// </summary>
     public bool TryOpenClueSource(string clueID)
     {
         if (string.IsNullOrEmpty(clueID)) return false;
         if (!clueLocations.TryGetValue(clueID, out RectTransform target) || target == null) return false;
+
+        return OpenPanel(target);
+    }
+
+    /// <summary>
+    /// 단서(clueID)와 상관없이, 주어진 RectTransform 위치를 아카이브 안에서 열어서 보여줍니다.
+    /// 단서와 무관한 일반 텍스트 링크(예: ArchiveTextLink)도 이 메서드를 직접 호출하면 됩니다.
+    /// - 필요하면 아카이브 창을 복원(RestoreWindow)하고
+    /// - 비활성화된 부모 계층을 전부 켜고, 최상위 창을 맨 앞으로 올리고
+    /// - 스크롤뷰 안에 있으면 그 위치까지 스크롤을 이동시킵니다.
+    /// </summary>
+    public bool OpenPanel(RectTransform target)
+    {
+        if (target == null) return false;
 
         if (archiveWindowManager != null)
         {
