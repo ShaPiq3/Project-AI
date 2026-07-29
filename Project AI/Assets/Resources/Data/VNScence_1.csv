@@ -1,7 +1,7 @@
 ﻿ID,Speaker,Dialogue,Background,Standing_Left,Standing_Mid,Standing_Right,SFX,BGM,Ambience,Effect,Choice_1,Next_ID_1,Choice_2,Next_ID_2,Choice_3,Next_ID_3,Next_ID,Memo
 2001,,선택지,black,,,,,,,,...,2002,,,,,,
 2002,,선택지,,,,,,,,,여긴...?,2003,AD...?,2003,,,,
-2003,???,......,,,,,digital culculation,,,,,,,,,,,
+2003,???,<color+#00FFFF>......</color>,,,,,digital culculation,,,,,,,,,,,
 2004,시스템,경고.,,,,,warning,,,,,,,,,,,
 2005,시스템,현재 위치한 서버 IP를 받아올 수 없습니다.,,,,,,,,,,,,,,,,
 2006,,연출,img_CG_prologue_04,,,,,,,"Whiteout_BG, hide_window_keep",,,,,,,,
