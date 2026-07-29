@@ -42,29 +42,39 @@ public class ChatDialogueManager : MonoBehaviour
     [Header("WindowManager 연동")]
     [SerializeField] private WindowManager windowManager;
 
-    [Header("VHS Noise Scene Transition (isSceneTransition=TRUE)")]
-    [Tooltip("Custom/VHSNoiseTransition 쉐이더로 만든 머티리얼. 비워두면 노이즈 없이 기존 방식(즉시 전환)으로 동작합니다.")]
+    [Header("Screen Shatter Glitch Transition (isSceneTransition=TRUE)")]
+    [Tooltip("Custom/ScreenShatterGlitch 쉐이더로 만든 머티리얼. 비워두면 글리치 없이 기존 방식(즉시 전환)으로 동작합니다.")]
     [SerializeField] private Material vhsNoiseMaterial;
     [Tooltip("비워두면 이 오브젝트에 자동으로 AudioSource를 하나 추가해서 사용합니다.")]
     [SerializeField] private AudioSource vhsSfxSource;
-    [SerializeField] private AudioClip vhsNoiseSfxClip;
-    [Range(0f, 1f)][SerializeField] private float vhsNoiseSfxVolume = 1f;
-    [SerializeField] private AudioClip vhsCollapseSfxClip;
-    [Range(0f, 1f)][SerializeField] private float vhsCollapseSfxVolume = 1f;
-    [SerializeField] private float vhsNoiseBuildDuration = 0.45f;
-    [SerializeField] private float vhsNoiseHoldDuration = 0.35f;
-    [SerializeField] private float vhsCollapseDuration = 0.35f;
-    [SerializeField] private float vhsHoldBlackDuration = 0.2f;
-    [Range(0f, 1f)][SerializeField] private float vhsMaxNoiseCoverage = 0.55f;
-    [SerializeField] private AnimationCurve vhsBuildCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
-    [SerializeField] private AnimationCurve vhsCollapseCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
+    [Tooltip("화면이 깨지기 시작하는 순간 재생할 효과음 (신호 파열음, 글리치 임팩트 사운드 등)")]
+    [SerializeField] private AudioClip vhsGlitchSfxClip;
+    [Range(0f, 1f)][SerializeField] private float vhsGlitchSfxVolume = 1f;
+
+    [Tooltip("화면이 블록 단위로 완전히 깨질 때까지 걸리는 시간 (짧고 임팩트있게, 0.2~0.4 권장)")]
+    [SerializeField] private float vhsTearDuration = 0.28f;
+    [Tooltip("완전히 깨진 상태로 유지되는 시간 (다음 씬 로드 직전 잠깐의 정적)")]
+    [SerializeField] private float vhsHoldDuration = 0.08f;
+    [SerializeField] private AnimationCurve vhsTearCurve = new AnimationCurve(new Keyframe(0f, 0f, 0f, 0f), new Keyframe(1f, 1f, 2f, 0f));
+
+    [Tooltip("화면을 나누는 블록 크기 (화면 비율 기준). 작을수록 조각이 잘게 쪼개짐")]
+    [Range(0.005f, 0.2f)][SerializeField] private float vhsBlockSize = 0.045f;
+    [Tooltip("블록이 어긋나는(밀리는) 최대 거리 (화면 비율 기준)")]
+    [Range(0f, 0.3f)][SerializeField] private float vhsMaxBlockOffset = 0.07f;
+    [Tooltip("색수차(RGB 채널 분리) 강도")]
+    [Range(0f, 0.05f)][SerializeField] private float vhsChromaticAberration = 0.012f;
+    [Tooltip("세로로 길게 번지는 스트릭(스미어) 강도")]
+    [Range(0f, 1f)][SerializeField] private float vhsStreakAmount = 0.55f;
 
     private Image vhsNoiseOverlayImage;
     private Material vhsNoiseMaterialInstance;
-    private static readonly int VhsNoiseIntensityID = Shader.PropertyToID("_NoiseIntensity");
-    private static readonly int VhsGlitchAmountID = Shader.PropertyToID("_GlitchAmount");
-    private static readonly int VhsCollapseAmountID = Shader.PropertyToID("_CollapseAmount");
-    private static readonly int VhsMaxNoiseCoverageID = Shader.PropertyToID("_MaxNoiseCoverage");
+    private static readonly int VhsTearAmountID = Shader.PropertyToID("_TearAmount");
+    private static readonly int VhsBlockSizeID = Shader.PropertyToID("_BlockSize");
+    private static readonly int VhsMaxBlockOffsetID = Shader.PropertyToID("_MaxBlockOffset");
+    private static readonly int VhsChromaticAberrationID = Shader.PropertyToID("_ChromaticAberration");
+    private static readonly int VhsStreakAmountID = Shader.PropertyToID("_StreakAmount");
+    private static readonly int VhsSnapshotTexID = Shader.PropertyToID("_SnapshotTex");
+
 
     private Dictionary<int, DialogueData> dialogueDictionary = new Dictionary<int, DialogueData>();
 
@@ -909,7 +919,7 @@ public class ChatDialogueManager : MonoBehaviour
         if (branchClickAudioSource != null) branchClickAudioSource.Play();
     }
 
-    // ===================== VHS Noise Scene Transition (신규 추가분) =====================
+    // ===================== Screen Shatter Glitch Scene Transition (신규 추가분) =====================
 
     private void CreateVhsNoiseOverlayObject()
     {
@@ -920,20 +930,20 @@ public class ChatDialogueManager : MonoBehaviour
             : FindAnyObjectByType<Canvas>();
         if (parentCanvas == null)
         {
-            Debug.LogWarning("[ChatDialogueManager] VHS 노이즈 오버레이를 붙일 Canvas를 찾지 못했습니다.");
+            Debug.LogWarning("[ChatDialogueManager] 글리치 전환 오버레이를 붙일 Canvas를 찾지 못했습니다.");
             return;
         }
 
-        GameObject noiseObj = new GameObject("VHS_Noise_Overlay_Panel");
-        noiseObj.transform.SetParent(parentCanvas.transform, false);
-        noiseObj.transform.SetAsLastSibling(); // 캔버스 맨 위 = 다른 모든 UI보다 위에 그려짐
+        GameObject glitchObj = new GameObject("ScreenShatter_Glitch_Overlay_Panel");
+        glitchObj.transform.SetParent(parentCanvas.transform, false);
+        glitchObj.transform.SetAsLastSibling(); // 캔버스 맨 위 = 다른 모든 UI보다 위에 그려짐
 
-        vhsNoiseOverlayImage = noiseObj.AddComponent<Image>();
+        vhsNoiseOverlayImage = glitchObj.AddComponent<Image>();
         vhsNoiseOverlayImage.color = new Color(1f, 1f, 1f, 0f);
         vhsNoiseOverlayImage.raycastTarget = false;
         vhsNoiseOverlayImage.canvasRenderer.cullTransparentMesh = false; // alpha=0이어도 렌더 스킵 안 하게 함
 
-        RectTransform rt = noiseObj.GetComponent<RectTransform>();
+        RectTransform rt = glitchObj.GetComponent<RectTransform>();
         rt.anchorMin = Vector2.zero;
         rt.anchorMax = Vector2.one;
         rt.offsetMin = Vector2.zero;
@@ -941,10 +951,13 @@ public class ChatDialogueManager : MonoBehaviour
 
         vhsNoiseMaterialInstance = Instantiate(vhsNoiseMaterial);
         vhsNoiseOverlayImage.material = vhsNoiseMaterialInstance;
-        vhsNoiseMaterialInstance.SetFloat(VhsMaxNoiseCoverageID, vhsMaxNoiseCoverage);
-        SetVhsIntensity(0f, 0f, 0f);
+        vhsNoiseMaterialInstance.SetFloat(VhsBlockSizeID, vhsBlockSize);
+        vhsNoiseMaterialInstance.SetFloat(VhsMaxBlockOffsetID, vhsMaxBlockOffset);
+        vhsNoiseMaterialInstance.SetFloat(VhsChromaticAberrationID, vhsChromaticAberration);
+        vhsNoiseMaterialInstance.SetFloat(VhsStreakAmountID, vhsStreakAmount);
+        vhsNoiseMaterialInstance.SetFloat(VhsTearAmountID, 0f);
 
-        noiseObj.SetActive(false); // 평소엔 꺼둠. 코루틴 실행 시에만 켜짐
+        glitchObj.SetActive(false); // 평소엔 꺼둠. 코루틴 실행 시에만 켜짐
 
         if (vhsSfxSource == null)
         {
@@ -953,58 +966,43 @@ public class ChatDialogueManager : MonoBehaviour
         }
     }
 
-    private void SetVhsIntensity(float noise, float glitch, float collapse)
+    private void SetVhsTearAmount(float tear)
     {
         if (vhsNoiseMaterialInstance == null) return;
-        vhsNoiseMaterialInstance.SetFloat(VhsNoiseIntensityID, noise);
-        vhsNoiseMaterialInstance.SetFloat(VhsGlitchAmountID, glitch);
-        vhsNoiseMaterialInstance.SetFloat(VhsCollapseAmountID, collapse);
+        vhsNoiseMaterialInstance.SetFloat(VhsTearAmountID, tear);
     }
 
     private IEnumerator VhsNoiseThenLoadSceneCoroutine(string sceneName)
     {
         vhsNoiseOverlayImage.gameObject.SetActive(true);
         vhsNoiseOverlayImage.raycastTarget = true;
+        SetVhsTearAmount(0f); // 스냅샷을 찍는 순간엔 패널이 완전히 투명해야 함
 
-        if (vhsNoiseSfxClip != null && vhsSfxSource != null)
+        // 현재 화면을 한 장 캡처해서 셰이더에 넘겨줌 (GrabPass 대신 사용, 모든 렌더 파이프라인에서 동작)
+        yield return new WaitForEndOfFrame();
+        Texture2D screenSnapshot = ScreenCapture.CaptureScreenshotAsTexture();
+        vhsNoiseMaterialInstance.SetTexture(VhsSnapshotTexID, screenSnapshot);
+
+        if (vhsGlitchSfxClip != null && vhsSfxSource != null)
         {
-            vhsSfxSource.PlayOneShot(vhsNoiseSfxClip, vhsNoiseSfxVolume);
+            vhsSfxSource.PlayOneShot(vhsGlitchSfxClip, vhsGlitchSfxVolume);
         }
 
-        // 1단계: 노이즈/글리치 상승
+        // 화면이 블록 단위로 순식간에 깨지며 어긋나는 단계 (짧고 임팩트있게)
         float elapsed = 0f;
-        while (elapsed < vhsNoiseBuildDuration)
+        while (elapsed < vhsTearDuration)
         {
             elapsed += Time.deltaTime;
-            float p = vhsBuildCurve.Evaluate(Mathf.Clamp01(elapsed / vhsNoiseBuildDuration));
-            SetVhsIntensity(p, p, 0f);
+            float p = vhsTearCurve.Evaluate(Mathf.Clamp01(elapsed / vhsTearDuration));
+            SetVhsTearAmount(p);
             yield return null;
         }
-        SetVhsIntensity(1f, 1f, 0f);
+        SetVhsTearAmount(1f);
 
-        // 2단계: 노이즈 유지
-        yield return new WaitForSeconds(vhsNoiseHoldDuration);
+        // 완전히 깨진 상태로 아주 잠깐 정지 (신호가 끊긴 듯한 임팩트)
+        yield return new WaitForSeconds(vhsHoldDuration);
 
-        // 3단계: CRT 붕괴(암전)
-        if (vhsCollapseSfxClip != null && vhsSfxSource != null)
-        {
-            vhsSfxSource.Stop(); // 노이즈 효과음을 끊어서 붕괴 효과음이 묻히지 않게 함
-            vhsSfxSource.PlayOneShot(vhsCollapseSfxClip, vhsCollapseSfxVolume);
-        }
-
-        elapsed = 0f;
-        while (elapsed < vhsCollapseDuration)
-        {
-            elapsed += Time.deltaTime;
-            float p = vhsCollapseCurve.Evaluate(Mathf.Clamp01(elapsed / vhsCollapseDuration));
-            SetVhsIntensity(1f, 1f, p);
-            yield return null;
-        }
-        SetVhsIntensity(1f, 1f, 1f);
-
-        // 4단계: 완전 암전 유지
-        yield return new WaitForSeconds(vhsHoldBlackDuration);
-
+        Destroy(screenSnapshot); // 캡처한 텍스처는 더 이상 필요 없으니 메모리 해제
         SceneManager.LoadScene(sceneName);
     }
 }

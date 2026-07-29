@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Custom_VHSNoiseTransition
-  m_Shader: {fileID: 4800000, guid: 3b5b7c5d5c70ffa4ead32ca1ff7e42aa, type: 3}
+  m_Name: Custom_ScreenShatterGlitch
+  m_Shader: {fileID: 4800000, guid: e75234a95235159498d1001a7f3f2215, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -27,19 +27,23 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _SnapshotTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _CollapseAmount: 0
+    - _BlockSize: 0.045
+    - _ChromaticAberration: 0.012
     - _ColorMask: 15
-    - _GlitchAmount: 0
-    - _MaxNoiseCoverage: 0.55
-    - _NoiseIntensity: 0
-    - _ScanlineIntensity: 0.6
+    - _MaxBlockOffset: 0.07
     - _Stencil: 0
     - _StencilComp: 8
     - _StencilOp: 0
     - _StencilReadMask: 255
     - _StencilWriteMask: 255
+    - _StreakAmount: 0.55
+    - _TearAmount: 0
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
   m_BuildTextureStacks: []

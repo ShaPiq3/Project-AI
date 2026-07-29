@@ -11,17 +11,11 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/VNScene_prologue.unity
     guid: a7568c4d58043e9438cee68fd314320a
-  - enabled: 0
-    path: Assets/Scenes/VncScene.unity
-    guid: 5b456eac4471ccc449851a03a6c21ba0
   - enabled: 1
     path: Assets/Scenes/MainScene.unity
     guid: 8c9cfa26abfee488c85f1582747f6a02
   - enabled: 1
     path: Assets/Scenes/VNScene_1.unity
-    guid: c4d4d1028b8817c4eb67af4c169a0ae6
-  - enabled: 0
-    path: Assets/Scenes/EndingScene.unity
-    guid: e4976a5fda910904fa6758aa61c41aa5
+    guid: 39f34b92b3db316469f4be2be908a667
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
