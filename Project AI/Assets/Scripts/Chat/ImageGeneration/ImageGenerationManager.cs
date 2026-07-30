@@ -109,6 +109,7 @@ public class ImageGenerationManager : MonoBehaviour
     /// CollectibleImageIcon이 이걸로 "아직 발동 안 한 단서인데 호버가 뜨는" 문제를 막습니다.
     /// </summary>
     public bool IsUnlocked => isUnlocked;
+    public bool IsPanelOpen => isPanelOpen;
 
     /// <summary> 데이터 수집 모드 (기존 "데이터 수집" 버튼에서 같이 켜/꺼주세요) </summary>
     public bool IsCollectingMode { get; private set; } = false;
@@ -186,9 +187,6 @@ public class ImageGenerationManager : MonoBehaviour
         ParseSlotItemCsv();
         ParseQuestSlotCsv();
         ParseQuestResultCsv();
-
-        // 💡 [디버그용] CSV가 실제로 로드되어 몇 개의 퀘스트가 등록됐는지 확인
-        Debug.Log($"[디버그] ImageGenerationManager CSV 로딩 완료 -> layoutByQuestID 개수:{layoutByQuestID.Count}, 등록된 questID 목록: {string.Join(", ", layoutByQuestID.Keys)}");
     }
 
     private void ParseSlotItemCsv()
@@ -285,9 +283,6 @@ public class ImageGenerationManager : MonoBehaviour
     /// <param name="malfunctionDialogueID">신규 컬럼</param>
     public void UnlockAndOpen(string questID, int truthDialogueID, int falseDialogueID, int malfunctionDialogueID)
     {
-        // 💡 [디버그용] 이 함수가 실제로 호출됐는지부터 확인
-        Debug.Log($"[디버그] UnlockAndOpen 호출됨! questID:'{questID}'");
-
         if (string.IsNullOrEmpty(questID) || !layoutByQuestID.ContainsKey(questID))
         {
             Debug.LogWarning($"[ImageGenerationManager] 퀘스트ID '{questID}' 의 슬롯 배열을 찾을 수 없습니다.");
@@ -311,9 +306,6 @@ public class ImageGenerationManager : MonoBehaviour
 
         EnsureRuntimeForQuest(questID);
         RebuildSlotUI(questID);
-
-        // 💡 [디버그용] 여기까지 왔다는 건 예외 없이 전부 통과했다는 뜻
-        Debug.Log($"[디버그] UnlockAndOpen 끝까지 도달! isUnlocked:{isUnlocked}, toggleButton null 여부:{toggleButton == null}, panelRect null 여부:{panelRect == null}, panelCanvasGroup null 여부:{panelCanvasGroup == null}");
 
         OpenPanel();
     }
@@ -389,7 +381,7 @@ public class ImageGenerationManager : MonoBehaviour
         {
             ui.Setup(slot);
         }
-        RefreshGenerateButtonState(); 
+        RefreshGenerateButtonState();
         RefreshDeleteButtonInteractable();
     }
 
@@ -497,7 +489,6 @@ public class ImageGenerationManager : MonoBehaviour
                 () =>
                 {
                     // 아니오 -> 아무 것도 안 함
-                    Debug.Log("[ImageGenerationManager] 삭제 취소");
                 }
             );
         }
@@ -525,11 +516,6 @@ public class ImageGenerationManager : MonoBehaviour
         if (!runtimeSlots.TrueForAll(s => s.isFilled)) return; // 안전장치
 
         // 💡 판정 시작하는 순간 바로 두 버튼을 잠급니다.
-        // 결과 대화가 재생되는 도중에 또 눌러서 JumpToDialogue가 겹쳐 호출되는 등의
-        // 버그를 막기 위함입니다.
-        // - 진실/거짓이면 LockAndClose가 계속 잠긴 채로 유지
-        // - 오작동이면, 대화 CSV에서 isImageGenMalfunctionEnd=TRUE 로 표시해둔
-        //   그 줄까지 다 재생된 시점에 OnMalfunctionDialogueFinished()가 호출되어 풀림
         if (generateAnswerButton != null) generateAnswerButton.interactable = false;
         if (deleteSelectedButton != null) deleteSelectedButton.interactable = false;
 
@@ -555,8 +541,6 @@ public class ImageGenerationManager : MonoBehaviour
             targetDialogueID = cfg.malfunctionDialogueID; // 오작동 -> 대화에서 텍스트+이미지 출력 후 재시도 가능
         }
 
-        // 진실/거짓/오작동 대화 모두 "대화문으로 출력" 요구사항에 맞춰
-        // 메인 대화 CSV 쪽에 해당 ID의 텍스트+이미지 행을 만들어두고 여기서 점프만 시킵니다.
         if (ChatDialogueManager.Instance != null)
         {
             ChatDialogueManager.Instance.JumpToDialogue(targetDialogueID);
@@ -564,23 +548,16 @@ public class ImageGenerationManager : MonoBehaviour
 
         // 오작동이어도 슬롯 데이터는 절대 초기화하지 않음 (요구사항)
         bool isResolved = (targetDialogueID == cfg.truthDialogueID || targetDialogueID == cfg.falseDialogueID);
-        Debug.Log($"[진단] isResolved:{isResolved}, targetDialogueID:{targetDialogueID}, truthID:{cfg.truthDialogueID}, falseID:{cfg.falseDialogueID}");
         if (isResolved)
         {
-            Debug.Log("[진단] LockAndClose 호출 직전");
             // 💡 퀘스트가 "확정"(진실 또는 거짓)되면 버튼/패널을 자동으로 다시 잠급니다.
-            // 오작동일 때는 잠그지 않아서 슬롯을 유지한 채 바로 다시 시도할 수 있습니다.
             LockAndClose();
         }
-        // 오작동인 경우엔 여기서 아무것도 안 함 - ChatDialogueManager가
-        // isImageGenMalfunctionEnd 줄에 도달했을 때 OnMalfunctionDialogueFinished()를
-        // 호출해줄 때까지 버튼은 잠긴 채로 대기합니다.
     }
 
     /// <summary>
     /// 💡 ChatDialogueManager가 오작동 결과 시퀀스의 마지막 줄
     /// (isImageGenMalfunctionEnd=TRUE)까지 다 재생했을 때 호출합니다.
-    /// 그 시점에 정확히 맞춰 버튼을 다시 열어줍니다.
     /// </summary>
     public void OnMalfunctionDialogueFinished()
     {
@@ -603,7 +580,6 @@ public class ImageGenerationManager : MonoBehaviour
 
         if (DataLogManager.Instance != null)
         {
-            Debug.Log($"[진단-이미지생성] NotifyTriggerEnded 호출! currentQuestID였던 것:{currentQuestID}");
             DataLogManager.Instance.NotifyTriggerEnded();
         }
     }
@@ -611,8 +587,6 @@ public class ImageGenerationManager : MonoBehaviour
     /// <summary>
     /// 플레이어가 만든 조합(combo)이, CSV에 적힌 조합 목록(comboListString) 중
     /// 하나와 일치하는지 확인합니다.
-    /// comboListString 은 ";" 로 여러 조합을 구분하고, 각 조합 내부는 "|" 로 슬롯을 구분합니다.
-    /// 예) "UID1|UID2|UID3;UID4|UID5|UID6" -> 두 가지 정답 조합
     /// </summary>
     private bool ComboMatchesAny(string combo, string comboListString)
     {
@@ -638,15 +612,10 @@ public class ImageGenerationManager : MonoBehaviour
 
     public void OpenPanel()
     {
-        // 💡 [디버그용] OpenPanel이 실제로 호출됐는지, panelRect가 연결됐는지 확인
-        Debug.Log($"[디버그] OpenPanel 호출됨! panelRect null 여부:{panelRect == null}");
-
         if (panelRect == null) return;
 
-        // 💡 [변경] panelRect 자기 자신뿐 아니라, 상위 조상 오브젝트들(예: ImageGeneration_Panel
-        // 최상위 루트)까지 전부 비활성화 상태였을 수 있으므로, 부모 체인을 타고 올라가며
-        // 꺼져있는 오브젝트를 전부 강제로 켭니다. DOTween으로 위치/알파를 아무리 바꿔도
-        // 오브젝트 자체가 꺼져있으면 화면에 안 보이기 때문입니다.
+        // 💡 panelRect 자기 자신뿐 아니라, 상위 조상 오브젝트들까지 전부 비활성화 상태였을 수 있으므로,
+        // 부모 체인을 타고 올라가며 꺼져있는 오브젝트를 전부 강제로 켭니다.
         Transform current = panelRect.transform;
         while (current != null)
         {
@@ -662,14 +631,14 @@ public class ImageGenerationManager : MonoBehaviour
         panelRect.DOKill();
         if (panelCanvasGroup != null)
         {
-            panelCanvasGroup.DOKill(); // 💡 추가
-            panelCanvasGroup.DOFade(1f, tweenDuration); // 💡 추가
+            panelCanvasGroup.DOKill();
+            panelCanvasGroup.DOFade(1f, tweenDuration);
             panelCanvasGroup.interactable = true;
             panelCanvasGroup.blocksRaycasts = true;
         }
         panelRect.DOAnchorPosX(shownPositionX, tweenDuration).SetEase(Ease.OutQuad);
 
-        if (panelAudioSource != null) panelAudioSource.Play(); // 💡 변경
+        if (panelAudioSource != null) panelAudioSource.Play();
 
         if (WindowManager.Instance != null)
         {
@@ -687,8 +656,8 @@ public class ImageGenerationManager : MonoBehaviour
         panelRect.DOKill();
         if (panelCanvasGroup != null)
         {
-            panelCanvasGroup.DOKill(); // 💡 추가
-            panelCanvasGroup.DOFade(0f, tweenDuration); // 💡 추가
+            panelCanvasGroup.DOKill();
+            panelCanvasGroup.DOFade(0f, tweenDuration);
             panelCanvasGroup.interactable = false;
             panelCanvasGroup.blocksRaycasts = false;
         }
@@ -704,8 +673,6 @@ public class ImageGenerationManager : MonoBehaviour
 
     /// <summary>
     /// 💡 [추가] 이 imageID가 "현재 활성화된 퀘스트(currentQuestID)"에 실제로 속하는 키워드인지 확인합니다.
-    /// CollectibleImageIcon이 호버/클릭 가능 여부를 판단할 때 사용합니다.
-    /// (IsUnlocked만으로는 다른 퀘스트의 이미지까지 전부 반응하는 문제가 있었음)
     /// </summary>
     public bool IsImageValidForCurrentQuest(string imageID)
     {
@@ -721,7 +688,6 @@ public class ImageGenerationManager : MonoBehaviour
 
     /// <summary>
     /// 💡 [추가] 이 imageID에 해당하는 슬롯이 현재 활성 퀘스트에서 이미 채워졌는지(등록 완료됐는지) 확인합니다.
-    /// CollectibleImageIcon이 "이미 등록한 이미지는 더 이상 호버/클릭 반응 안 함" 처리를 할 때 사용합니다.
     /// </summary>
     public bool IsImageAlreadyRegistered(string imageID)
     {

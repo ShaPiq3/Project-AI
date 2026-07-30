@@ -8,20 +8,14 @@ public class DataLogManager : MonoBehaviour
     public static DataLogManager Instance { get; private set; }
 
     [Header("UI References")]
-    [SerializeField] private RectTransform logPanelRect;
     [SerializeField] private GameObject clueSlotPrefab;
     [SerializeField] private Transform clueContainer;
-    [SerializeField] private AudioSource logPanelAudioSource;
     [SerializeField] private AudioSource clueCollectedAudioSource;
-
-    [Header("DOTween Settings")]
-    [SerializeField] private float duration = 0.4f;
-    [SerializeField] private Ease showEase = Ease.OutCubic;
-    [SerializeField] private Ease hideEase = Ease.InCubic;
 
     [Header("Filter Settings")]
     [SerializeField] private GameObject clueFilterPanel;
     [SerializeField] private CanvasGroup clueFilterPanelCanvasGroup;
+    [SerializeField] private float duration = 0.4f;
 
     [Header("UI Reference")]
     public QuestStatusUI questStatusUI;
@@ -41,16 +35,20 @@ public class DataLogManager : MonoBehaviour
     [Tooltip("SidebarController의 Menu Mini Icon Rects 배열에서 '단서 수집' 아이콘의 인덱스")]
     [SerializeField] private int clueCollectTaskbarIndex = -1;
 
-
-
     // 전체 단서 데이터베이스 (엑셀에서 파싱해서 담아둘 사전)
     private Dictionary<string, ClueData> clueDatabase = new Dictionary<string, ClueData>();
 
     // 플레이어가 실제로 인게임에서 획득/수집한 단서 목록
     private List<ClueData> collectedClues = new List<ClueData>();
-    private bool isOpen = false;
-    public bool IsOpen => isOpen;
 
+    /// <summary>
+    /// 💡 [변경] 패널이 열려있는지 여부는 WindowManager가 유일하게 관리하는 상태(IsDatalogOpen)를 그대로 반환합니다.
+    /// (이전에는 DataLogManager가 자체 bool(isOpen)을 따로 들고 있어서, WindowManager와 서로 다른
+    ///  상태를 관리하게 되어 DataLog_Btn / 좌측 버튼 등 여러 진입점으로 열고 닫을 때 상태가 어긋나는 버그가 있었습니다.)
+    /// </summary>
+    /// 
+    public bool HasActiveTrigger => activeTriggerCount > 0;
+    public bool IsOpen => WindowManager.Instance != null && WindowManager.Instance.IsDatalogOpen;
     // 💡 [변경] 파일탐색기 방식 다중 선택 삭제를 위한 선택 목록
     //     (기존 isDeleteMode / selectedSlot 방식은 제거)
     private List<ClueData> selectedForDeletion = new List<ClueData>();
@@ -58,8 +56,6 @@ public class DataLogManager : MonoBehaviour
     private int activeTriggerCount = 0;
 
     public UIManager uiManager;
-
-    private float panelWidth;
 
     // 💡 다른 스크립트에서 참조할 단서 수집 모드 활성화 여부
     public bool IsClueSearchModeActive { get; private set; } = false;
@@ -116,13 +112,6 @@ public class DataLogManager : MonoBehaviour
     {
         if (Instance == null) Instance = this;
         else Destroy(gameObject);
-
-        // 시작할 때 패널 크기를 가져와서 정확히 그만큼 화면 '우측' 바깥으로 숨김
-        if (logPanelRect != null)
-        {
-            panelWidth = logPanelRect.rect.width;
-            logPanelRect.anchoredPosition = new Vector2(panelWidth, logPanelRect.anchoredPosition.y);
-        }
 
         // 게임 시작 시 엑셀 데이터 파싱
         LoadClueDatabase();
@@ -183,9 +172,7 @@ public class DataLogManager : MonoBehaviour
     /// </summary>
     public void StartQuest(string questID, int targetCount, int correctDialogueID = 0, int incorrectDialogueID = 0)
     {
-        Debug.Log("StartQuest 호출됨!");
         questTargetCounts[questID] = targetCount;
-        Debug.Log($"퀘스트 추가됨! 현재 퀘스트 개수: {questTargetCounts.Count}");
         questCollectedClues[questID] = new List<string>();
         if (!activeQuestIDs.Contains(questID)) activeQuestIDs.Add(questID);
 
@@ -196,12 +183,8 @@ public class DataLogManager : MonoBehaviour
             incorrectDialogueID = incorrectDialogueID
         };
 
-        // 💡 [디버그용] 실제로 어떤 값이 저장되는지 확인
-        Debug.Log($"[디버그] StartQuest 저장값 -> questID:{questID}, correctDialogueID:{correctDialogueID}, incorrectDialogueID:{incorrectDialogueID}");
-
         questStatusUI?.UpdateDisplay();
     }
-
 
     /// <summary>
     /// 💡 isTrigger, isImageGenTrigger, 문서요약 트리거가 시작될 때 호출합니다.
@@ -210,7 +193,6 @@ public class DataLogManager : MonoBehaviour
     public void NotifyTriggerStarted()
     {
         activeTriggerCount++;
-        Debug.Log($"[진단] NotifyTriggerStarted 호출됨! activeTriggerCount:{activeTriggerCount}");
         UpdateClueCollectButtonState();
     }
 
@@ -233,7 +215,6 @@ public class DataLogManager : MonoBehaviour
     public void NotifyTriggerEnded()
     {
         activeTriggerCount = Mathf.Max(0, activeTriggerCount - 1);
-        Debug.Log($"[진단] NotifyTriggerEnded 호출됨! activeTriggerCount:{activeTriggerCount}");
         UpdateClueCollectButtonState();
     }
 
@@ -244,14 +225,9 @@ public class DataLogManager : MonoBehaviour
         if (clueCollectButton != null)
         {
             clueCollectButton.interactable = isActive;
-            Debug.Log($"[진단] 버튼 interactable 설정: {clueCollectButton.interactable}");
-        }
-        else
-        {
-            Debug.LogWarning("[진단] clueCollectButton이 null입니다! Inspector에서 연결이 안 되어 있습니다.");
         }
 
-        UpdateClueCollectButtonSprite(isActive); // 💡 추가 - interactable과 동시에 바뀜
+        UpdateClueCollectButtonSprite(isActive);
 
         if (!isActive && sidebarController != null && clueCollectTaskbarIndex >= 0)
         {
@@ -267,35 +243,20 @@ public class DataLogManager : MonoBehaviour
     /// <summary>
     /// 플레이어가 단서를 발견했을 때 퀘스트ID와 단서ID를 넘겨서 수집
     /// </summary>
-    /// <param name="overrideSourceTitle">
-    /// 뉴스 기사/커뮤니티 게시글의 실제 제목을 그대로 쓰고 싶을 때 넘깁니다.
-    /// 비워두면 기존처럼 엑셀 ClueExcelData의 SourceTitle 값을 그대로 씁니다.
-    /// </param>
     public void AcquireClue(string questID, string clueID, string overrideSourceTitle = null)
     {
-        Debug.Log($"[디버그] 클릭 감지됨! 퀘스트ID: {questID}, 단서ID: {clueID}");
-        Debug.Log($"[디버그] 수집 시도 -> 입력된 퀘스트ID: '{questID}', 수집된 퀘스트 목록: {string.Join(", ", questCollectedClues.Keys)}");
         if (string.IsNullOrEmpty(clueID) || string.IsNullOrEmpty(questID)) return;
         string cleanClueID = clueID.Trim();
 
-        // 1. 이미 수집한 단서인지 체크
         if (collectedClues.Exists(c => c.clueID == cleanClueID)) return;
-
-        // 2. 타이밍 체크
         if (ChatDialogueManager.Instance == null) return;
 
-        // 💡 이 단서가 속한 퀘스트가 실제로 시작(isTrigger 발동)됐는지 확인
-        //     아직 StartQuest가 호출되지 않은 questID라면, 단서 수집 모드가 켜져 있어도
-        //     수집되지 않도록 막습니다. (isTrigger가 발동됐을 때만 수집 가능해야 함)
         if (!questCollectedClues.ContainsKey(questID))
         {
             Debug.LogWarning($"[수집 거부] 퀘스트 '{questID}'가 아직 시작되지 않아 수집할 수 없습니다.");
             return;
         }
 
-        // 💡 이미 목표 개수(targetCount)만큼 다 모았다면 더 이상 수집하지 못하게 막습니다.
-        //     (퀘스트에는 정답/오답 단서가 섞여서 여러 개 있을 수 있지만,
-        //      엑셀이 정한 targetCount개까지만 모을 수 있어야 함)
         if (questTargetCounts.TryGetValue(questID, out int targetCount))
         {
             int currentCount = questCollectedClues[questID].Count;
@@ -306,14 +267,12 @@ public class DataLogManager : MonoBehaviour
             }
         }
 
-        // 3. 데이터베이스 조회 (중요: 여기서 데이터를 찾았을 때만 다음으로 진행)
         if (!clueDatabase.TryGetValue(cleanClueID, out ClueData targetClue))
         {
             Debug.LogWarning($"데이터베이스에 없음: {cleanClueID}");
             return;
         }
 
-        // 4. 퀘스트 카운트 체크
         if (questCollectedClues.ContainsKey(questID))
         {
             if (!questCollectedClues[questID].Contains(cleanClueID))
@@ -323,8 +282,6 @@ public class DataLogManager : MonoBehaviour
             }
         }
 
-        // 💡 [추가] clueDatabase의 targetClue는 모든 곳에서 공유되는 마스터 객체이므로
-        // 직접 수정하지 않고, 복사본을 만들어서 필요하면 제목만 실제 값으로 덮어씁니다.
         ClueData collectedClue = new ClueData
         {
             clueID = targetClue.clueID,
@@ -336,16 +293,11 @@ public class DataLogManager : MonoBehaviour
             isCorrect = targetClue.isCorrect
         };
 
-        // 5. 수집 목록 추가 및 UI 생성
         collectedClues.Add(collectedClue);
-
-        // 💡 여기서 UI 생성 함수 호출
         CreateClueSlot(collectedClue);
-        Debug.Log($"단서 수집 성공: {collectedClue.clueID}");
 
         if (clueCollectedAudioSource != null) clueCollectedAudioSource.Play();
     }
-
 
     public void RemoveClue(string questID, string clueID)
     {
@@ -367,9 +319,6 @@ public class DataLogManager : MonoBehaviour
 
     /// <summary>
     /// 💡 [추가] 주어진 clueID의 정확한 questID를 마스터 데이터(ClueExcelData)에서 자동으로 찾습니다.
-    /// 찾지 못하면 fallbackQuestID를 그대로 반환합니다.
-    /// 이걸 쓰면 뉴스/커뮤니티 패널 하나로 퀘스트가 여러 개 있어도, 매번 questID를
-    /// 수동으로 바꿔줄 필요 없이 항상 그 단서에 맞는 정확한 퀘스트로 수집됩니다.
     /// </summary>
     public string ResolveQuestID(string clueID, string fallbackQuestID = null)
     {
@@ -385,7 +334,6 @@ public class DataLogManager : MonoBehaviour
 
     private void CreateClueSlot(ClueData clue)
     {
-        Debug.Log($"[디버그] 슬롯 생성 시도: {clue.clueID}");
         if (clueSlotPrefab == null || clueContainer == null)
         {
             Debug.LogError("슬롯 프리팹이나 컨테이너가 연결 안 됨!");
@@ -401,81 +349,37 @@ public class DataLogManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 💡 [변경] 패널의 실제 열기/닫기는 WindowManager가 전담합니다 (DataLog_Btn과 동일한 진입점).
+    /// DataLogManager는 더 이상 자체적으로 패널 위치/CanvasGroup을 건드리지 않습니다.
+    /// 기존에 이 함수를 호출하던 코드(ChatDialogueManager 등)는 그대로 써도 됩니다.
+    /// </summary>
     public void ToggleLogPanel()
     {
-        if (logPanelRect == null) return;
-
-        float targetX = 250f; // 💡 채팅창 옆의 정확한 X 위치값
-
-        if (!IsOpen)
+        if (WindowManager.Instance != null)
         {
-            logPanelRect.DOKill();
-            logPanelRect.DOAnchorPosX(targetX, duration).SetEase(showEase).SetUpdate(true);
-
-            CanvasGroup cg = logPanelRect.GetComponent<CanvasGroup>();
-            if (cg != null)
-            {
-                cg.alpha = 1f;
-                cg.interactable = true;
-                cg.blocksRaycasts = true;
-            }
-
-            isOpen = true;
-
-            if (logPanelAudioSource != null) logPanelAudioSource.Play();
-
-            // 💡 [추가] WindowManager에도 datalog가 열렸음을 알려서, 다른 창들을 밀어내고
-            // 드래그 시 벽처럼 막히도록 동기화합니다. (사이드바 버튼으로 열든, 대화 트리거로 열든 항상 호출됨)
-            if (WindowManager.Instance != null)
-            {
-                WindowManager.Instance.NotifyDatalogOpenedExternally();
-            }
-        }
-        else
-        {
-            HideLogPanel();
+            WindowManager.Instance.ToggleDatalogWindow();
         }
     }
 
+    /// <summary>
+    /// 💡 [변경] 닫기도 WindowManager에 위임합니다.
+    /// </summary>
     public void HideLogPanel()
     {
-        if (logPanelRect == null) return;
-
-        logPanelRect.DOKill();
-        logPanelRect.DOAnchorPosX(panelWidth, duration)
-            .SetEase(hideEase)
-            .SetUpdate(true);
-
-        CanvasGroup cg = logPanelRect.GetComponent<CanvasGroup>();
-        if (cg != null)
-        {
-            cg.DOKill();
-            cg.DOFade(0f, duration).SetUpdate(true);
-            cg.interactable = false;
-            cg.blocksRaycasts = false;
-        }
-
-        isOpen = false;
-
-        // 💡 [추가] WindowManager에도 datalog가 닫혔음을 알려서, 밀려있던 창들을 원위치시킵니다.
         if (WindowManager.Instance != null)
         {
-            WindowManager.Instance.NotifyDatalogClosedExternally();
+            WindowManager.Instance.CloseDatalogDirect();
         }
     }
 
     /// <summary>
     /// 💡 사이드바의 "단서 수집" 버튼 전용 함수.
-    /// 토글이 아니라 "켜는 것"만 담당합니다 - 이미 켜져 있으면 아무 일도 하지 않습니다.
-    /// (버튼에 RestoreWindow 등 다른 열기 로직이 같이 연결되어 있어도
-    ///  꺼짐 상태와 충돌하지 않도록, 끄는 동작은 이 함수에서 절대 하지 않습니다.)
-    /// 끄는 것은 ClueFilterPanelCloser(ESC/우클릭)에서만 처리합니다.
     /// </summary>
     public void OpenClueSearchMode()
     {
         if (IsClueSearchModeActive)
         {
-            // 이미 켜져 있으면 완전히 무시 (버튼이 막힌 것처럼 동작)
             return;
         }
 
@@ -495,7 +399,6 @@ public class DataLogManager : MonoBehaviour
         }
 
         if (SoundManager.Instance != null) SoundManager.Instance.PlayClueSearchModeOnSound();
-        Debug.Log("[시스템] 단서 수집 모드: True");
     }
 
     public void ToggleClueSearchMode()
@@ -506,7 +409,6 @@ public class DataLogManager : MonoBehaviour
         {
             if (IsClueSearchModeActive)
             {
-                // 💡 [변경] 켤 때: SetActive 먼저 하고 알파 0에서 1로 페이드인
                 clueFilterPanel.SetActive(true);
                 clueFilterPanel.transform.SetAsLastSibling();
 
@@ -521,7 +423,6 @@ public class DataLogManager : MonoBehaviour
             }
             else
             {
-                // 💡 [변경] 끌 때: 페이드아웃 후 완료되면 SetActive(false)
                 if (clueFilterPanelCanvasGroup != null)
                 {
                     clueFilterPanelCanvasGroup.DOKill();
@@ -539,24 +440,17 @@ public class DataLogManager : MonoBehaviour
         {
             sidebarController.UpdateTaskbarStatus(clueCollectTaskbarIndex, 0);
         }
-        Debug.Log($"[시스템] 단서 수집 모드: {IsClueSearchModeActive}");
     }
 
     /// <summary>
-    /// 현재 진행 중인 퀘스트(가장 최근 시작된 퀘스트) 기준으로:
-    /// 1) 정답으로 표시된(isCorrect=true) 단서를 하나도 빠짐없이 전부 수집했고
-    /// 2) 오답 단서는 하나도 수집하지 않았을 때만 true를 반환합니다.
-    /// (이전에는 "수집한 것 중에 오답이 없는가"만 확인해서,
-    ///  정답 단서를 일부만 모아도 정답 처리되는 버그가 있었습니다.)
+    /// 현재 진행 중인 퀘스트(가장 최근 시작된 퀘스트) 기준으로 정답 여부를 판정합니다.
     /// </summary>
     public bool CheckIfAllCluesAreCorrect()
     {
         if (activeQuestIDs.Count == 0) return false;
 
-        // 가장 최근에 시작된 퀘스트를 "현재 판정 대상 퀘스트"로 취급
         string currentQuestID = activeQuestIDs[activeQuestIDs.Count - 1];
 
-        // 1. 마스터 데이터베이스에서 이 퀘스트에 속한 "정답" 단서 ID 목록을 모두 뽑음
         List<string> requiredCorrectClueIDs = new List<string>();
         foreach (var kvp in clueDatabase)
         {
@@ -567,19 +461,15 @@ public class DataLogManager : MonoBehaviour
             }
         }
 
-        // 정답으로 지정된 단서가 하나도 없다면(데이터 미설정) 실패로 처리
         if (requiredCorrectClueIDs.Count == 0) return false;
 
-        // 2. 이 퀘스트에 해당하는, 실제로 수집한 단서들만 추림
         List<ClueData> collectedForThisQuest = collectedClues.FindAll(c => c.questID == currentQuestID);
 
-        // 3. 오답을 하나라도 수집했으면 실패
         foreach (var clue in collectedForThisQuest)
         {
             if (!clue.isCorrect) return false;
         }
 
-        // 4. 정답으로 지정된 단서를 전부 수집했는지 확인 (하나라도 빠지면 실패)
         foreach (var requiredID in requiredCorrectClueIDs)
         {
             bool isCollected = collectedForThisQuest.Exists(c => c.clueID == requiredID);
@@ -593,9 +483,6 @@ public class DataLogManager : MonoBehaviour
     // 💡 파일탐색기 방식 다중 선택 삭제
     // ============================================================
 
-    /// <summary>
-    /// ClueSlot의 체크박스(Toggle) 상태가 바뀔 때마다 호출됩니다.
-    /// </summary>
     public void SetClueSelected(ClueSlot slot, bool isSelected)
     {
         if (slot == null || slot.clueData == null) return;
@@ -613,19 +500,14 @@ public class DataLogManager : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// "데이터 삭제" 버튼의 OnClick에 연결하는 함수.
-    /// 체크된 단서가 있을 때만 확인 팝업을 띄우고, 확인 시 전부 삭제합니다.
-    /// </summary>
     public void OnClickDeleteSelectedClues()
     {
         if (selectedForDeletion.Count == 0)
         {
-            Debug.Log("삭제할 단서를 먼저 체크해주세요.");
             return;
         }
 
-        List<ClueData> targets = new List<ClueData>(selectedForDeletion); // 클릭 시점 스냅샷
+        List<ClueData> targets = new List<ClueData>(selectedForDeletion);
         int count = targets.Count;
 
         uiManager.ShowConfirmPopup(
@@ -635,17 +517,12 @@ public class DataLogManager : MonoBehaviour
                 RemoveCluesAndRefreshUI(targets);
                 selectedForDeletion.Clear();
             },
-            () =>
-            {
-                Debug.Log("삭제 취소");
-            }
+            () => { }
         );
     }
 
     /// <summary>
     /// 💡 [추가] 사이드바 "단서 수집" 버튼의 OnClick()에 연결하는 함수.
-    /// 버튼이 눌릴 수 있는 상태(activeTriggerCount > 0)일 때, 사용자가
-    /// 실제로 클릭한 시점에만 미니아이콘을 켭니다.
     /// </summary>
     public void OnClueCollectButtonClicked()
     {
@@ -659,10 +536,6 @@ public class DataLogManager : MonoBehaviour
         OpenClueSearchMode();
     }
 
-    /// <summary>
-    /// 여러 단서를 한 번에 삭제하고 UI는 마지막에 한 번만 새로고침합니다.
-    /// </summary>
-    /// 
     public void RemoveCluesAndRefreshUI(List<ClueData> cluesToRemove)
     {
         foreach (var clue in cluesToRemove)
@@ -670,7 +543,7 @@ public class DataLogManager : MonoBehaviour
             if (collectedClues.Contains(clue))
             {
                 collectedClues.Remove(clue);
-                RemoveClue(clue.questID, clue.clueID); // 퀘스트 진행도 카운트도 함께 감소
+                RemoveClue(clue.questID, clue.clueID);
             }
         }
 
@@ -679,28 +552,19 @@ public class DataLogManager : MonoBehaviour
 
     private void RefreshClueUI()
     {
-        // 1. 기존 슬롯 싹 다 삭제
         foreach (Transform child in clueContainer) Destroy(child.gameObject);
-
-        // 2. 남은 리스트로 다시 생성
         foreach (var clue in collectedClues) CreateClueSlot(clue);
-
-        // 3. 퀘스트 상태 UI 갱신
         questStatusUI?.UpdateDisplay();
     }
 
     // ============================================================
-    // 수집된 단서를 다시 클릭하면 원본 위치(뉴스/SNS/커뮤니티)를 열어주는 기능
-    // 각 매니저(NewsListManager, SNSManager, CommunityManager)의 싱글톤(Instance)을
-    // 통해 접근하므로 이 스크립트에서 별도로 인스펙터 연결할 필요가 없습니다.
+    // 수집된 단서를 다시 클릭하면 원본 위치를 열어주는 기능
     // ============================================================
     public void OpenClueSource(ClueData clue)
     {
         if (clue == null) return;
 
         bool found = false;
-
-        // 💡 대소문자/공백 차이로 놓치는 일이 없도록 정규화해서 비교
         string normalizedType = clue.sourceType?.Trim().ToUpper();
 
         switch (normalizedType)
@@ -708,16 +572,12 @@ public class DataLogManager : MonoBehaviour
             case "NEWS":
             case "뉴스":
                 if (NewsListManager.Instance != null)
-                {
                     found = NewsListManager.Instance.TryOpenClueSource(clue.clueID);
-                }
                 break;
 
             case "SNS":
                 if (SNSManager.Instance != null)
-                {
                     found = SNSManager.Instance.TryOpenClueSource(clue.clueID);
-                }
                 break;
 
             case "COMMUNITY":
@@ -725,17 +585,13 @@ public class DataLogManager : MonoBehaviour
             case "커뮤니티":
             case "댓글":
                 if (CommunityManager.Instance != null)
-                {
                     found = CommunityManager.Instance.TryOpenClueSource(clue.clueID);
-                }
                 break;
 
             case "ARCHIVE":
             case "아카이브":
                 if (ArchiveManager.Instance != null)
-                {
                     found = ArchiveManager.Instance.TryOpenClueSource(clue.clueID);
-                }
                 break;
         }
 
@@ -746,23 +602,13 @@ public class DataLogManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 💡 정답/오답 대화 시작 ID는 대화 CSV의 isTrigger 행에서 함께 전달받아
-    /// StartQuest() 시점에 이미 등록되어 있습니다 (QuestConfigData 등 별도 시트 불필요).
+    /// 💡 정답/오답 대화 시작 ID는 대화 CSV의 isTrigger 행에서 함께 전달받아 등록되어 있습니다.
     /// </summary>
     public void OnClickGenerateAnswer()
     {
-        bool isSuccess = DataLogManager.Instance.CheckIfAllCluesAreCorrect();
+        bool isSuccess = CheckIfAllCluesAreCorrect();
 
         string currentQuestID = activeQuestIDs.Count > 0 ? activeQuestIDs[activeQuestIDs.Count - 1] : null;
-
-        if (isSuccess)
-        {
-            Debug.Log("정답입니다!");
-        }
-        else
-        {
-            Debug.Log("오답입니다.");
-        }
 
         // 💡 답변 생성 버튼을 누르면 판정 결과와 상관없이
         // DataLog 패널이 오른쪽으로 슬라이드되며 닫히고, 수집했던 단서도 전부 비웁니다.
@@ -774,14 +620,11 @@ public class DataLogManager : MonoBehaviour
 
         if (string.IsNullOrEmpty(currentQuestID) || !questDialogueConfigs.TryGetValue(currentQuestID, out QuestDialogueConfig config))
         {
-            Debug.LogWarning($"[DataLogManager] 퀘스트 '{currentQuestID}'에 대한 정답/오답 대화 설정을 찾지 못했습니다. (StartQuest 호출 시 correctDialogueID/incorrectDialogueID가 전달됐는지 확인하세요)");
+            Debug.LogWarning($"[DataLogManager] 퀘스트 '{currentQuestID}'에 대한 정답/오답 대화 설정을 찾지 못했습니다.");
             return;
         }
 
         int targetDialogueID = isSuccess ? config.correctDialogueID : config.incorrectDialogueID;
-
-        // 💡 [디버그용] 실제 판정 결과와 선택된 대화 ID 확인
-        Debug.Log($"[디버그] isSuccess:{isSuccess}, questID:{currentQuestID}, config.correct:{config.correctDialogueID}, config.incorrect:{config.incorrectDialogueID}, 선택된targetDialogueID:{targetDialogueID}");
 
         if (ChatDialogueManager.Instance != null)
         {
@@ -790,35 +633,27 @@ public class DataLogManager : MonoBehaviour
     }
 
     // ============================================================
-    //  [추가 기능] 문서 패널(DocuGame_panel_1 등) 클릭 이벤트 매핑용 함수
+    //  문서 패널 클릭 이벤트 매핑용 함수
     // ============================================================
     public void OnClickDocumentPanel(DocumentQuestManager targetQuestManager)
     {
         if (targetQuestManager == null) return;
 
-        // 1. 단서 수집 모드가 true인 상태인지 검사
         if (!IsClueSearchModeActive)
         {
-            Debug.Log("[시스템] 단서 수집 모드가 비활성화 상태이므로 문서를 분석할 수 없습니다.");
             return;
         }
 
-        // 2. 이미 게이지가 차오르고 있거나(IsScanning), 연출이 끝나서 분석 창이 활성화(IsAnalysisActive)된 상태라면 완벽 차단
         if (targetQuestManager.IsScanning || targetQuestManager.IsAnalysisActive)
         {
-            Debug.LogWarning("[스캔 차단] 이미 분석이 진행 중이거나 분석 패널이 활성화되어 있습니다.");
             return;
         }
 
-        // 3. 이미 해당 문서가 성공적으로 요약 실행이 완료되었는지 검사
         if (targetQuestManager.IsCompleted)
         {
-            Debug.LogWarning("[스캔 차단] 이 문서는 이미 요약 분석이 완료되어 재실행할 수 없습니다.");
             return;
         }
 
-        // 4. 모든 조건 통과 시에만 최초 1회 연출 시동
-        Debug.Log($"[시스템] 단서 수집 조건 충족. '{targetQuestManager.name}' 분석 연출을 시작합니다.");
         targetQuestManager.TriggerScanComplete();
     }
 }

@@ -50,6 +50,8 @@ public class WindowManager : MonoBehaviour
     private Vector2 initialHidePosition;
 
     public bool IsChatOpen => isChatOpen;
+    public bool IsDatalogOpen => isDatalogOpen;
+    public bool IsImageGenOpen => isImageGenOpen;
 
     private void Awake()
     {
