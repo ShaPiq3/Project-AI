@@ -103,10 +103,10 @@ TextureImporter:
       name: img_standing_M_C1_smile_0
       rect:
         serializedVersion: 2
-        x: 152
-        y: 30
-        width: 321
-        height: 1019
+        x: 461
+        y: 92
+        width: 971
+        height: 3084
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}

@@ -1,8 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using System.Collections;
 using UnityEngine.SceneManagement;
 
 public class VNDialogueManager : MonoBehaviour
@@ -26,13 +27,19 @@ public class VNDialogueManager : MonoBehaviour
     [SerializeField] private AudioSource sfxSource;
     [SerializeField] private AudioSource ambienceSource;
 
+    [Header("SFX Settings")]
+    [Tooltip("대사를 다음으로 넘길 때 재생할 오디오 클립")]
+    [SerializeField] private AudioClip nextDialogueSFX;
+    [Tooltip("선택지 버튼을 클릭할 때 재생할 오디오 클립")]
+    [SerializeField] private AudioClip choiceSelectSFX;
+
     [Header("Choice Settings")]
     [SerializeField] private GameObject choiceContainer;
     [SerializeField] private Button[] choiceButtons;
     [SerializeField] private TextMeshProUGUI[] choiceTexts;
 
     [Header("Effect Settings")]
-    [SerializeField] private float typingSpeed = 0.05f;
+    [SerializeField] private float defaultTypingSpeed = 0.05f;
     [SerializeField] private float fadeDuration = 1.0f;
     [SerializeField] private float dissolveDuration = 1.0f;
     [SerializeField] private float dissolveStandingDuration = 0.25f;
@@ -41,9 +48,7 @@ public class VNDialogueManager : MonoBehaviour
     [SerializeField] private float fadeOutDuration = 1.5f;
 
     [Header("Scene Transition")]
-    [Tooltip("대화가 끝났을 때 자동으로 이동할 씬 이름. Build Settings에 등록된 정확한 씬 이름과 일치해야 합니다.")]
     [SerializeField] private string nextSceneName = "MainScene";
-
 
     private List<DialogueRow> dialogueRows;
     private int currentLineIndex = 0;
@@ -53,8 +58,11 @@ public class VNDialogueManager : MonoBehaviour
     private Coroutine typingCoroutine;
     private Coroutine fadeCoroutine;
     private Coroutine effectSequenceCoroutine;
+    private Coroutine autoNextCoroutine;
+
     private bool isTyping = false;
-    private string completeDialogue = "";
+    private string completeDialogueRaw = "";
+    private string completeDialogueClean = "";
 
     private bool isChoiceActive = false;
     private bool isEffectPlaying = false;
@@ -98,7 +106,16 @@ public class VNDialogueManager : MonoBehaviour
 
         if (dialogueRows != null)
         {
-            dialogueRows.RemoveAll(row => row == null || (string.IsNullOrEmpty(row.speaker) && string.IsNullOrEmpty(row.dialogue) && string.IsNullOrEmpty(row.effect) && string.IsNullOrEmpty(row.choice1)));
+            dialogueRows.RemoveAll(row => row == null || (
+                string.IsNullOrEmpty(row.speaker) &&
+                string.IsNullOrEmpty(row.dialogue) &&
+                string.IsNullOrEmpty(row.effect) &&
+                string.IsNullOrEmpty(row.choice1) &&
+                string.IsNullOrEmpty(row.background) &&
+                string.IsNullOrEmpty(row.sfx) &&
+                string.IsNullOrEmpty(row.bgm) &&
+                string.IsNullOrEmpty(row.ambience)
+            ));
         }
 
         if (choiceContainer != null) choiceContainer.SetActive(false);
@@ -112,20 +129,13 @@ public class VNDialogueManager : MonoBehaviour
         {
             Debug.LogError($"[데이터 오류] CSV 대사 데이터를 로드하지 못했거나 비어있습니다. 경로를 확인하세요: Resources/{csvFileName}");
         }
-
-        Button btn = GetComponent<Button>();
-        if (btn == null) btn = gameObject.AddComponent<Button>();
-        btn.onClick.RemoveAllListeners();
-        btn.onClick.AddListener(OnScreenClicked);
     }
 
     void Update()
     {
-        // 선택지가 활성화되어 있거나 연출이 재생 중일 때는 모든 입력 무시
         if (isChoiceActive || isEffectPlaying) return;
 
 #if ENABLE_INPUT_SYSTEM
-        // 🌟 Unity New Input System 사용 시 (스페이스바 OR 마우스 좌클릭 OR 터치)
         bool spacePressed = UnityEngine.InputSystem.Keyboard.current != null && UnityEngine.InputSystem.Keyboard.current.spaceKey.wasPressedThisFrame;
         bool mousePressed = UnityEngine.InputSystem.Mouse.current != null && UnityEngine.InputSystem.Mouse.current.leftButton.wasPressedThisFrame;
 
@@ -134,21 +144,17 @@ public class VNDialogueManager : MonoBehaviour
             HandleInput();
         }
 #else
-    // 🌟 Unity Legacy Input 사용 시 (스페이스바 OR 마우스 좌클릭)
-    if (Input.GetKeyDown(KeyCode.Space) || Input.GetMouseButtonDown(0))
-    {
-        HandleInput();
-    }
+        if (Input.GetKeyDown(KeyCode.Space) || Input.GetMouseButtonDown(0))
+        {
+            HandleInput();
+        }
 #endif
     }
 
     private void CheckInspectorAssignments()
     {
-        if (choiceContainer == null) Debug.LogError("[인스펙터 누락] 'Choice Container' 슬롯이 비어있습니다! 오브젝트를 연결해주세요.");
-        if (choiceButtons == null || choiceButtons.Length == 0) Debug.LogError("[인스펙터 누락] 'Choice Buttons' 배열이 비어있거나 세팅되지 않았습니다.");
-        if (choiceTexts == null || choiceTexts.Length == 0) Debug.LogError("[인스펙터 누락] 'Choice Texts' 배열이 비어있거나 세팅되지 않았습니다.");
-        if (ambienceSource == null) Debug.LogWarning("[인스펙터 권장] 'Ambience Source'가 연결되지 않았습니다. 인스펙터에 오디오소스를 넣어주세요.");
-        if (dialogueWindow == null) Debug.LogWarning("[인스펙터 권장] 'Dialogue Window' 슬롯이 비어있습니다. 선택지 출현 시 숨길 대사창(말상자) 부모 오브젝트를 꽂아주세요.");
+        if (choiceContainer == null) Debug.LogError("[인스펙터 누락] 'Choice Container' 슬롯이 비어있습니다!");
+        if (dialogueWindow == null) Debug.LogWarning("[인스펙터 권장] 'Dialogue Window' 슬롯이 비어있습니다.");
     }
 
     private void CreateFullScreenFadeObject(Transform parentCanvas)
@@ -190,14 +196,11 @@ public class VNDialogueManager : MonoBehaviour
     private Image CreateDissolveTempObject(Image sourceImage, string name)
     {
         if (sourceImage == null) return null;
-
         Image tempImg = Instantiate(sourceImage, sourceImage.transform.parent);
         tempImg.name = name;
         tempImg.transform.SetSiblingIndex(sourceImage.transform.GetSiblingIndex());
-
         var extraManager = tempImg.GetComponent<VNDialogueManager>();
         if (extraManager != null) Destroy(extraManager);
-
         tempImg.color = new Color(1f, 1f, 1f, 0f);
         tempImg.gameObject.SetActive(false);
         return tempImg;
@@ -213,12 +216,6 @@ public class VNDialogueManager : MonoBehaviour
         rect.offsetMax = Vector2.zero;
     }
 
-    private void OnScreenClicked()
-    {
-        if (isChoiceActive || isEffectPlaying) return;
-        HandleInput();
-    }
-
     private void HandleInput()
     {
         if (isTyping)
@@ -227,12 +224,15 @@ public class VNDialogueManager : MonoBehaviour
         }
         else
         {
+            PlaySFXClip(nextDialogueSFX);
             OnNextTarget();
         }
     }
 
     public void OnNextTarget()
     {
+        if (autoNextCoroutine != null) StopCoroutine(autoNextCoroutine);
+
         if (currentLineIndex >= 0 && currentLineIndex < dialogueRows.Count)
         {
             DialogueRow currentRow = dialogueRows[currentLineIndex];
@@ -249,14 +249,9 @@ public class VNDialogueManager : MonoBehaviour
                 int targetIndex = dialogueRows.FindIndex(row => row != null && row.id.Trim() == autoNextID);
                 if (targetIndex >= 0)
                 {
-                    Debug.Log($"[자동 분기 이동] {currentRow.id}번 대사 종료 후 {autoNextID}번 행으로 자동 워프합니다.");
                     currentLineIndex = targetIndex;
                     PlayLine(currentLineIndex);
                     return;
-                }
-                else
-                {
-                    Debug.LogError($"[자동 이동 오류] CSV 파일 내에 주소 [{autoNextID}]를 가진 대사 행이 없습니다.");
                 }
             }
         }
@@ -276,14 +271,10 @@ public class VNDialogueManager : MonoBehaviour
     private void TriggerExitVisualNovel()
     {
         Debug.Log($"[시스템] 비주얼 노벨 시나리오 종료 -> {nextSceneName}씬으로 전환");
-
-        if (string.IsNullOrEmpty(nextSceneName))
+        if (!string.IsNullOrEmpty(nextSceneName))
         {
-            Debug.LogError("[VNDialogueManager] nextSceneName이 비어있습니다! Inspector에서 이동할 씬 이름을 지정해주세요.");
-            return;
+            SceneManager.LoadScene(nextSceneName);
         }
-
-        SceneManager.LoadScene(nextSceneName);
     }
 
     private void PlayLine(int index)
@@ -296,6 +287,7 @@ public class VNDialogueManager : MonoBehaviour
 
         isChoiceActive = false;
         if (choiceContainer != null) choiceContainer.SetActive(false);
+        if (autoNextCoroutine != null) StopCoroutine(autoNextCoroutine);
 
         DialogueRow row = dialogueRows[index];
 
@@ -315,14 +307,12 @@ public class VNDialogueManager : MonoBehaviour
         bool hasDialogueText = !string.IsNullOrEmpty(row.dialogue);
         bool hasActiveEffects = (activeEffects.Count > 0);
 
-        // 🌟 [명령어 구별] 임시 숨김(hide_window)과 무조건 유지 숨김(hide_window_keep) 분석
         bool shouldHideWindow = activeEffects.Contains("hide_window");
         bool shouldKeepHideWindow = activeEffects.Contains("hide_window_keep");
 
         if (dialogueWindow != null)
         {
-            // 둘 중 하나라도 걸려있으면 연출을 위해 대사창을 강제로 꺼둡니다.
-            if ((hasActiveEffects && hasDialogueText) || shouldHideWindow || shouldKeepHideWindow)
+            if (!hasDialogueText || (hasActiveEffects && hasDialogueText) || shouldHideWindow || shouldKeepHideWindow)
             {
                 dialogueWindow.SetActive(false);
             }
@@ -351,13 +341,10 @@ public class VNDialogueManager : MonoBehaviour
     private IEnumerator PlayEffectsAndDialogueSequence(DialogueRow row, List<string> activeEffects, bool hasChoice, bool shouldHideWindow, bool shouldKeepHideWindow)
     {
         isEffectPlaying = true;
-
         float maxEffectDuration = 0f;
 
         // 1. 배경 이미지 변경 연출
-        bool isFadeBG = activeEffects.Contains("fadein_bg");
         bool isDissolveBG = activeEffects.Contains("dissolve_bg");
-
         if (!string.IsNullOrEmpty(row.background) && backgroundImage != null)
         {
             Sprite nextBgSprite = Resources.Load<Sprite>($"Backgrounds/{row.background}");
@@ -376,25 +363,34 @@ public class VNDialogueManager : MonoBehaviour
             }
         }
 
-        // 2. 캐릭터 스탠딩 이미지 변경 연출
-        bool isFadeLeft = activeEffects.Contains("fadein_left");
-        bool isFadeMid = activeEffects.Contains("fadein_mid");
-        bool isFadeRight = activeEffects.Contains("fadein_right");
+        // 2. 캐릭터 스탠딩 연출 감지 (FadeIn, FadeOut, Dissolve)
+        bool isFadeInLeft = activeEffects.Contains("fadein_left");
+        bool isFadeInMid = activeEffects.Contains("fadein_mid");
+        bool isFadeInRight = activeEffects.Contains("fadein_right");
+
+        bool isFadeOutLeft = activeEffects.Contains("fadeout_left");
+        bool isFadeOutMid = activeEffects.Contains("fadeout_mid");
+        bool isFadeOutRight = activeEffects.Contains("fadeout_right");
 
         bool isDissolveLeft = activeEffects.Contains("dissolve_left");
         bool isDissolveMid = activeEffects.Contains("dissolve_mid");
         bool isDissolveRight = activeEffects.Contains("dissolve_right");
+
+        UpdateStandingCharacterWithFade(row.standingLeft, standingLeftImage, leftDissolveTemp, isFadeInLeft, isFadeOutLeft, isDissolveLeft, dissolveStandingDuration);
+        UpdateStandingCharacterWithFade(row.standingMid, standingMidImage, midDissolveTemp, isFadeInMid, isFadeOutMid, isDissolveMid, dissolveStandingDuration);
+        UpdateStandingCharacterWithFade(row.standingRight, standingRightImage, rightDissolveTemp, isFadeInRight, isFadeOutRight, isDissolveRight, dissolveStandingDuration);
+
+        if (isFadeInLeft || isFadeInMid || isFadeInRight || isFadeOutLeft || isFadeOutMid || isFadeOutRight)
+        {
+            maxEffectDuration = Mathf.Max(maxEffectDuration, fadeDuration);
+        }
 
         if (isDissolveLeft || isDissolveMid || isDissolveRight)
         {
             maxEffectDuration = Mathf.Max(maxEffectDuration, dissolveStandingDuration);
         }
 
-        UpdateStandingCharacter(row.standingLeft, standingLeftImage, leftDissolveTemp, isFadeLeft, isDissolveLeft, dissolveStandingDuration);
-        UpdateStandingCharacter(row.standingMid, standingMidImage, midDissolveTemp, isFadeMid, isDissolveMid, dissolveStandingDuration);
-        UpdateStandingCharacter(row.standingRight, standingRightImage, rightDissolveTemp, isFadeRight, isDissolveRight, dissolveStandingDuration);
-
-        // 3. 오디오 연출 재생
+        // 3. 오디오 연출
         if (!string.IsNullOrEmpty(row.bgm) && bgmSource != null)
         {
             if (row.bgm.Equals("StopBGM", System.StringComparison.OrdinalIgnoreCase))
@@ -441,74 +437,34 @@ public class VNDialogueManager : MonoBehaviour
             if (sfxClip != null) sfxSource.PlayOneShot(sfxClip);
         }
 
-        // 4. 화면 이펙트 연출 재생
+        // 4. 화면 전체 이펙트 연출
         if (activeEffects.Count > 0)
         {
-            if (activeEffects.Contains("fadein_bg"))
+            if (activeEffects.Contains("fadein_bg") && bgEffectOverlayImage != null)
             {
-                if (bgEffectOverlayImage != null)
-                {
-                    bgEffectOverlayImage.color = Color.black;
-                    fadeCoroutine = StartCoroutine(OverlayFadeInCoroutine(bgEffectOverlayImage, Color.black, fadeOutDuration));
-                    maxEffectDuration = Mathf.Max(maxEffectDuration, fadeOutDuration);
-                }
+                bgEffectOverlayImage.color = Color.black;
+                fadeCoroutine = StartCoroutine(OverlayFadeInCoroutine(bgEffectOverlayImage, Color.black, fadeOutDuration));
+                maxEffectDuration = Mathf.Max(maxEffectDuration, fadeOutDuration);
             }
-
-            if (activeEffects.Contains("fadein_target"))
+            if (activeEffects.Contains("whiteout_bg") && bgEffectOverlayImage != null)
             {
-                if (backgroundImage != null)
-                {
-                    fadeCoroutine = StartCoroutine(FadeInTargetCoroutine(backgroundImage));
-                    maxEffectDuration = Mathf.Max(maxEffectDuration, fadeDuration);
-                }
+                fadeCoroutine = StartCoroutine(OverlayFadeCoroutine(bgEffectOverlayImage, Color.white, whiteoutDuration));
+                maxEffectDuration = Mathf.Max(maxEffectDuration, whiteoutDuration);
             }
-
-            if (activeEffects.Contains("whiteout_bg"))
+            if (activeEffects.Contains("whitein_bg") && bgEffectOverlayImage != null)
             {
-                if (bgEffectOverlayImage != null)
-                {
-                    fadeCoroutine = StartCoroutine(OverlayFadeCoroutine(bgEffectOverlayImage, Color.white, whiteoutDuration));
-                    maxEffectDuration = Mathf.Max(maxEffectDuration, whiteoutDuration);
-                }
+                bgEffectOverlayImage.color = Color.white;
+                fadeCoroutine = StartCoroutine(OverlayFadeInCoroutine(bgEffectOverlayImage, Color.white, whiteinDuration));
+                maxEffectDuration = Mathf.Max(maxEffectDuration, whiteinDuration);
             }
-
-            if (activeEffects.Contains("whitein_bg"))
+            if (activeEffects.Contains("fadeout_bg") && bgEffectOverlayImage != null)
             {
-                if (bgEffectOverlayImage != null)
-                {
-                    bgEffectOverlayImage.color = Color.white;
-                    fadeCoroutine = StartCoroutine(OverlayFadeInCoroutine(bgEffectOverlayImage, Color.white, whiteinDuration));
-                    maxEffectDuration = Mathf.Max(maxEffectDuration, whiteinDuration);
-                }
-            }
-
-            if (activeEffects.Contains("fadeout_bg"))
-            {
-                if (bgEffectOverlayImage != null)
-                {
-                    fadeCoroutine = StartCoroutine(OverlayFadeCoroutine(bgEffectOverlayImage, Color.black, fadeOutDuration));
-                    maxEffectDuration = Mathf.Max(maxEffectDuration, fadeOutDuration);
-                }
-            }
-
-            if (isFadeLeft && standingLeftImage != null)
-            {
-                fadeCoroutine = StartCoroutine(FadeInTargetCoroutine(standingLeftImage));
-                maxEffectDuration = Mathf.Max(maxEffectDuration, fadeDuration);
-            }
-            if (isFadeMid && standingMidImage != null)
-            {
-                fadeCoroutine = StartCoroutine(FadeInTargetCoroutine(standingMidImage));
-                maxEffectDuration = Mathf.Max(maxEffectDuration, fadeDuration);
-            }
-            if (isFadeRight && standingRightImage != null)
-            {
-                fadeCoroutine = StartCoroutine(FadeInTargetCoroutine(standingRightImage));
-                maxEffectDuration = Mathf.Max(maxEffectDuration, fadeDuration);
+                fadeCoroutine = StartCoroutine(OverlayFadeCoroutine(bgEffectOverlayImage, Color.black, fadeOutDuration));
+                maxEffectDuration = Mathf.Max(maxEffectDuration, fadeOutDuration);
             }
         }
 
-        // 5. 모든 연출 재생이 끝날 때까지 대기
+        // 화면 연출 진행 대기
         if (maxEffectDuration > 0f)
         {
             yield return new WaitForSeconds(maxEffectDuration);
@@ -525,28 +481,180 @@ public class VNDialogueManager : MonoBehaviour
                 speakerText.text = row.speaker;
             }
 
-            // 🌟 [조건 처리] 'hide_window_keep'을 사용했다면 연출이 끝나도 대사창을 활성화하지 않습니다.
-            // 다음 마우스 클릭이나 키보드 입력이 일어날 때까지 화면은 대사창이 없는 채로 유지됩니다.
             if (dialogueWindow != null)
             {
-                dialogueWindow.SetActive(!shouldKeepHideWindow);
+                dialogueWindow.SetActive(hasDialogueText && !shouldKeepHideWindow);
             }
 
-            // 'hide_window_keep'일 때는 타이핑을 생략하거나 바로 다음 줄 클릭 대기 상태로 이행합니다.
             if (hasDialogueText && !shouldKeepHideWindow)
             {
-                completeDialogue = row.dialogue;
-                typingCoroutine = StartCoroutine(TypeTextCoroutine(completeDialogue, row));
+                completeDialogueRaw = row.dialogue;
+                typingCoroutine = StartCoroutine(TypeTextCoroutine(completeDialogueRaw, activeEffects));
             }
             else
             {
                 isTyping = false;
+                CheckAutoNext(activeEffects);
             }
         }
         else
         {
             if (dialogueText != null) dialogueText.text = "";
             CheckAndShowChoices(row);
+        }
+    }
+
+    private void CheckAutoNext(List<string> activeEffects)
+    {
+        foreach (var fx in activeEffects)
+        {
+            if (fx.StartsWith("auto_next="))
+            {
+                string valStr = fx.Replace("auto_next=", "").Trim();
+                if (float.TryParse(valStr, out float delaySec))
+                {
+                    // 🌟 auto_next 타이머 진행 동안 유저 클릭/스페이스바 입력을 완전 차단
+                    isEffectPlaying = true;
+                    autoNextCoroutine = StartCoroutine(AutoNextCoroutine(delaySec));
+                    break;
+                }
+            }
+        }
+    }
+
+    private IEnumerator AutoNextCoroutine(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        // 🌟 자동 이동 직전 입력 잠금 해제 후 다음 대사 이동
+        isEffectPlaying = false;
+        OnNextTarget();
+    }
+
+    private IEnumerator TypeTextCoroutine(string rawLine, List<string> activeEffects)
+    {
+        if (dialogueText == null) yield break;
+
+        isTyping = true;
+
+        float currentTypeSpeed = defaultTypingSpeed;
+        float overrideTotalDuration = -1f;
+
+        foreach (var fx in activeEffects)
+        {
+            if (fx.StartsWith("type_speed="))
+            {
+                if (float.TryParse(fx.Replace("type_speed=", "").Trim(), out float parsedSpeed))
+                    currentTypeSpeed = parsedSpeed;
+            }
+            else if (fx.StartsWith("type_duration="))
+            {
+                if (float.TryParse(fx.Replace("type_duration=", "").Trim(), out float parsedDur))
+                    overrideTotalDuration = parsedDur;
+            }
+        }
+
+        List<TextSegment> segments = ParseDialogueSegments(rawLine);
+        completeDialogueClean = "";
+        foreach (var seg in segments) completeDialogueClean += seg.text;
+
+        dialogueText.text = completeDialogueClean;
+        dialogueText.maxVisibleCharacters = 0;
+
+        yield return null;
+
+        int totalVisibleCharacters = dialogueText.textInfo.characterCount;
+        int currentVisibleCount = 0;
+
+        if (overrideTotalDuration > 0f && totalVisibleCharacters > 0)
+        {
+            currentTypeSpeed = overrideTotalDuration / totalVisibleCharacters;
+        }
+
+        foreach (var seg in segments)
+        {
+            float segSpeed = currentTypeSpeed;
+
+            string cleanSegText = Regex.Replace(seg.text, "<.*?>", string.Empty);
+            int segCharCount = cleanSegText.Length;
+
+            if (seg.duration > 0f && segCharCount > 0)
+            {
+                segSpeed = seg.duration / segCharCount;
+            }
+
+            for (int i = 0; i < segCharCount; i++)
+            {
+                currentVisibleCount++;
+                dialogueText.maxVisibleCharacters = currentVisibleCount;
+                yield return new WaitForSeconds(segSpeed);
+            }
+        }
+
+        dialogueText.maxVisibleCharacters = 99999;
+        isTyping = false;
+
+        if (currentLineIndex < dialogueRows.Count)
+        {
+            CheckAndShowChoices(dialogueRows[currentLineIndex]);
+            CheckAutoNext(activeEffects);
+        }
+    }
+
+    private struct TextSegment
+    {
+        public string text;
+        public float duration;
+    }
+
+    private List<TextSegment> ParseDialogueSegments(string rawText)
+    {
+        List<TextSegment> list = new List<TextSegment>();
+        string pattern = @"<duration=([\d\.]+)s?>(.*?)</duration>";
+        MatchCollection matches = Regex.Matches(rawText, pattern, RegexOptions.Singleline);
+
+        int lastIndex = 0;
+        foreach (Match match in matches)
+        {
+            if (match.Index > lastIndex)
+            {
+                list.Add(new TextSegment { text = rawText.Substring(lastIndex, match.Index - lastIndex), duration = -1f });
+            }
+
+            float dur = float.Parse(match.Groups[1].Value);
+            string innerText = match.Groups[2].Value;
+            list.Add(new TextSegment { text = innerText, duration = dur });
+
+            lastIndex = match.Index + match.Length;
+        }
+
+        if (lastIndex < rawText.Length)
+        {
+            list.Add(new TextSegment { text = rawText.Substring(lastIndex), duration = -1f });
+        }
+
+        return list;
+    }
+
+    private void StopTypingAndShowFullText()
+    {
+        if (typingCoroutine != null) StopCoroutine(typingCoroutine);
+        if (dialogueText != null)
+        {
+            dialogueText.text = completeDialogueClean;
+            dialogueText.maxVisibleCharacters = 99999;
+        }
+        isTyping = false;
+
+        if (currentLineIndex < dialogueRows.Count)
+        {
+            CheckAndShowChoices(dialogueRows[currentLineIndex]);
+
+            DialogueRow row = dialogueRows[currentLineIndex];
+            if (!string.IsNullOrEmpty(row.effect))
+            {
+                List<string> activeEffects = new List<string>(row.effect.ToLower().Split(new char[] { ',', '/' }, System.StringSplitOptions.RemoveEmptyEntries));
+                CheckAutoNext(activeEffects);
+            }
         }
     }
 
@@ -558,7 +666,6 @@ public class VNDialogueManager : MonoBehaviour
         {
             isChoiceActive = true;
             choiceContainer.SetActive(true);
-
             if (dialogueWindow != null) dialogueWindow.SetActive(false);
 
             SetButtonActive(0, row.choice1);
@@ -594,6 +701,8 @@ public class VNDialogueManager : MonoBehaviour
 
     private void OnChoiceSelected(int buttonIndex)
     {
+        PlaySFXClip(choiceSelectSFX);
+
         if (currentLineIndex >= dialogueRows.Count) return;
         DialogueRow currentRow = dialogueRows[currentLineIndex];
         string targetID = string.Empty;
@@ -609,32 +718,40 @@ public class VNDialogueManager : MonoBehaviour
             {
                 choiceContainer.SetActive(false);
                 isChoiceActive = false;
-
                 if (dialogueWindow != null) dialogueWindow.SetActive(true);
-
                 currentLineIndex = targetIndex;
                 PlayLine(currentLineIndex);
-            }
-            else
-            {
-                choiceContainer.SetActive(false);
-                isChoiceActive = false;
-                if (dialogueWindow != null) dialogueWindow.SetActive(true);
-                OnNextTarget();
+                return;
             }
         }
-        else
+
+        choiceContainer.SetActive(false);
+        isChoiceActive = false;
+        if (dialogueWindow != null) dialogueWindow.SetActive(true);
+        OnNextTarget();
+    }
+
+    private void PlaySFXClip(AudioClip clip)
+    {
+        if (clip != null && sfxSource != null)
         {
-            choiceContainer.SetActive(false);
-            isChoiceActive = false;
-            if (dialogueWindow != null) dialogueWindow.SetActive(true);
-            OnNextTarget();
+            sfxSource.PlayOneShot(clip);
         }
     }
 
-    private void UpdateStandingCharacter(string spriteName, Image mainImage, Image tempImage, bool isFade, bool isDissolve, float duration)
+    private void UpdateStandingCharacterWithFade(string spriteName, Image mainImage, Image tempImage, bool isFadeIn, bool isFadeOut, bool isDissolve, float dissolveDur)
     {
         if (mainImage == null) return;
+
+        if (isFadeOut)
+        {
+            if (mainImage.gameObject.activeSelf)
+            {
+                StartCoroutine(FadeOutTargetCoroutine(mainImage));
+            }
+            if (tempImage != null) tempImage.gameObject.SetActive(false);
+            return;
+        }
 
         if (string.IsNullOrEmpty(spriteName))
         {
@@ -651,22 +768,24 @@ public class VNDialogueManager : MonoBehaviour
             return;
         }
 
-        if (mainImage.gameObject.activeSelf && mainImage.sprite == nextSprite)
+        if (isFadeIn)
         {
+            mainImage.sprite = nextSprite;
+            mainImage.gameObject.SetActive(true);
+            mainImage.color = new Color(1f, 1f, 1f, 0f);
+            StartCoroutine(FadeInTargetCoroutine(mainImage));
             return;
         }
 
-        if (isDissolve)
+        if (isDissolve && mainImage.gameObject.activeSelf && mainImage.sprite != null && mainImage.sprite != nextSprite)
         {
-            fadeCoroutine = StartCoroutine(DissolveImageCoroutine(mainImage, tempImage, nextSprite, duration));
+            StartCoroutine(DissolveImageCoroutine(mainImage, tempImage, nextSprite, dissolveDur));
+            return;
         }
-        else
-        {
-            mainImage.gameObject.SetActive(true);
-            mainImage.sprite = nextSprite;
-            mainImage.color = new Color(1f, 1f, 1f, isFade ? 0f : 1f);
-            mainImage.material = null;
-        }
+
+        mainImage.gameObject.SetActive(true);
+        mainImage.sprite = nextSprite;
+        mainImage.color = new Color(1f, 1f, 1f, 1f);
     }
 
     private IEnumerator OverlayFadeCoroutine(Image overlay, Color targetColor, float duration)
@@ -731,36 +850,28 @@ public class VNDialogueManager : MonoBehaviour
     private IEnumerator FadeInTargetCoroutine(Image targetImage)
     {
         float elapsed = 0.0f;
-        Color baseColor = targetImage.color;
+        targetImage.color = new Color(1f, 1f, 1f, 0f);
         while (elapsed < fadeDuration)
         {
             elapsed += Time.deltaTime;
             float alpha = Mathf.Clamp01(elapsed / fadeDuration);
-            targetImage.color = new Color(baseColor.r, baseColor.b, baseColor.g, alpha);
+            targetImage.color = new Color(1f, 1f, 1f, alpha);
             yield return null;
         }
-        targetImage.color = new Color(baseColor.r, baseColor.g, baseColor.b, 1f);
+        targetImage.color = new Color(1f, 1f, 1f, 1f);
     }
 
-    private IEnumerator TypeTextCoroutine(string line, DialogueRow row)
+    private IEnumerator FadeOutTargetCoroutine(Image targetImage)
     {
-        if (dialogueText == null) yield break;
-        dialogueText.text = "";
-        isTyping = true;
-        foreach (char letter in line.ToCharArray())
+        float elapsed = 0.0f;
+        while (elapsed < fadeDuration)
         {
-            dialogueText.text += letter;
-            yield return new WaitForSeconds(typingSpeed);
+            elapsed += Time.deltaTime;
+            float alpha = Mathf.Clamp01(1f - (elapsed / fadeDuration));
+            targetImage.color = new Color(1f, 1f, 1f, alpha);
+            yield return null;
         }
-        isTyping = false;
-        CheckAndShowChoices(row);
-    }
-
-    private void StopTypingAndShowFullText()
-    {
-        if (typingCoroutine != null) StopCoroutine(typingCoroutine);
-        if (dialogueText != null) dialogueText.text = completeDialogue;
-        isTyping = false;
-        if (currentLineIndex < dialogueRows.Count) CheckAndShowChoices(dialogueRows[currentLineIndex]);
+        targetImage.color = new Color(1f, 1f, 1f, 0f);
+        targetImage.gameObject.SetActive(false);
     }
 }

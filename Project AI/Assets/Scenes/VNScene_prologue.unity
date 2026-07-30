@@ -191,8 +191,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0.5}
   m_AnchorMax: {x: 1, y: 0.5}
-  m_AnchoredPosition: {x: 630, y: -30}
-  m_SizeDelta: {x: 321, y: 1019}
+  m_AnchoredPosition: {x: 632, y: -224.14}
+  m_SizeDelta: {x: 408, y: 1295.18}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &87816979
 GameObject:
@@ -2531,8 +2531,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -30}
-  m_SizeDelta: {x: 321, y: 1019}
+  m_AnchoredPosition: {x: 0, y: -224.13556}
+  m_SizeDelta: {x: 408, y: 1295.18}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1561955803
 MonoBehaviour:
@@ -2824,6 +2824,8 @@ MonoBehaviour:
   bgmSource: {fileID: 1669045234}
   sfxSource: {fileID: 1669045233}
   ambienceSource: {fileID: 1669045238}
+  nextDialogueSFX: {fileID: 0}
+  choiceSelectSFX: {fileID: 0}
   choiceContainer: {fileID: 1274065039}
   choiceButtons:
   - {fileID: 1299936532}
@@ -2833,9 +2835,9 @@ MonoBehaviour:
   - {fileID: 1177837399}
   - {fileID: 386015745}
   - {fileID: 1260339872}
-  typingSpeed: 0.05
-  fadeDuration: 1
-  dissolveDuration: 1
+  defaultTypingSpeed: 0.03
+  fadeDuration: 1.5
+  dissolveDuration: 1.5
   dissolveStandingDuration: 0.25
   whiteoutDuration: 1.5
   whiteinDuration: 1.5
@@ -2972,8 +2974,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -630, y: -35}
-  m_SizeDelta: {x: 321, y: 1019}
+  m_AnchoredPosition: {x: -651, y: -224.14}
+  m_SizeDelta: {x: 408, y: 1295.18}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1704724727
 CanvasRenderer:

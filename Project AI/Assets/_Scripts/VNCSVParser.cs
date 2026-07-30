@@ -61,6 +61,7 @@ public static class VNCSVParser
 
             row.nextId = GetField(fields, cleanHeaders, "next_id");
 
+            // ID가 명시되어 있다면 dialogue가 비어있어도 파싱 리스트에 포함시킵니다.
             if (row != null && !string.IsNullOrEmpty(row.id))
             {
                 list.Add(row);
