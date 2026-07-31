@@ -288,6 +288,23 @@ public class NewsListManager : MonoBehaviour
     }
 
     /// <summary>
+    /// 💡 [추가] 패널 링크(<link="news:5">)에서 특정 기사를 ID로 바로 열 때 사용.
+    /// 이미 열려있는 기사면 TryOpenClueSource와 마찬가지로 맨 앞으로만 가져옵니다.
+    /// </summary>
+    public bool OpenNewsByID(int newsID)
+    {
+        var data = allNewsData.Find(n => n.id == newsID);
+        if (data == null)
+        {
+            Debug.LogWarning($"[NewsListManager] newsID '{newsID}' 에 해당하는 기사를 찾을 수 없습니다.");
+            return false;
+        }
+
+        OpenDetailPopup(data);
+        return true;
+    }
+
+    /// <summary>
     /// 💡 본문을 '|'로 나눈 문단들 중에, "[CLUE:아이디]" 태그로 시작하는 문단이
     /// 주어진 clueID와 일치하는 게 있는지 확인합니다. (문단 여러 개가 단서인 경우 지원)
     /// </summary>

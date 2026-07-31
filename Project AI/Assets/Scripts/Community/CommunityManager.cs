@@ -252,6 +252,22 @@ public class CommunityManager : MonoBehaviour
     }
 
     /// <summary>
+    /// 💡 [추가] 패널 링크(<link="post:12">)에서 특정 게시글을 ID로 바로 열 때 사용.
+    /// </summary>
+    public bool OpenPostByID(int postID)
+    {
+        var data = postList.Find(p => p.postID == postID);
+        if (data == null)
+        {
+            Debug.LogWarning($"[CommunityManager] postID '{postID}' 에 해당하는 게시글을 찾을 수 없습니다.");
+            return false;
+        }
+
+        OpenDetailPage(data);
+        return true;
+    }
+
+    /// <summary>
     /// 💡 [추가] 본문을 '|'로 나눈 문단들 중에, "[CLUE:아이디]" 태그로 시작하는 문단이
     /// 주어진 clueID와 일치하는 게 있는지 확인합니다. (문단 여러 개가 단서인 경우 지원)
     /// </summary>

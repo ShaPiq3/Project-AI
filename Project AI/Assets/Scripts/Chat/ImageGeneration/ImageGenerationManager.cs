@@ -64,18 +64,22 @@ public class ImageGenerationManager : MonoBehaviour
     public TextAsset questSlotCsv;     // ImageGenQuestSlots.csv
     public TextAsset questResultCsv;   // ImageGenQuestResults.csv
 
-    [Header("패널 / 버튼")]
+    [Header("패널/버튼")]
     [SerializeField] private RectTransform panelRect;
     [SerializeField] private CanvasGroup panelCanvasGroup;
-    [SerializeField] private Button toggleButton;      // 열고 끄는 버튼 (평소엔 잠겨있음)
     [SerializeField] private Button generateAnswerButton; // 답변 생성 버튼
     [SerializeField] private TMP_Text progressText; // 💡 "2/3" 형태로 진행도를 보여줄 텍스트 (DataLogManager의 questStatusUI와 동일한 역할)
     [SerializeField] private Button deleteSelectedButton;  // 항상 떠있는 삭제 버튼 (체크된 슬롯을 지움)
     [SerializeField] private AudioSource panelAudioSource;
     [SerializeField] private AudioSource imageRegisteredAudioSource; // 💡 추가
-    [SerializeField] private Image toggleButtonImage;         // 💡 추가: toggleButton의 Image 컴포넌트
-    [SerializeField] private Sprite toggleButtonClosedSprite;  // 💡 추가: 패널 닫힘 상태 스프라이트
-    [SerializeField] private Sprite toggleButtonOpenSprite;    // 💡 추가: 패널 열림 상태 스프라이트
+
+    [Header("여닫기 탭 버튼 (<< / >>) - Hover Preview + Pin")]
+    [SerializeField] private Button edgeToggleButton;
+    [SerializeField] private GameObject edgeToggleButtonRoot;   // 여러 요소 묶음이면 상위 오브젝트, 아니면 비워둬도 됨
+    [SerializeField] private Image edgeToggleButtonImage;
+    [SerializeField] private Sprite edgeToggleClosedSprite;      // ">>" 펼치기
+    [SerializeField] private Sprite edgeToggleOpenSprite;        // "<<" 접기
+    [SerializeField] private float hoverPreviewCloseDelay = 0.15f;
 
 
     [Header("애니메이션 설정")]
@@ -89,6 +93,9 @@ public class ImageGenerationManager : MonoBehaviour
 
     [Header("UI Manager (확인 팝업용)")]
     public UIManager uiManager;
+
+    private Coroutine hoverCloseCoroutine;
+    private bool isPinnedOpen = false;
 
     // ---- 파싱된 정적 데이터 ----
     private Dictionary<string, ImageGenSlotItemData> itemsByImageID = new Dictionary<string, ImageGenSlotItemData>();
@@ -136,11 +143,13 @@ public class ImageGenerationManager : MonoBehaviour
             panelCanvasGroup.blocksRaycasts = false;
         }
 
-        if (toggleButton != null)
+        if (edgeToggleButton != null)
         {
-            toggleButton.onClick.AddListener(OnToggleButtonClicked);
-            toggleButton.interactable = false; // 언락 전까지 잠금
+            edgeToggleButton.onClick.AddListener(OnEdgeToggleButtonClicked);
+            edgeToggleButton.interactable = false; // 언락 전까지 잠금
         }
+
+        ShowEdgeToggleButton(false);
 
         if (generateAnswerButton != null)
         {
@@ -155,7 +164,7 @@ public class ImageGenerationManager : MonoBehaviour
             deleteSelectedButton.interactable = false;
         }
 
-        UpdateToggleButtonSprite();
+        UpdateEdgeToggleButtonSprite();
     }
 
     /// <summary>
@@ -164,19 +173,17 @@ public class ImageGenerationManager : MonoBehaviour
     /// </summary>
     public void SetToggleButtonInteractable(bool value)
     {
-        if (toggleButton != null)
+        if (edgeToggleButton != null)
         {
-            toggleButton.interactable = value;
+            edgeToggleButton.interactable = value;
         }
     }
 
-    private void UpdateToggleButtonSprite()
-    {
-        if (toggleButtonImage == null) return;
 
-        toggleButtonImage.sprite = isPanelOpen
-            ? toggleButtonOpenSprite
-            : toggleButtonClosedSprite;
+    private void UpdateEdgeToggleButtonSprite()
+    {
+        if (edgeToggleButtonImage == null) return;
+        edgeToggleButtonImage.sprite = isPanelOpen ? edgeToggleOpenSprite : edgeToggleClosedSprite;
     }
 
     // =========================================================
@@ -289,7 +296,6 @@ public class ImageGenerationManager : MonoBehaviour
             return;
         }
 
-        // CSV에 결과 설정이 없으면(혹은 다르면) 대화 CSV 쪽 값으로 덮어써서 사용
         if (!resultByQuestID.TryGetValue(questID, out var cfg))
         {
             cfg = new ImageGenQuestResultConfig { questID = questID };
@@ -302,10 +308,13 @@ public class ImageGenerationManager : MonoBehaviour
         currentQuestID = questID;
         isUnlocked = true;
 
-        if (toggleButton != null) toggleButton.interactable = true;
+        if (edgeToggleButton != null) edgeToggleButton.interactable = true;
 
         EnsureRuntimeForQuest(questID);
         RebuildSlotUI(questID);
+
+        ShowEdgeToggleButton(true);
+        isPinnedOpen = true;
 
         OpenPanel();
     }
@@ -566,15 +575,21 @@ public class ImageGenerationManager : MonoBehaviour
         if (generateAnswerButton != null) generateAnswerButton.interactable = true;
         if (deleteSelectedButton != null) deleteSelectedButton.interactable = true;
     }
-
-    /// <summary>퀘스트 종료(진실/거짓 확정) 시 버튼을 다시 잠그고 패널을 닫음</summary>
     private void LockAndClose()
     {
         isUnlocked = false;
         currentQuestID = null;
 
-        if (toggleButton != null) toggleButton.interactable = false;
+        if (edgeToggleButton != null) edgeToggleButton.interactable = false;
         if (generateAnswerButton != null) generateAnswerButton.interactable = false;
+
+        isPinnedOpen = false;
+        if (hoverCloseCoroutine != null)
+        {
+            StopCoroutine(hoverCloseCoroutine);
+            hoverCloseCoroutine = null;
+        }
+        ShowEdgeToggleButton(false);
 
         ClosePanel();
 
@@ -600,14 +615,70 @@ public class ImageGenerationManager : MonoBehaviour
         return false;
     }
 
-    // =========================================================
-    // 패널 열기/닫기 (ChatDialogueManager 의 슬라이드 패턴과 동일)
-    // =========================================================
-    private void OnToggleButtonClicked()
+    private void OnEdgeToggleButtonClicked()
     {
         if (!isUnlocked) return;
-        if (isPanelOpen) ClosePanel();
-        else OpenPanel();
+
+        if (isPanelOpen && !isPinnedOpen)
+        {
+            // 미리보기 중 클릭 → 고정만 시킴
+            isPinnedOpen = true;
+            UpdateEdgeToggleButtonSprite();
+        }
+        else if (isPanelOpen && isPinnedOpen)
+        {
+            // 고정 열림 → 클릭하면 닫음
+            isPinnedOpen = false;
+            ClosePanel();
+        }
+        else
+        {
+            // 닫혀있음 → 열고 고정
+            isPinnedOpen = true;
+            OpenPanel();
+        }
+    }
+
+    public void OnEdgeHoverEnter()
+    {
+        if (!isUnlocked) return;
+
+        if (hoverCloseCoroutine != null)
+        {
+            StopCoroutine(hoverCloseCoroutine);
+            hoverCloseCoroutine = null;
+        }
+
+        if (!isPanelOpen)
+        {
+            OpenPanel();
+        }
+    }
+
+    public void OnEdgeHoverExit()
+    {
+        if (!isUnlocked) return;
+
+        if (hoverCloseCoroutine != null) StopCoroutine(hoverCloseCoroutine);
+        hoverCloseCoroutine = StartCoroutine(DelayedPreviewClose());
+    }
+
+    private System.Collections.IEnumerator DelayedPreviewClose()
+    {
+        yield return new WaitForSeconds(hoverPreviewCloseDelay);
+
+        if (!isPinnedOpen && isPanelOpen)
+        {
+            ClosePanel();
+        }
+        hoverCloseCoroutine = null;
+    }
+
+    private void ShowEdgeToggleButton(bool show)
+    {
+        var target = edgeToggleButtonRoot != null ? edgeToggleButtonRoot
+                    : (edgeToggleButton != null ? edgeToggleButton.gameObject : null);
+        if (target != null) target.SetActive(show);
     }
 
     public void OpenPanel()
@@ -645,7 +716,7 @@ public class ImageGenerationManager : MonoBehaviour
             WindowManager.Instance.NotifyImageGenOpenedExternally();
         }
 
-        UpdateToggleButtonSprite();
+        UpdateEdgeToggleButtonSprite();
     }
 
     public void ClosePanel()
@@ -668,7 +739,7 @@ public class ImageGenerationManager : MonoBehaviour
             WindowManager.Instance.NotifyImageGenClosedExternally();
         }
 
-        UpdateToggleButtonSprite();
+        UpdateEdgeToggleButtonSprite();
     }
 
     /// <summary>

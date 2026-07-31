@@ -1,59 +1,142 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using UnityEngine.EventSystems;
 using TMPro;
 using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 /// <summary>
-/// ´Ü¼­(Clue) ½Ã½ºÅÛ°ú ¹«°üÇÏ°Ô, ¹®´Ü(Paragraph) ÅØ½ºÆ® ¾È¿¡¼­
-/// Æ¯Á¤ ±¸°£¸¸ ¸µÅ©Ã³·³ Å¬¸¯ °¡´ÉÇÏ°Ô ¸¸µå´Â ÄÄÆ÷³ÍÆ®.
+/// ë‹¨ì„œ(Clue) ì‹œìŠ¤í…œê³¼ ë¬´ê´€í•˜ê²Œ, ë¬¸ë‹¨(Paragraph) í…ìŠ¤íŠ¸ ì•ˆì—ì„œ
+/// íŠ¹ì • êµ¬ê°„ë§Œ ë§í¬ì²˜ëŸ¼ í´ë¦­ ê°€ëŠ¥í•˜ê²Œ ë§Œë“œëŠ” ì»´í¬ë„ŒíŠ¸.
 ///
-/// »ç¿ë¹ı:
-/// 1. TextMeshProUGUI¸¦ ¾²´Â ¹®´Ü ¿ÀºêÁ§Æ®¿¡ ÀÌ ÄÄÆ÷³ÍÆ®¸¦ ºÙÀÔ´Ï´Ù.
-///    (TMP_TextÀÇ "Raycast Target"ÀÌ ÄÑÁ® ÀÖ¾î¾ß ÇÔ)
-/// 2. ÅØ½ºÆ® ³»¿ë Áß ¸µÅ©·Î ¸¸µé°í ½ÍÀº ºÎºĞÀ» rich text ÅÂ±×·Î °¨½Ô´Ï´Ù.
-///    ¿¹) "ÀÌ »ç°ÇÀº 1998³â <link=\"doc_A\">°è¾à¼­ ¿øº»</link>¿¡¼­ È®ÀÎµÈ´Ù."
-///    -> <link="..."> ÅÂ±×´Â È­¸é¿¡´Â º¸ÀÌÁö ¾Ê°í, ±× ¾ÈÂÊ ±ÛÀÚ¸¸ Å¬¸¯ ÆÇÁ¤ ´ë»óÀÌ µË´Ï´Ù.
-/// 3. ÀÎ½ºÆåÅÍÀÇ Link Targets ¸®½ºÆ®¿¡ linkID("doc_A")¿Í ±×¿¡ ´ëÀÀÇÏ´Â
-///    targetLocation(RectTransform)À» µî·ÏÇÕ´Ï´Ù. ÇÑ ¹®´Ü¿¡ ¸µÅ©°¡ ¿©·¯ °³¸é
-///    ¸®½ºÆ®¿¡ ¿©·¯ °³ Ãß°¡ÇÏ¸é µË´Ï´Ù.
-/// 4. ¹®´Ü¿¡¼­ ¸µÅ© ÅÂ±×°¡ ¾Æ´Ñ ºÎºĞÀ» Å¬¸¯ÇÏ¸é ¾Æ¹« ¹İÀÀµµ ÇÏÁö ¾Ê°í,
-///    ÅÂ±×·Î °¨½Ñ ±¸°£À» Å¬¸¯ÇßÀ» ¶§¸¸ ÇØ´ç ÆĞ³ÎÀÌ ¿­¸³´Ï´Ù.
+/// ì‚¬ìš©ë²•:
+/// 1. TextMeshProUGUIë¥¼ ì“°ëŠ” ë¬¸ë‹¨ ì˜¤ë¸Œì íŠ¸ì— ì´ ì»´í¬ë„ŒíŠ¸ë¥¼ ë¶™ì…ë‹ˆë‹¤.
+///    (TMP_Textì˜ "Raycast Target"ì´ ì¼œì ¸ ìˆì–´ì•¼ í•¨)
+/// 2. í…ìŠ¤íŠ¸ ë‚´ìš© ì¤‘ ë§í¬ë¡œ ë§Œë“¤ê³  ì‹¶ì€ ë¶€ë¶„ì„ rich text íƒœê·¸ë¡œ ê°ìŒ‰ë‹ˆë‹¤.
+///    ì˜ˆ) "ì´ ì‚¬ê±´ì€ 1998ë…„ <link=\"doc_A\">ê³„ì•½ì„œ ì›ë³¸</link>ì—ì„œ í™•ì¸ëœë‹¤."
+/// 3. ì¸ìŠ¤í™í„°ì˜ Link Targets ë¦¬ìŠ¤íŠ¸ì— linkID("doc_A")ì™€ ê·¸ì— ëŒ€ì‘í•˜ëŠ”
+///    targetLocation(RectTransform)ì„ ë“±ë¡í•©ë‹ˆë‹¤.
+/// 4. íƒœê·¸ë¡œ ê°ì‹¼ êµ¬ê°„ì— ë§ˆìš°ìŠ¤ë¥¼ ì˜¬ë¦¬ë©´ ê·¸ ë¶€ë¶„ì—ë§Œ ë°‘ì¤„ì´ ìƒê¸°ê³ ,
+///    í´ë¦­í•˜ë©´ í•´ë‹¹ íŒ¨ë„ì´ ì—´ë¦½ë‹ˆë‹¤. íƒœê·¸ ë°”ê¹¥ì„ í´ë¦­/í˜¸ë²„í•˜ë©´ ì•„ë¬´ ë°˜ì‘ ì—†ìŒ.
 /// </summary>
 [RequireComponent(typeof(TMP_Text))]
-public class ArchiveTextLink : MonoBehaviour, IPointerClickHandler
+public class ArchiveTextLink : MonoBehaviour,
+    IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler, IPointerMoveHandler
 {
     [Serializable]
     public class LinkTarget
     {
-        [Tooltip("ÅØ½ºÆ® ¾È <link=\"...\"> ÅÂ±×¿¡ ÀûÀº ID¿Í µ¿ÀÏÇØ¾ß ÇÕ´Ï´Ù.")]
+        [Tooltip("í…ìŠ¤íŠ¸ ì•ˆ <link=\"...\"> íƒœê·¸ì— ì ì€ IDì™€ ë™ì¼í•´ì•¼ í•©ë‹ˆë‹¤.")]
         public string linkID;
-        [Tooltip("ÀÌ ¸µÅ©¸¦ Å¬¸¯ÇßÀ» ¶§ ¿­¸± ÆĞ³Î/ÀÌ¹ÌÁö µîÀÇ RectTransform")]
+        [Tooltip("ì´ ë§í¬ë¥¼ í´ë¦­í–ˆì„ ë•Œ ì—´ë¦´ íŒ¨ë„/ì´ë¯¸ì§€ ë“±ì˜ RectTransform")]
         public RectTransform targetLocation;
     }
 
-    [Header("linkID <-> ¿­¸± ÆĞ³Î ¸ÅÇÎ (¹®´Ü ÇÏ³ª¿¡ ¸µÅ©°¡ ¿©·¯ °³ÀÏ ¼ö ÀÖÀ½)")]
+    [Header("linkID <-> ì—´ë¦´ íŒ¨ë„ ë§¤í•‘ (ë¬¸ë‹¨ í•˜ë‚˜ì— ë§í¬ê°€ ì—¬ëŸ¬ ê°œì¼ ìˆ˜ ìˆìŒ)")]
     [SerializeField] private List<LinkTarget> linkTargets = new List<LinkTarget>();
 
+    private static readonly Regex LinkTagRegex = new Regex(
+        "<link=\"(?<id>[^\"]*)\">(?<content>.*?)</link>",
+        RegexOptions.Singleline);
+
     private TMP_Text tmpText;
+
+    private string rawText;
+    private readonly Dictionary<string, (int start, int length)> linkContentRanges = new Dictionary<string, (int, int)>();
+
+    private string currentHoveredLinkID = null;
 
     private void Awake()
     {
         tmpText = GetComponent<TMP_Text>();
+        CacheRawTextAndRanges();
+    }
+
+    /// <summary>
+    /// ë¬¸ë‹¨ í…ìŠ¤íŠ¸ë¥¼ ë™ì ìœ¼ë¡œ ìƒˆë¡œ ì„¸íŒ…í•  ë•Œ(ì˜ˆ: NewsCard/PostDetailPageUIì—ì„œ Instantiate ì§í›„)
+    /// ì´ í•¨ìˆ˜ë¥¼ í˜¸ì¶œí•´ì„œ ë§í¬ êµ¬ê°„ì„ ë‹¤ì‹œ íŒŒì‹±í•˜ë„ë¡ í•´ì£¼ì„¸ìš”.
+    /// </summary>
+    public void RefreshFromCurrentText()
+    {
+        CacheRawTextAndRanges();
+    }
+
+    private void CacheRawTextAndRanges()
+    {
+        if (tmpText == null) tmpText = GetComponent<TMP_Text>();
+
+        rawText = tmpText.text;
+        linkContentRanges.Clear();
+
+        foreach (Match m in LinkTagRegex.Matches(rawText))
+        {
+            string id = m.Groups["id"].Value;
+            Group content = m.Groups["content"];
+            if (!linkContentRanges.ContainsKey(id))
+            {
+                linkContentRanges.Add(id, (content.Index, content.Length));
+            }
+        }
+    }
+
+    // ğŸ’¡ [ë³€ê²½] Update()+Input.mousePosition í´ë§ ëŒ€ì‹ ,
+    // EventSystemì´ ì§ì ‘ ë„˜ê²¨ì£¼ëŠ” OnPointerMoveë¥¼ ì‚¬ìš©í•©ë‹ˆë‹¤.
+    public void OnPointerMove(PointerEventData eventData)
+    {
+        if (tmpText == null) return;
+
+        Canvas canvas = tmpText.canvas;
+        Camera eventCamera = (canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay)
+            ? eventData.pressEventCamera ?? canvas.worldCamera
+            : null;
+
+        int linkIndex = TMP_TextUtilities.FindIntersectingLink(tmpText, eventData.position, eventCamera);
+        string hoveredID = (linkIndex != -1) ? tmpText.textInfo.linkInfo[linkIndex].GetLinkID() : null;
+
+        if (hoveredID != currentHoveredLinkID)
+        {
+            currentHoveredLinkID = hoveredID;
+            ApplyUnderline(hoveredID);
+        }
+    }
+
+    private void ApplyUnderline(string linkID)
+    {
+        if (string.IsNullOrEmpty(linkID) || !linkContentRanges.TryGetValue(linkID, out var range))
+        {
+            tmpText.text = rawText;
+            return;
+        }
+
+        string before = rawText.Substring(0, range.start);
+        string content = rawText.Substring(range.start, range.length);
+        string after = rawText.Substring(range.start + range.length);
+
+        tmpText.text = before + "<u>" + content + "</u>" + after;
+    }
+
+    public void OnPointerEnter(PointerEventData eventData) { }
+
+    public void OnPointerExit(PointerEventData eventData)
+    {
+        if (currentHoveredLinkID != null)
+        {
+            currentHoveredLinkID = null;
+            tmpText.text = rawText;
+        }
     }
 
     public void OnPointerClick(PointerEventData eventData)
     {
         if (tmpText == null) return;
 
-        // ScreenSpace-Overlay Äµ¹ö½º¸é Ä«¸Ş¶ó°¡ ÇÊ¿ä ¾ø°í, ±× ¿Ü¿¡´Â Å¬¸¯ÇÑ ÀÌº¥Æ®ÀÇ Ä«¸Ş¶ó¸¦ »ç¿ëÇÕ´Ï´Ù.
         Canvas canvas = tmpText.canvas;
         Camera eventCamera = (canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay)
             ? eventData.pressEventCamera
             : null;
 
         int linkIndex = TMP_TextUtilities.FindIntersectingLink(tmpText, eventData.position, eventCamera);
-        if (linkIndex == -1) return; // ¸µÅ© ÅÂ±× ¹Ù±ùÀ» Å¬¸¯ -> ¹«½Ã
+        if (linkIndex == -1) return; // ë§í¬ íƒœê·¸ ë°”ê¹¥ì„ í´ë¦­ -> ë¬´ì‹œ
 
         string linkID = tmpText.textInfo.linkInfo[linkIndex].GetLinkID();
         OpenByLinkID(linkID);
@@ -64,7 +147,7 @@ public class ArchiveTextLink : MonoBehaviour, IPointerClickHandler
         LinkTarget match = linkTargets.Find(l => l.linkID == linkID);
         if (match == null || match.targetLocation == null)
         {
-            Debug.LogWarning($"[ArchiveTextLink] linkID '{linkID}'¿¡ ¸ÅÄªµÇ´Â targetLocationÀÌ µî·ÏµÇ¾î ÀÖÁö ¾Ê½À´Ï´Ù. ({gameObject.name})");
+            Debug.LogWarning($"[ArchiveTextLink] linkID '{linkID}'ì— ë§¤ì¹­ë˜ëŠ” targetLocationì´ ë“±ë¡ë˜ì–´ ìˆì§€ ì•ŠìŠµë‹ˆë‹¤. ({gameObject.name})");
             return;
         }
 
@@ -74,7 +157,6 @@ public class ArchiveTextLink : MonoBehaviour, IPointerClickHandler
         }
         else
         {
-            // ArchiveManager°¡ ¾À¿¡ ¾ø´Â °æ¿ì¸¦ ´ëºñÇÑ ÃÖ¼ÒÇÑÀÇ Æú¹é
             Transform current = match.targetLocation;
             while (current != null)
             {

@@ -71,6 +71,18 @@ public class PostDetailPageUI : MonoBehaviour
             if (titleBtn != null) Destroy(titleBtn);
         }
 
+        PanelLinkParagraphEffect titleLinkEffect = titleText.gameObject.GetComponent<PanelLinkParagraphEffect>();
+        if (data.title.Contains("<link=\""))
+        {
+            if (titleLinkEffect == null)
+                titleLinkEffect = titleText.gameObject.AddComponent<PanelLinkParagraphEffect>();
+            titleLinkEffect.Setup(data.title);
+        }
+        else
+        {
+            if (titleLinkEffect != null) Destroy(titleLinkEffect);
+        }
+
         // 상단 헤더 배지 동기화
         headerLikeText.text = $"추천 {data.likes}";
         headerDislikeText.text = $"비추 {data.dislikes}"; // ⭐ 세팅
@@ -152,6 +164,12 @@ public class PostDetailPageUI : MonoBehaviour
                     {
                         titleField.SetValue(hoverEffect, data.title);
                     }
+                }
+
+                if (paragraphText.Contains("<link=\""))
+                {
+                    PanelLinkParagraphEffect linkEffect = newText.gameObject.AddComponent<PanelLinkParagraphEffect>();
+                    linkEffect.Setup(paragraphText);
                 }
 
                 newText.gameObject.SetActive(true);

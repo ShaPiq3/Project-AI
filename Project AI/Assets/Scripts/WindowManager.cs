@@ -53,6 +53,8 @@ public class WindowManager : MonoBehaviour
     public bool IsDatalogOpen => isDatalogOpen;
     public bool IsImageGenOpen => isImageGenOpen;
 
+    private bool isDatalogPinnedOpen = false;
+
     private void Awake()
     {
         if (Instance == null)
@@ -130,7 +132,6 @@ public class WindowManager : MonoBehaviour
 
         if (isDatalogOpen)
         {
-            // 💡 [추가] imageGen이 열려있다면 먼저 닫음 (동시 등장 방지)
             if (isImageGenOpen)
             {
                 isImageGenOpen = false;
@@ -144,6 +145,67 @@ public class WindowManager : MonoBehaviour
         {
             CloseDatalogDirect();
             PullWindowsRightOnDatalog(datalogPushAmount, slideDuration);
+        }
+
+        // 💡 추가: DataLog 매니저 쪽 << / >> 아이콘 동기화
+        isDatalogPinnedOpen = isDatalogOpen;
+        DataLogManager.Instance?.UpdateEdgeToggleButtonSprite();
+    }
+
+    /// <summary>호버 진입 시: 이미 열려있지 않을 때만 임시로 엶 (고정 아님)</summary>
+    public void PreviewOpenDatalog()
+    {
+        if (datalogWindowRect == null) return;
+        if (isDatalogOpen) return; // 이미 열려있으면(고정이든 미리보기든) 아무것도 안 함
+        if (DOTween.IsTweening(datalogWindowRect)) return;
+
+        isDatalogOpen = true;
+
+        if (isImageGenOpen)
+        {
+            isImageGenOpen = false;
+            CloseImageGenDirect();
+        }
+
+        OpenDatalogDirect();
+        PushWindowsLeftOnDatalog(datalogPushAmount, slideDuration);
+
+        DataLogManager.Instance?.UpdateEdgeToggleButtonSprite();
+    }
+
+    /// <summary>호버 이탈 시: 고정된 상태가 아닐 때만 닫음</summary>
+    public void PreviewCloseDatalog()
+    {
+        if (datalogWindowRect == null) return;
+        if (isDatalogPinnedOpen) return; // 클릭으로 고정돼 있으면 무시
+        if (!isDatalogOpen) return;
+        if (DOTween.IsTweening(datalogWindowRect)) return;
+
+        isDatalogOpen = false;
+        CloseDatalogDirect();
+        PullWindowsRightOnDatalog(datalogPushAmount, slideDuration);
+
+        DataLogManager.Instance?.UpdateEdgeToggleButtonSprite();
+    }
+
+    /// <summary>
+    /// 여닫기 탭 버튼의 클릭 전용 함수.
+    /// 미리보기로 열려있는 상태에서 클릭하면 "고정"만 시키고,
+    /// 그 외(닫혀있거나 이미 고정 열림)에는 기존 토글을 그대로 수행합니다.
+    /// </summary>
+    public void ToggleOrPinDatalog()
+    {
+        if (datalogWindowRect == null) return;
+        if (DOTween.IsTweening(datalogWindowRect)) return;
+
+        if (isDatalogOpen && !isDatalogPinnedOpen)
+        {
+            isDatalogPinnedOpen = true; // 프리뷰 상태 → 고정
+            DataLogManager.Instance?.UpdateEdgeToggleButtonSprite();
+        }
+        else
+        {
+            ToggleDatalogWindow(); // 닫혀있음 → 열고 고정 / 이미 고정 열림 → 닫음
         }
     }
 
@@ -174,6 +236,7 @@ public class WindowManager : MonoBehaviour
         }
 
         isDatalogOpen = false;
+        isDatalogPinnedOpen = false; // 💡 추가
 
         CanvasGroup canvasGroup = datalogWindowRect.GetComponent<CanvasGroup>();
         if (canvasGroup != null)
@@ -403,22 +466,21 @@ public class WindowManager : MonoBehaviour
         return chatPanelWidth;
     }
 
-    // 💡 [추가] DataLogManager가 자체적으로 패널을 열었을 때(ToggleLogPanel 경유),
-    // isDatalogOpen 상태와 다른 창 밀어내기만 동기화합니다. 패널 자체의 위치/애니메이션은 건드리지 않습니다.
     public void NotifyDatalogOpenedExternally()
     {
         if (isDatalogOpen) return;
 
         isDatalogOpen = true;
+        isDatalogPinnedOpen = true; // 💡 추가: 사이드바 버튼 등 다른 진입점은 고정 열림으로 취급
         PushWindowsLeftOnDatalog(datalogPushAmount, slideDuration);
     }
 
-    // 💡 [추가] DataLogManager가 자체적으로 패널을 닫았을 때(HideLogPanel 경유) 동기화합니다.
     public void NotifyDatalogClosedExternally()
     {
         if (!isDatalogOpen) return;
 
         isDatalogOpen = false;
+        isDatalogPinnedOpen = false; // 💡 추가
         PullWindowsRightOnDatalog(datalogPushAmount, slideDuration);
     }
 
@@ -646,13 +708,6 @@ public class WindowManager : MonoBehaviour
     private List<RectTransform> GetActiveBlockingRects()
     {
         List<RectTransform> result = new List<RectTransform>();
-
-        if (datalogWindowRect != null && isDatalogOpen)
-            result.Add(datalogWindowRect);
-
-        if (imageGenWindowRect != null && isImageGenOpen)
-            result.Add(imageGenWindowRect);
-
         if (chatWindowRect != null && isChatOpen)
             result.Add(chatWindowRect);
 

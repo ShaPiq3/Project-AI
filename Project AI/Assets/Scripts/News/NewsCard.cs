@@ -53,6 +53,18 @@ public class NewsCard : MonoBehaviour
             if (titleHoverEffect != null) Destroy(titleHoverEffect);
         }
 
+        PanelLinkParagraphEffect titleLinkEffect = titleText.gameObject.GetComponent<PanelLinkParagraphEffect>();
+        if (data.title.Contains("<link=\""))
+        {
+            if (titleLinkEffect == null)
+                titleLinkEffect = titleText.gameObject.AddComponent<PanelLinkParagraphEffect>();
+            titleLinkEffect.Setup(data.title);
+        }
+        else
+        {
+            if (titleLinkEffect != null) Destroy(titleLinkEffect);
+        }
+
         // 원본 템플릿 비활성화
         if (textTemplate != null) textTemplate.gameObject.SetActive(false);
 
@@ -121,6 +133,13 @@ public class NewsCard : MonoBehaviour
                     titleField.SetValue(hoverEffect, data.title);
                 }
             }
+
+            if (paragraphText.Contains("<link=\""))
+            {
+                PanelLinkParagraphEffect linkEffect = newText.gameObject.AddComponent<PanelLinkParagraphEffect>();
+                linkEffect.Setup(paragraphText);
+            }
+
 
             newText.gameObject.SetActive(true);
             spawnedTexts.Add(newText);

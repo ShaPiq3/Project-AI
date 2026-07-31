@@ -35,6 +35,20 @@ public class DataLogManager : MonoBehaviour
     [Tooltip("SidebarController의 Menu Mini Icon Rects 배열에서 '단서 수집' 아이콘의 인덱스")]
     [SerializeField] private int clueCollectTaskbarIndex = -1;
 
+    [Header("DataLog ↔ Chat 사이 여닫기 버튼 (<< / >>)")]
+    [Tooltip("트리거가 활성화된 동안에만 보이는, 패널 가장자리에 붙는 여닫기 탭 버튼")]
+    [SerializeField] private GameObject edgeToggleButtonRoot;   // 버튼을 담는 오브젝트 (없으면 edgeToggleButton.gameObject 사용)
+    [SerializeField] private Button edgeToggleButton;
+    [SerializeField] private Image edgeToggleButtonImage;
+    [SerializeField] private Sprite edgeToggleClosedSprite;      // 패널 닫힘 상태 (">>" 펼치기)
+    [SerializeField] private Sprite edgeToggleOpenSprite;        // 패널 열림 상태 ("<<" 접기)
+
+    [Header("Hover Preview 설정")]
+    [SerializeField] private float hoverPreviewCloseDelay = 0.15f;
+
+    private Coroutine hoverCloseCoroutine;
+
+
     // 전체 단서 데이터베이스 (엑셀에서 파싱해서 담아둘 사전)
     private Dictionary<string, ClueData> clueDatabase = new Dictionary<string, ClueData>();
 
@@ -113,15 +127,46 @@ public class DataLogManager : MonoBehaviour
         if (Instance == null) Instance = this;
         else Destroy(gameObject);
 
-        // 게임 시작 시 엑셀 데이터 파싱
         LoadClueDatabase();
 
         if (clueCollectButton != null)
         {
             clueCollectButton.interactable = false;
         }
-
         UpdateClueCollectButtonSprite(false);
+
+        // 💡 추가: 여닫기 탭 버튼 초기화
+        if (edgeToggleButton != null)
+        {
+            edgeToggleButton.onClick.AddListener(OnEdgeToggleButtonClicked);
+        }
+        ShowEdgeToggleButton(false);
+    }
+
+    private void OnEdgeToggleButtonClicked()
+    {
+        if (WindowManager.Instance != null)
+        {
+            WindowManager.Instance.ToggleOrPinDatalog(); // 기존 ToggleDatalogWindow() 대신
+        }
+        UpdateEdgeToggleButtonSprite();
+    }
+
+    private void ShowEdgeToggleButton(bool show)
+    {
+        var target = edgeToggleButtonRoot != null ? edgeToggleButtonRoot
+                    : (edgeToggleButton != null ? edgeToggleButton.gameObject : null);
+        if (target != null) target.SetActive(show);
+    }
+
+    /// <summary>
+    /// 💡 sidebar의 DataLog_Btn 등 다른 경로로 패널이 열리고/닫혀도
+    /// WindowManager가 이 함수를 호출해주면 << / >> 아이콘이 항상 정확히 동기화됩니다.
+    /// </summary>
+    public void UpdateEdgeToggleButtonSprite()
+    {
+        if (edgeToggleButtonImage == null) return;
+        edgeToggleButtonImage.sprite = IsOpen ? edgeToggleOpenSprite : edgeToggleClosedSprite;
     }
 
     private void UpdateClueCollectButtonSprite(bool isActive)
@@ -131,6 +176,30 @@ public class DataLogManager : MonoBehaviour
         clueCollectButtonImage.sprite = isActive
             ? clueCollectActiveSprite
             : clueCollectNormalSprite;
+    }
+
+    public void OnEdgeHoverEnter()
+    {
+        if (hoverCloseCoroutine != null)
+        {
+            StopCoroutine(hoverCloseCoroutine);
+            hoverCloseCoroutine = null;
+        }
+
+        WindowManager.Instance?.PreviewOpenDatalog();
+    }
+
+    public void OnEdgeHoverExit()
+    {
+        if (hoverCloseCoroutine != null) StopCoroutine(hoverCloseCoroutine);
+        hoverCloseCoroutine = StartCoroutine(DelayedPreviewClose());
+    }
+
+    private System.Collections.IEnumerator DelayedPreviewClose()
+    {
+        yield return new WaitForSeconds(hoverPreviewCloseDelay);
+        WindowManager.Instance?.PreviewCloseDatalog();
+        hoverCloseCoroutine = null;
     }
 
     /// <summary>
@@ -194,6 +263,9 @@ public class DataLogManager : MonoBehaviour
     {
         activeTriggerCount++;
         UpdateClueCollectButtonState();
+
+        ShowEdgeToggleButton(true);
+        UpdateEdgeToggleButtonSprite();
     }
 
     /// <summary>
@@ -237,6 +309,12 @@ public class DataLogManager : MonoBehaviour
         if (activeTriggerCount == 0 && IsClueSearchModeActive)
         {
             ToggleClueSearchMode();
+        }
+
+        // 💡 추가: 트리거가 전부 끝나면 여닫기 버튼도 함께 숨김
+        if (!isActive)
+        {
+            ShowEdgeToggleButton(false);
         }
     }
 
