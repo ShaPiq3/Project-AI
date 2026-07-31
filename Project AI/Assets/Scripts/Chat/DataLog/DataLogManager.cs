@@ -69,6 +69,11 @@ public class DataLogManager : MonoBehaviour
 
     private int activeTriggerCount = 0;
 
+    // 💡 추가: "단서 수집" 관련 트리거만 세는 전용 카운터.
+    // activeTriggerCount(사이드바 clueCollectButton용, 모든 트리거 공용)와는 별개로,
+    // DataLog 여닫기 탭 버튼은 이 카운터로만 표시 여부를 결정합니다.
+    private int activeDatalogTriggerCount = 0;
+
     public UIManager uiManager;
 
     // 💡 다른 스크립트에서 참조할 단서 수집 모드 활성화 여부
@@ -253,6 +258,11 @@ public class DataLogManager : MonoBehaviour
         };
 
         questStatusUI?.UpdateDisplay();
+
+        // 💡 추가: DataLog 단서 수집 퀘스트가 시작될 때만 여닫기 탭 버튼 등장
+        activeDatalogTriggerCount++;
+        ShowEdgeToggleButton(true);
+        UpdateEdgeToggleButtonSprite();
     }
 
     /// <summary>
@@ -263,9 +273,6 @@ public class DataLogManager : MonoBehaviour
     {
         activeTriggerCount++;
         UpdateClueCollectButtonState();
-
-        ShowEdgeToggleButton(true);
-        UpdateEdgeToggleButtonSprite();
     }
 
     /// <summary>
@@ -309,12 +316,6 @@ public class DataLogManager : MonoBehaviour
         if (activeTriggerCount == 0 && IsClueSearchModeActive)
         {
             ToggleClueSearchMode();
-        }
-
-        // 💡 추가: 트리거가 전부 끝나면 여닫기 버튼도 함께 숨김
-        if (!isActive)
-        {
-            ShowEdgeToggleButton(false);
         }
     }
 
@@ -695,6 +696,12 @@ public class DataLogManager : MonoBehaviour
         RefreshClueUI();
         HideLogPanel();
         NotifyTriggerEnded();
+
+        activeDatalogTriggerCount = Mathf.Max(0, activeDatalogTriggerCount - 1);
+        if (activeDatalogTriggerCount == 0)
+        {
+            ShowEdgeToggleButton(false);
+        }
 
         if (string.IsNullOrEmpty(currentQuestID) || !questDialogueConfigs.TryGetValue(currentQuestID, out QuestDialogueConfig config))
         {

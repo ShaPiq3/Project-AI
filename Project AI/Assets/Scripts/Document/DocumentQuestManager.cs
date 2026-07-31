@@ -145,8 +145,9 @@ public class DocumentQuestManager : MonoBehaviour
 
         isAnalysisActive = true;
 
-        toggleAnalysisBtn.gameObject.SetActive(true);
         OpenAnalysis();
+        toggleAnalysisBtn.gameObject.SetActive(true);
+        
 
         if (sentencesContainer != null) sentencesContainer.gameObject.SetActive(false);
         if (loadingGroup != null) loadingGroup.SetActive(true);
