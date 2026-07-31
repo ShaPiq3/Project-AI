@@ -103,10 +103,10 @@ TextureImporter:
       name: slotimg5_0
       rect:
         serializedVersion: 2
-        x: 214
+        x: 171
         y: 0
-        width: 231
-        height: 308
+        width: 335
+        height: 314
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
