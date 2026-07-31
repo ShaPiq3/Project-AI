@@ -45760,8 +45760,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 10.076099}
-  m_SizeDelta: {x: 420, y: 603.9393}
+  m_AnchoredPosition: {x: 0, y: 80.921005}
+  m_SizeDelta: {x: 420, y: 745.6291}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &514974538
 MonoBehaviour:
@@ -98161,8 +98161,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -0.46006, y: 0.0000085831}
-  m_SizeDelta: {x: 399.08, y: 865.5775}
+  m_AnchoredPosition: {x: -0.46006, y: 5.9952}
+  m_SizeDelta: {x: 399.08, y: 884.7228}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1156354620
 MonoBehaviour:
@@ -163019,7 +163019,7 @@ MonoBehaviour:
   datalogWindowRect: {fileID: 556040332}
   spawnArea: {fileID: 63796039}
   imageGenWindowRect: {fileID: 1020359338}
-  imageGenTargetPosition: {x: 250, y: -109}
+  imageGenTargetPosition: {x: 260, y: 28}
   slideDuration: 0.4
   targetPosition: {x: 260, y: 28}
   maxTryCount: 30
