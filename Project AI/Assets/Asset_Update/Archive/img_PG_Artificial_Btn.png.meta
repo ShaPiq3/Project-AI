@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: e56b91a25fa08ba4fbcdc0c5c226ea95
+guid: 23890fa53e2c38c4e892d540a98d7a3c
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 9031260265248625422
-    second: img_HairRed_0
+      213: 8087158221234952671
+    second: img_PG_Artificial_Btn_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: img_HairRed_0
+      name: img_PG_Artificial_Btn_0
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 400
-        height: 398
+        width: 416
+        height: 368
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: e039e309c5b755d70800000000000000
-      internalID: 9031260265248625422
+      spriteID: fd9d61bfd8b5b3070800000000000000
+      internalID: 8087158221234952671
       vertices: []
       indices: 
       edges: []
@@ -135,7 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      img_HairRed_0: 9031260265248625422
+      img_PG_Artificial_Btn_0: 8087158221234952671
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

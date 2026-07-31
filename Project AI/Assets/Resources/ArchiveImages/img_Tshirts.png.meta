@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 4897eb522b5077545ad4cbc215d73f7b
+guid: 59adc8e700f80ef4fbd1417dc1fcb727
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 5762385388992722909
-    second: img_HairOrange_0
+      213: 4883675394225320635
+    second: img_Tshirts_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: img_HairOrange_0
+      name: img_Tshirts_0
       rect:
         serializedVersion: 2
         x: 0
-        y: 0
-        width: 400
-        height: 398
+        y: 8
+        width: 1024
+        height: 1517
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: dd7ffc91bfa18ff40800000000000000
-      internalID: 5762385388992722909
+      spriteID: bb2bd1f65ec46c340800000000000000
+      internalID: 4883675394225320635
       vertices: []
       indices: 
       edges: []
@@ -135,7 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      img_HairOrange_0: 5762385388992722909
+      img_Tshirts_0: 4883675394225320635
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

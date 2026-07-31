@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 1966d90fa353eb548bfc15224d3c70d9
+guid: 9310bef2c5b2dbc46b17cba49b304e86
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -6603894615442542221
-    second: Img_generationpanel_0
+      213: 7753559436815316220
+    second: "img_\uC758\uC0C1_\uD22C\uD53C\uC2A4_btn_0"
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Img_generationpanel_0
+      name: "img_\uC758\uC0C1_\uD22C\uD53C\uC2A4_btn_0"
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 400
-        height: 1021
+        width: 416
+        height: 368
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 371be6016d04a54a0800000000000000
-      internalID: -6603894615442542221
+      spriteID: cf431484a3d2a9b60800000000000000
+      internalID: 7753559436815316220
       vertices: []
       indices: 
       edges: []
@@ -135,7 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Img_generationpanel_0: -6603894615442542221
+      "img_\uC758\uC0C1_\uD22C\uD53C\uC2A4_btn_0": 7753559436815316220
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

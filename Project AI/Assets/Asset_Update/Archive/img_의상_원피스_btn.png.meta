@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 43623793f45291941b0a2c5919012de8
+guid: 551e1f830267209469300248c526e6ad
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 4578517664501666063
-    second: img_HairYellow_0
+      213: 5681258506168482599
+    second: "img_\uC758\uC0C1_\uC6D0\uD53C\uC2A4_btn_0"
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: img_HairYellow_0
+      name: "img_\uC758\uC0C1_\uC6D0\uD53C\uC2A4_btn_0"
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 400
-        height: 398
+        width: 416
+        height: 368
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: f01197ece892a8f30800000000000000
-      internalID: 4578517664501666063
+      spriteID: 72bb651c282e7de40800000000000000
+      internalID: 5681258506168482599
       vertices: []
       indices: 
       edges: []
@@ -135,7 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      img_HairYellow_0: 4578517664501666063
+      "img_\uC758\uC0C1_\uC6D0\uD53C\uC2A4_btn_0": 5681258506168482599
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

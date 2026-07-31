@@ -1,10 +1,13 @@
 fileFormatVersion: 2
-guid: 1966d90fa353eb548bfc15224d3c70d9
+guid: 6b3eaf7bfadd8dc47996f39789c68af6
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -6603894615442542221
-    second: Img_generationpanel_0
+      213: 5507710765614706345
+    second: img_twopiece_0
+  - first:
+      213: 2890082951633660643
+    second: img_twopiece_1
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,23 +103,45 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Img_generationpanel_0
+      name: img_twopiece_0
       rect:
         serializedVersion: 2
-        x: 0
+        x: 2
         y: 0
-        width: 400
-        height: 1021
+        width: 1022
+        height: 1525
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 371be6016d04a54a0800000000000000
-      internalID: -6603894615442542221
+      spriteID: 9ae2f0e92c15f6c40800000000000000
+      internalID: 5507710765614706345
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: img_twopiece_1
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 8
+        width: 1024
+        height: 872
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3ea6987d123ab1820800000000000000
+      internalID: 2890082951633660643
       vertices: []
       indices: 
       edges: []
@@ -125,7 +150,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: e22ce9fa861b9764b9baf34690023525
     internalID: 0
     vertices: []
     indices: 
@@ -135,7 +160,8 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Img_generationpanel_0: -6603894615442542221
+      img_twopiece_0: 5507710765614706345
+      img_twopiece_1: 2890082951633660643
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

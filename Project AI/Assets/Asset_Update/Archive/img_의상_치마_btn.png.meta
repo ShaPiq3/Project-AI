@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: b04fa57c8b870444aa2ad0c849711249
+guid: 0e18ea5e9327ed44284807595bb9bbd2
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -4120338415932728694
-    second: img_HairMint_0
+      213: -6824316583806179994
+    second: "img_\uC758\uC0C1_\uCE58\uB9C8_btn_0"
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: img_HairMint_0
+      name: "img_\uC758\uC0C1_\uCE58\uB9C8_btn_0"
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 400
-        height: 398
+        width: 416
+        height: 368
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: a8a1feb8a0e91d6c0800000000000000
-      internalID: -4120338415932728694
+      spriteID: 665ec6b49382b41a0800000000000000
+      internalID: -6824316583806179994
       vertices: []
       indices: 
       edges: []
@@ -135,7 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      img_HairMint_0: -4120338415932728694
+      "img_\uC758\uC0C1_\uCE58\uB9C8_btn_0": -6824316583806179994
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

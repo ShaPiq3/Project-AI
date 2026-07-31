@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 2f09d6034ba22004b8c0929192901b0c
+guid: 93991548c126e774ba34cbe075971cf3
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 65728720567744123
-    second: img_HairBrown_0
+      213: -3460114546934839267
+    second: img_ProGo_btn_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: img_HairBrown_0
+      name: img_ProGo_btn_0
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 400
-        height: 398
+        width: 416
+        height: 368
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: b763bf05ce389e000800000000000000
-      internalID: 65728720567744123
+      spriteID: d1889cbe6243bffc0800000000000000
+      internalID: -3460114546934839267
       vertices: []
       indices: 
       edges: []
@@ -135,7 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      img_HairBrown_0: 65728720567744123
+      img_ProGo_btn_0: -3460114546934839267
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

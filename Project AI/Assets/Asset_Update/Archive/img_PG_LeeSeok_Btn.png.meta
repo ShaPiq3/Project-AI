@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 9af076672b50faa4f9c622b4aea803bc
+guid: 41531a292472ea34fa2e515086dcec5a
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -3322205762951915306
-    second: img_HairPurple_0
+      213: -6026857956914623543
+    second: img_PG_LeeSeok_Btn_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: img_HairPurple_0
+      name: img_PG_LeeSeok_Btn_0
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 400
-        height: 398
+        width: 416
+        height: 368
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 6d8de7cd57725e1d0800000000000000
-      internalID: -3322205762951915306
+      spriteID: 9cb0e5eae9c4c5ca0800000000000000
+      internalID: -6026857956914623543
       vertices: []
       indices: 
       edges: []
@@ -135,7 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      img_HairPurple_0: -3322205762951915306
+      img_PG_LeeSeok_Btn_0: -6026857956914623543
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
