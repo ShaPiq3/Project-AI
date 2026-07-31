@@ -139,12 +139,12 @@ public class WindowManager : MonoBehaviour
             }
 
             OpenDatalogDirect();
-            PushWindowsLeftOnDatalog(datalogPushAmount, slideDuration);
+           
         }
         else
         {
             CloseDatalogDirect();
-            PullWindowsRightOnDatalog(datalogPushAmount, slideDuration);
+            
         }
 
         // 💡 추가: DataLog 매니저 쪽 << / >> 아이콘 동기화
@@ -168,7 +168,7 @@ public class WindowManager : MonoBehaviour
         }
 
         OpenDatalogDirect();
-        PushWindowsLeftOnDatalog(datalogPushAmount, slideDuration);
+        
 
         DataLogManager.Instance?.UpdateEdgeToggleButtonSprite();
     }
@@ -183,7 +183,7 @@ public class WindowManager : MonoBehaviour
 
         isDatalogOpen = false;
         CloseDatalogDirect();
-        PullWindowsRightOnDatalog(datalogPushAmount, slideDuration);
+        
 
         DataLogManager.Instance?.UpdateEdgeToggleButtonSprite();
     }
@@ -230,11 +230,6 @@ public class WindowManager : MonoBehaviour
 
         datalogWindowRect.DOKill();
 
-        if (isDatalogOpen)
-        {
-            PullWindowsRightOnDatalog(datalogPushAmount, slideDuration);
-        }
-
         isDatalogOpen = false;
         isDatalogPinnedOpen = false; // 💡 추가
 
@@ -264,16 +259,16 @@ public class WindowManager : MonoBehaviour
             {
                 isDatalogOpen = false;
                 CloseDatalogDirect();
-                PullWindowsRightOnDatalog(datalogPushAmount, slideDuration);
+                
             }
 
             OpenImageGenDirect();
-            PushWindowsLeftOnImageGen(imageGenPushAmount, slideDuration);
+            
         }
         else
         {
             CloseImageGenDirect();
-            PullWindowsRightOnImageGen(imageGenPushAmount, slideDuration);
+            
         }
     }
 
@@ -356,7 +351,7 @@ public class WindowManager : MonoBehaviour
             {
                 isDatalogOpen = true;
                 OpenDatalogDirect();
-                PushWindowsLeftOnDatalog(datalogPushAmount, slideDuration);
+                
             }
         }
         else if (targetWindow == imageGenWindowRect)
@@ -472,7 +467,7 @@ public class WindowManager : MonoBehaviour
 
         isDatalogOpen = true;
         isDatalogPinnedOpen = true; // 💡 추가: 사이드바 버튼 등 다른 진입점은 고정 열림으로 취급
-        PushWindowsLeftOnDatalog(datalogPushAmount, slideDuration);
+        
     }
 
     public void NotifyDatalogClosedExternally()
@@ -481,7 +476,7 @@ public class WindowManager : MonoBehaviour
 
         isDatalogOpen = false;
         isDatalogPinnedOpen = false; // 💡 추가
-        PullWindowsRightOnDatalog(datalogPushAmount, slideDuration);
+        
     }
 
     public void NotifyImageGenOpenedExternally()
@@ -492,11 +487,11 @@ public class WindowManager : MonoBehaviour
         {
             isDatalogOpen = false;
             CloseDatalogDirect();
-            PullWindowsRightOnDatalog(datalogPushAmount, slideDuration);
+            
         }
 
         isImageGenOpen = true;
-        PushWindowsLeftOnImageGen(imageGenPushAmount, slideDuration);
+        
     }
 
     // 💡 [추가] ImageGenerationManager가 자체적으로 패널을 닫았을 때(ClosePanel 경유) 동기화합니다.
@@ -505,7 +500,7 @@ public class WindowManager : MonoBehaviour
         if (!isImageGenOpen) return;
 
         isImageGenOpen = false;
-        PullWindowsRightOnImageGen(imageGenPushAmount, slideDuration);
+        
     }
 
     #endregion
