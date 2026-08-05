@@ -451,6 +451,9 @@ public class ChatDialogueManager : MonoBehaviour
 
             dialoguePanelRect.DOAnchorPosX(targetPositionX, tweenDuration).SetEase(Ease.OutQuad);
 
+            DataLogManager.Instance?.SetEdgeToggleButtonForceHidden(false); // 💡 추가
+            ImageGenerationManager.Instance?.SetEdgeToggleButtonForceHidden(false); // 💡 추가
+
             if (chatPanelAudioSource != null) chatPanelAudioSource.Play();
 
             if (windowManager != null)
@@ -481,6 +484,9 @@ public class ChatDialogueManager : MonoBehaviour
             if (closeButton != null) closeButton.interactable = true;
 
             dialoguePanelRect.DOAnchorPosX(targetPositionX, tweenDuration).SetEase(Ease.OutQuad);
+
+            DataLogManager.Instance?.SetEdgeToggleButtonForceHidden(false); // 💡 추가
+            ImageGenerationManager.Instance?.SetEdgeToggleButtonForceHidden(false); // 💡 추가
 
             if (windowManager != null)
             {
@@ -515,6 +521,9 @@ public class ChatDialogueManager : MonoBehaviour
         {
             windowManager.PullWindowsRight(windowManager.GetChatPanelWidth(), tweenDuration); // 💡 추가 (isChatOpen=false 처리도 이 안에서 함)
         }
+
+        DataLogManager.Instance?.SetEdgeToggleButtonForceHidden(true);
+        ImageGenerationManager.Instance?.SetEdgeToggleButtonForceHidden(true);
 
         dialoguePanelRect.DOKill();
         dialoguePanelRect.DOAnchorPosX(hidePositionX, tweenDuration)
@@ -603,6 +612,9 @@ public class ChatDialogueManager : MonoBehaviour
                 if (closeButton != null) closeButton.interactable = true;
 
                 dialoguePanelRect.DOAnchorPosX(targetPositionX, tweenDuration).SetEase(Ease.OutQuad);
+
+                DataLogManager.Instance?.SetEdgeToggleButtonForceHidden(false); // 💡 추가
+                ImageGenerationManager.Instance?.SetEdgeToggleButtonForceHidden(false); // 💡 추가
 
                 if (windowManager != null)
                 {

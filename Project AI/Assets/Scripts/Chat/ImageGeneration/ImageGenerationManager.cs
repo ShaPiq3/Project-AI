@@ -784,4 +784,16 @@ public class ImageGenerationManager : MonoBehaviour
             deleteSelectedButton.interactable = anySelected; // ✅ 항상 보이되 잠금/해제만
         }
     }
+
+    public void SetEdgeToggleButtonForceHidden(bool hidden)
+    {
+        if (hidden)
+        {
+            ShowEdgeToggleButton(false);
+        }
+        else
+        {
+            ShowEdgeToggleButton(isUnlocked);
+        }
+    }
 }

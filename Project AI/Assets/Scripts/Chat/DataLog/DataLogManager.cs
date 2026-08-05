@@ -741,4 +741,20 @@ public class DataLogManager : MonoBehaviour
 
         targetQuestManager.TriggerScanComplete();
     }
+
+    /// <summary>
+/// 💡 [추가] 채팅 패널이 닫혀있는 동안 여닫기 탭 버튼을 강제로 숨기고,
+/// 채팅이 열리면 원래 트리거 상태(activeDatalogTriggerCount)에 맞춰 복원합니다.
+/// </summary>
+    public void SetEdgeToggleButtonForceHidden(bool hidden)
+    {
+        if (hidden)
+        {
+            ShowEdgeToggleButton(false);
+        }
+        else
+        {
+            ShowEdgeToggleButton(activeDatalogTriggerCount > 0);
+        }
+    }
 }
