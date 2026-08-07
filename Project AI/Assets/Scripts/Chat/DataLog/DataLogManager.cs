@@ -3,6 +3,18 @@ using UnityEngine;
 using UnityEngine.UI;
 using DG.Tweening;
 
+/// <summary>
+/// 💡 [추가] 클릭한 요소가 "스캔 판정"에서 어떻게 표시되어야 하는지를 나타냅니다.
+/// 진짜 단서는 아니지만 반응은 하는 요소(제목/문단/이미지 전부)와,
+/// 이미 수집한 단서, 실제로 수집 가능한 단서를 구분하기 위해 사용합니다.
+/// </summary>
+public enum ClueIdentifyResult
+{
+    Collectible,
+    AlreadyCollected,
+    NotCollectible
+}
+
 public class DataLogManager : MonoBehaviour
 {
     public static DataLogManager Instance { get; private set; }
@@ -115,6 +127,24 @@ public class DataLogManager : MonoBehaviour
         if (!questTargetCounts.TryGetValue(questID, out int target)) return false;
         if (!questCollectedClues.TryGetValue(questID, out var collectedList)) return false;
         return collectedList.Count >= target;
+    }
+
+    /// <summary>
+    /// 💡 [추가] 클릭한 요소가 무엇인지 "판정"만 합니다 (수집/상태 변경 없음).
+    /// 뉴스/SNS/커뮤니티/아카이브의 모든 텍스트/이미지가 이제 클릭에 반응하므로,
+    /// 실제로 AcquireClue를 부를지 말지, 어떤 스캔 결과 연출을 보여줄지를
+    /// 호출부(ClueTextHoverEffect/ClueImageHoverEffect)가 먼저 판단할 때 사용합니다.
+    /// </summary>
+    public ClueIdentifyResult IdentifyClue(string questID, string clueID)
+    {
+        if (string.IsNullOrEmpty(clueID)) return ClueIdentifyResult.NotCollectible;
+
+        string cleanClueID = clueID.Trim();
+        if (!clueDatabase.ContainsKey(cleanClueID)) return ClueIdentifyResult.NotCollectible;
+        if (IsClueAlreadyCollected(cleanClueID)) return ClueIdentifyResult.AlreadyCollected;
+        if (!IsQuestActive(questID) || IsQuestCapReached(questID)) return ClueIdentifyResult.NotCollectible;
+
+        return ClueIdentifyResult.Collectible;
     }
 
     // 💡 퀘스트별 정답/오답 대화 시작 ID (StartQuest 호출 시 함께 등록됨)

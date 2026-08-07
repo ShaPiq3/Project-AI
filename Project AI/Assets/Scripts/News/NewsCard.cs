@@ -24,34 +24,17 @@ public class NewsCard : MonoBehaviour
         titleText.text = data.title;
         infoText.text = data.info;
 
-        // 💡 제목(title) 자체가 단서인 경우, 제목 텍스트에도 ClueTextHoverEffect를 붙입니다.
+        // 💡 [변경] 제목이 단서인지 여부와 상관없이 항상 ClueTextHoverEffect를 붙입니다.
+        // 단서 수집 모드에서는 제목도 다른 문단과 동일하게 반응하고,
+        // 실제로 수집 가능한지는 클릭 시 스캔 판정으로 구분됩니다.
         ClueTextHoverEffect titleHoverEffect = titleText.gameObject.GetComponent<ClueTextHoverEffect>();
-        if (!string.IsNullOrEmpty(data.titleClueID))
+        if (titleHoverEffect == null)
         {
-            if (titleHoverEffect == null)
-            {
-                titleHoverEffect = titleText.gameObject.AddComponent<ClueTextHoverEffect>();
-            }
-
-            titleText.raycastTarget = true;
-
-            var titleIdField = typeof(ClueTextHoverEffect).GetField("targetClueID", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            if (titleIdField != null)
-            {
-                titleIdField.SetValue(titleHoverEffect, data.titleClueID);
-            }
-
-            var titleTitleField = typeof(ClueTextHoverEffect).GetField("sourceTitleOverride", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            if (titleTitleField != null)
-            {
-                titleTitleField.SetValue(titleHoverEffect, data.title);
-            }
+            titleHoverEffect = titleText.gameObject.AddComponent<ClueTextHoverEffect>();
         }
-        else
-        {
-            // 제목이 단서가 아닌 기사로 다시 세팅될 수도 있으므로, 이전에 붙어있던 컴포넌트는 제거
-            if (titleHoverEffect != null) Destroy(titleHoverEffect);
-        }
+
+        titleText.raycastTarget = true;
+        titleHoverEffect.Configure(data.titleClueID, "", data.title);
 
         PanelLinkParagraphEffect titleLinkEffect = titleText.gameObject.GetComponent<PanelLinkParagraphEffect>();
         if (data.title.Contains("<link=\""))
@@ -110,29 +93,16 @@ public class NewsCard : MonoBehaviour
                 ? taggedClueID
                 : (isLegacySingleClueParagraph ? data.bodyClueID : null);
 
-            if (!string.IsNullOrEmpty(finalClueID))
+            // 💡 [변경] 단서 문단인지 여부와 상관없이 모든 문단에 항상 ClueTextHoverEffect를 붙입니다.
+            ClueTextHoverEffect hoverEffect = newText.gameObject.GetComponent<ClueTextHoverEffect>();
+            if (hoverEffect == null)
             {
-                ClueTextHoverEffect hoverEffect = newText.gameObject.GetComponent<ClueTextHoverEffect>();
-                if (hoverEffect == null)
-                {
-                    hoverEffect = newText.gameObject.AddComponent<ClueTextHoverEffect>();
-                }
-
-                newText.raycastTarget = true;
-
-                var idField = typeof(ClueTextHoverEffect).GetField("targetClueID", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                if (idField != null)
-                {
-                    idField.SetValue(hoverEffect, finalClueID);
-                }
-
-                // 💡 이 기사의 실제 제목을 sourceTitleOverride에 주입
-                var titleField = typeof(ClueTextHoverEffect).GetField("sourceTitleOverride", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                if (titleField != null)
-                {
-                    titleField.SetValue(hoverEffect, data.title);
-                }
+                hoverEffect = newText.gameObject.AddComponent<ClueTextHoverEffect>();
             }
+
+            newText.raycastTarget = true;
+            // 💡 이 기사의 실제 제목을 sourceTitleOverride에 주입
+            hoverEffect.Configure(finalClueID, "", data.title);
 
             if (paragraphText.Contains("<link=\""))
             {
@@ -154,28 +124,17 @@ public class NewsCard : MonoBehaviour
                 newsImage.sprite = loadedSprite;
                 newsImage.gameObject.SetActive(true);
 
-                // 💡 이미지 역시 직접 버튼을 주입해 직접 수집하던 코드에서
-                // 우리가 만든 호버/클릭 효과 컴포넌트(ClueImageHoverEffect) 체제로 자동 전환합니다.
+                // 💡 [변경] 이미지 역시 단서인지 여부와 상관없이 항상 ClueImageHoverEffect를 붙입니다.
                 ClueImageHoverEffect imgHover = newsImage.gameObject.GetComponent<ClueImageHoverEffect>();
                 Button imgBtn = newsImage.gameObject.GetComponent<Button>();
 
                 if (imgBtn != null) Destroy(imgBtn); // 기존 구식 버튼은 충돌 방지를 위해 제거
 
-                if (!string.IsNullOrEmpty(data.imageClueID) && data.imageClueID.ToLower() != "none")
-                {
-                    if (imgHover == null) imgHover = newsImage.gameObject.AddComponent<ClueImageHoverEffect>();
+                if (imgHover == null) imgHover = newsImage.gameObject.AddComponent<ClueImageHoverEffect>();
 
-                    // 💡 이미지 단서에도 실제 기사 제목을 sourceTitleOverride에 주입
-                    var imgTitleField = typeof(ClueImageHoverEffect).GetField("sourceTitleOverride", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                    if (imgTitleField != null)
-                    {
-                        imgTitleField.SetValue(imgHover, data.title);
-                    }
-                }
-                else
-                {
-                    if (imgHover != null) Destroy(imgHover);
-                }
+                string resolvedImageClueID = (!string.IsNullOrEmpty(data.imageClueID) && data.imageClueID.ToLower() != "none")
+                    ? data.imageClueID : "";
+                imgHover.Configure(resolvedImageClueID, "", data.title);
 
                 // 💡 [추가] 본문 이미지를 이미지 생성 퀘스트 수집 대상으로 자동 등록
                 // (목록 썸네일이 아니라 여기, 상세 본문 이미지에 걸어야 함)

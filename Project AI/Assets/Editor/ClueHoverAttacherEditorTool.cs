@@ -1,0 +1,90 @@
+// ClueHoverAttacherEditorTool.cs
+// -----------------------------------------------------------------------------
+// 아카이브처럼 CSV가 아니라 프리팹에 손으로 배치된 콘텐츠에서, "단서든 아니든"
+// 모든 텍스트/이미지가 단서 수집 모드에서 반응하게 하려면 ClueTextHoverEffect /
+// ClueImageHoverEffect 컴포넌트가 각 오브젝트에 붙어있어야 합니다.
+// 이 도구는 그 부착 작업을 손으로 하나씩 하는 대신 한 번에 처리해줍니다.
+//
+// 사용법
+// 1) 프로젝트 창에서 아카이브 프리팹 에셋(예: 아카이브_의상_원피스.prefab)을 선택하거나,
+//    프리팹을 더블클릭해 Prefab Mode로 연 뒤 그 안의 특정 오브젝트(예: 본문 내용이
+//    들어있는 부모)를 하이어라키에서 선택합니다.
+//    - 여러 개를 한 번에 선택해도 됩니다.
+// 2) 상단 메뉴 Tools > Clue System > Attach Hover To Selected (Include Children) 클릭
+// 3) 선택한 오브젝트 및 그 하위의 모든 TextMeshProUGUI / Image에 컴포넌트가 새로 붙습니다.
+//    - 이미 ClueTextHoverEffect/ClueImageHoverEffect가 붙어있는 곳(기존에 손으로
+//      태깅해둔 진짜 단서)은 건드리지 않습니다.
+//    - 닫기 버튼, 배경 이미지처럼 상호작용이 필요 없는 오브젝트에도 똑같이 붙을 수
+//      있으니, 결과를 보고 필요 없는 곳은 인스펙터에서 컴포넌트만 지워주세요.
+// 4) 진짜 단서인 오브젝트는 인스펙터에서 Target Clue ID(+ 필요하면 Quest ID)를
+//    ClueExcelData.csv의 ClueID/QuestID와 동일하게 입력해주세요. 비워두면
+//    "반응은 하지만 수집은 안 되는" 일반 요소로 동작합니다.
+// 5) 프리팹 에셋을 직접 선택해서 실행했다면 자동으로 저장까지 됩니다.
+//    Prefab Mode에서 실행했다면 Ctrl+S로 프리팹을 저장해주세요.
+// -----------------------------------------------------------------------------
+
+using System.Collections.Generic;
+using UnityEditor;
+using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
+
+public static class ClueHoverAttacherEditorTool
+{
+    [MenuItem("Tools/Clue System/Attach Hover To Selected (Include Children)")]
+    private static void AttachToSelected()
+    {
+        GameObject[] selectedRoots = Selection.gameObjects;
+        if (selectedRoots == null || selectedRoots.Length == 0)
+        {
+            EditorUtility.DisplayDialog(
+                "단서 상호작용 붙이기",
+                "먼저 하이어라키(또는 프로젝트 창의 프리팹 에셋)에서 대상 오브젝트를 선택하세요.",
+                "확인");
+            return;
+        }
+
+        int textCount = 0;
+        int imageCount = 0;
+        HashSet<Object> dirtyAssets = new HashSet<Object>();
+
+        foreach (GameObject root in selectedRoots)
+        {
+            foreach (TextMeshProUGUI tmp in root.GetComponentsInChildren<TextMeshProUGUI>(true))
+            {
+                // 이미 붙어있으면 건드리지 않음 (기존에 태깅해둔 진짜 단서 보존)
+                if (tmp.GetComponent<ClueTextHoverEffect>() != null) continue;
+
+                Undo.AddComponent<ClueTextHoverEffect>(tmp.gameObject);
+                tmp.raycastTarget = true;
+                textCount++;
+                EditorUtility.SetDirty(tmp.gameObject);
+                dirtyAssets.Add(tmp.gameObject);
+            }
+
+            foreach (Image img in root.GetComponentsInChildren<Image>(true))
+            {
+                if (img.GetComponent<ClueImageHoverEffect>() != null) continue;
+
+                Undo.AddComponent<ClueImageHoverEffect>(img.gameObject);
+                imageCount++;
+                EditorUtility.SetDirty(img.gameObject);
+                dirtyAssets.Add(img.gameObject);
+            }
+
+            EditorUtility.SetDirty(root);
+        }
+
+        // 선택한 것이 씬이 아니라 프리팹 에셋 자체였다면 여기서 바로 파일에 저장됩니다.
+        AssetDatabase.SaveAssets();
+
+        EditorUtility.DisplayDialog(
+            "단서 상호작용 붙이기 완료",
+            $"텍스트 {textCount}개, 이미지 {imageCount}개에 컴포넌트를 새로 붙였습니다.\n" +
+            "(이미 컴포넌트가 붙어있던 곳은 건드리지 않았습니다)\n\n" +
+            "상호작용이 필요 없는 오브젝트(닫기 버튼, 배경 등)에 잘못 붙었다면 " +
+            "해당 오브젝트를 선택해서 인스펙터에서 컴포넌트만 지워주세요.\n\n" +
+            "Prefab Mode에서 실행했다면 Ctrl+S로 저장하는 것도 잊지 마세요.",
+            "확인");
+    }
+}

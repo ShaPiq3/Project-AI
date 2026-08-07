@@ -10,9 +10,11 @@ public class CommentItemUI : MonoBehaviour
     public Image emoticonImage;       // 이모티콘 이미지 댓글용 (EmoticonImage 오브젝트 연결)
 
     /// <summary>
-    /// 일반 게시판용 댓글 데이터를 UI에 세팅하는 함수
+    /// 일반 게시판용 댓글 데이터를 UI에 세팅하는 함수.
+    /// 💡 [변경] clueID/questID/sourceTitle을 함께 받아서, 댓글 내용(텍스트 또는 이모티콘)에도
+    /// 단서인지 여부와 상관없이 항상 상호작용 컴포넌트를 붙입니다.
     /// </summary>
-    public void Setup(CommentData data)
+    public void Setup(CommentData data, string clueID = null, string questID = null, string sourceTitle = null)
     {
         // 1. 작성자 닉네임 세팅
         authorText.text = data.author;
@@ -34,6 +36,10 @@ public class CommentItemUI : MonoBehaviour
                 Debug.LogWarning($"이모티콘을 찾을 수 없습니다: Resources/Emoticons/{data.emoticonName}");
                 emoticonImage.gameObject.SetActive(false); // 로드 실패 시 이미지 컴포넌트 끄기
             }
+
+            ClueImageHoverEffect imgHover = emoticonImage.gameObject.GetComponent<ClueImageHoverEffect>();
+            if (imgHover == null) imgHover = emoticonImage.gameObject.AddComponent<ClueImageHoverEffect>();
+            imgHover.Configure(clueID, questID, sourceTitle);
         }
         // 3. 일반 텍스트 댓글 처리 (isEmoticon == false)
         else
@@ -41,6 +47,11 @@ public class CommentItemUI : MonoBehaviour
             emoticonImage.gameObject.SetActive(false); // 이모티콘 이미지 끄기
             contentText.gameObject.SetActive(true);   // 텍스트 컴포넌트 켜기
             contentText.text = data.content;          // 텍스트 내용 세팅
+            contentText.raycastTarget = true;
+
+            ClueTextHoverEffect textHover = contentText.gameObject.GetComponent<ClueTextHoverEffect>();
+            if (textHover == null) textHover = contentText.gameObject.AddComponent<ClueTextHoverEffect>();
+            textHover.Configure(clueID, questID, sourceTitle);
         }
     }
 }

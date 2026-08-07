@@ -31,56 +31,50 @@ public class SNSPost : MonoBehaviour
     /// </summary>
     public void Setup(SNSPostData data)
     {
-        // 1. 본문 작성자 주입
-        if (authorText != null) authorText.text = data.author;
+        // 1. 본문 작성자 주입 (💡 [변경] 단서 데이터는 없지만, "모든 TMP" 상호작용 대상이므로 빈 ID로 부착)
+        if (authorText != null)
+        {
+            authorText.text = data.author;
+            authorText.raycastTarget = true;
+
+            ClueTextHoverEffect authorHover = authorText.gameObject.GetComponent<ClueTextHoverEffect>();
+            if (authorHover == null) authorHover = authorText.gameObject.AddComponent<ClueTextHoverEffect>();
+            authorHover.Configure("", questID, null);
+        }
 
         // 2. 본문 텍스트 주입 및 클릭 단서 처리
         if (contentText != null)
         {
             string rawContent = data.content;
+            string resolvedClueID;
 
             // 💡 본문 텍스트 안에 [CLUE:ID]가 포함되어 있는 경우
             if (rawContent.StartsWith("[CLUE:"))
             {
                 int closeBracketIndex = rawContent.IndexOf(']');
-                string tagClueID = rawContent.Substring(6, closeBracketIndex - 6);
-                string realContent = rawContent.Substring(closeBracketIndex + 1);
-
-                contentText.text = realContent;
-
-                // 텍스트를 클릭 가능한 버튼으로 전환
-                Button textBtn = contentText.gameObject.GetComponent<Button>();
-                if (textBtn == null) textBtn = contentText.gameObject.AddComponent<Button>();
-
-                textBtn.transition = Selectable.Transition.ColorTint;
-                textBtn.onClick.RemoveAllListeners();
-                textBtn.onClick.AddListener(() =>
-                {
-                    CollectClue(tagClueID);
-                });
+                resolvedClueID = rawContent.Substring(6, closeBracketIndex - 6);
+                contentText.text = rawContent.Substring(closeBracketIndex + 1);
             }
             // 💡 본문에 [CLUE:ID]는 없지만 별도의 clueID 필드로 단서를 수집하는 경우
             else if (!string.IsNullOrEmpty(data.clueID) && data.clueID.ToLower() != "none")
             {
+                resolvedClueID = data.clueID;
                 contentText.text = rawContent;
-
-                Button textBtn = contentText.gameObject.GetComponent<Button>();
-                if (textBtn == null) textBtn = contentText.gameObject.AddComponent<Button>();
-
-                textBtn.transition = Selectable.Transition.ColorTint;
-                textBtn.onClick.RemoveAllListeners();
-                textBtn.onClick.AddListener(() =>
-                {
-                    CollectClue(data.clueID);
-                });
             }
             else
             {
-                // 일반 본문일 때는 버튼 비활성화/제거
+                resolvedClueID = "";
                 contentText.text = rawContent;
-                Button textBtn = contentText.gameObject.GetComponent<Button>();
-                if (textBtn != null) Destroy(textBtn);
             }
+
+            // 💡 [변경] 단서인지 여부와 상관없이 항상 ClueTextHoverEffect를 붙입니다.
+            Button textBtn = contentText.gameObject.GetComponent<Button>();
+            if (textBtn != null) Destroy(textBtn); // 기존 구식 버튼은 충돌 방지를 위해 제거
+
+            contentText.raycastTarget = true;
+            ClueTextHoverEffect contentHover = contentText.gameObject.GetComponent<ClueTextHoverEffect>();
+            if (contentHover == null) contentHover = contentText.gameObject.AddComponent<ClueTextHoverEffect>();
+            contentHover.Configure(resolvedClueID, questID, null);
         }
 
         // 3. 프로필 이미지 로드
@@ -101,26 +95,16 @@ public class SNSPost : MonoBehaviour
                 {
                     postImage.sprite = loadedSprite;
 
-                    // 💡 이미지 클릭 단서 수집 로직 추가
+                    // 💡 [변경] 단서인지 여부와 상관없이 항상 ClueImageHoverEffect를 붙입니다.
                     Button imgBtn = postImage.gameObject.GetComponent<Button>();
+                    if (imgBtn != null) Destroy(imgBtn); // 기존 구식 버튼은 충돌 방지를 위해 제거
 
-                    // 엑셀에 ImageClueID가 존재하고 none이 아니면 버튼 처리
-                    if (!string.IsNullOrEmpty(data.imageClueID) && data.imageClueID.ToLower() != "none")
-                    {
-                        if (imgBtn == null) imgBtn = postImage.gameObject.AddComponent<Button>();
+                    ClueImageHoverEffect imgHover = postImage.gameObject.GetComponent<ClueImageHoverEffect>();
+                    if (imgHover == null) imgHover = postImage.gameObject.AddComponent<ClueImageHoverEffect>();
 
-                        imgBtn.transition = Selectable.Transition.ColorTint;
-                        imgBtn.onClick.RemoveAllListeners();
-                        imgBtn.onClick.AddListener(() =>
-                        {
-                            CollectClue(data.imageClueID);
-                        });
-                    }
-                    else
-                    {
-                        // 단서 수집이 안 되는 일반 이미지라면 버튼 컴포넌트 제거
-                        if (imgBtn != null) Destroy(imgBtn);
-                    }
+                    string resolvedImageClueID = (!string.IsNullOrEmpty(data.imageClueID) && data.imageClueID.ToLower() != "none")
+                        ? data.imageClueID : "";
+                    imgHover.Configure(resolvedImageClueID, questID, null);
                 }
             }
             else
@@ -143,7 +127,9 @@ public class SNSPost : MonoBehaviour
                 SNSCommentItem commentScript = newComment.GetComponent<SNSCommentItem>();
                 if (commentScript != null)
                 {
-                    commentScript.SetComment(commentData);
+                    // 💡 [변경] SNS 댓글 CSV엔 아직 clueID 컬럼이 없어 항상 빈 ID로 부착합니다.
+                    // (반응은 하되 수집은 안 되는 상태. 나중에 컬럼을 추가하면 그대로 연결됨)
+                    commentScript.SetComment(commentData, "", questID, null);
                 }
             }
         }
@@ -151,11 +137,6 @@ public class SNSPost : MonoBehaviour
         // 6. 텍스트 주입과 댓글 생성이 "완전히 끝난 최종 크기"를 기준으로 레이아웃 높이 강제 갱신!!
         RefreshLayoutForce();
     }
-
-    /// <summary>
-    /// 💡 단서 수집 통신을 담당하는 안전한 내부 함수
-    /// </summary>
-
 
     /// <summary>
     /// UI 박스 높이를 강제로 재계산하는 최적화 함수
@@ -177,29 +158,6 @@ public class SNSPost : MonoBehaviour
         if (transform.parent != null)
         {
             LayoutRebuilder.ForceRebuildLayoutImmediate(transform.parent.GetComponent<RectTransform>());
-        }
-    }
-
-    private void CollectClue(string targetClueID)
-    {
-        if (string.IsNullOrEmpty(targetClueID) || targetClueID.ToLower() == "none") return;
-
-        // 단서 수집 모드가 켜져 있을 때만 수집 가능하게 제한
-        if (DataLogManager.Instance != null && !DataLogManager.Instance.IsClueSearchModeActive)
-        {
-            Debug.Log("현재 단서 수집 모드가 비활성화되어 있어 수집할 수 없습니다.");
-            return;
-        }
-
-        Debug.Log($"[SNS] 단서 수집 요청: {targetClueID}");
-
-        if (DataLogManager.Instance != null)
-        {
-            DataLogManager.Instance.AcquireClue(this.questID, targetClueID);
-        }
-        else
-        {
-            Debug.LogError("DataLogManager 인스턴스를 씬에서 찾을 수 없습니다!");
         }
     }
 }

@@ -50,26 +50,14 @@ public class PostDetailPageUI : MonoBehaviour
         authorText.text = data.author;
         dateText.text = data.date;
 
-        // 💡 제목(title) 자체가 단서인 경우, 제목 텍스트에 클릭 시 수집 기능을 붙입니다.
+        // 💡 [변경] 제목이 단서인지 여부와 상관없이 항상 ClueTextHoverEffect를 붙입니다.
         Button titleBtn = titleText.gameObject.GetComponent<Button>();
-        if (!string.IsNullOrEmpty(data.titleClueID) && DataLogManager.Instance != null)
-        {
-            if (titleBtn == null) titleBtn = titleText.gameObject.AddComponent<Button>();
+        if (titleBtn != null) Destroy(titleBtn); // 기존 구식 버튼은 충돌 방지를 위해 제거
 
-            titleBtn.transition = Selectable.Transition.ColorTint;
-            titleBtn.onClick.RemoveAllListeners();
-            titleBtn.onClick.AddListener(() => {
-                Debug.Log($"커뮤니티 제목 클릭으로 단서 수집: {data.titleClueID}");
-                // 💡 [변경] questID를 마스터 데이터에서 자동으로 찾아서 사용 (여러 퀘스트 재사용 대응)
-                string resolvedQuestID = DataLogManager.Instance.ResolveQuestID(data.titleClueID, questID);
-                DataLogManager.Instance.AcquireClue(resolvedQuestID, data.titleClueID, data.title);
-            });
-        }
-        else
-        {
-            // 제목이 단서가 아닌 게시글로 다시 세팅될 수도 있으므로, 이전에 붙어있던 버튼은 제거
-            if (titleBtn != null) Destroy(titleBtn);
-        }
+        ClueTextHoverEffect titleHoverEffect = titleText.gameObject.GetComponent<ClueTextHoverEffect>();
+        if (titleHoverEffect == null) titleHoverEffect = titleText.gameObject.AddComponent<ClueTextHoverEffect>();
+        titleText.raycastTarget = true;
+        titleHoverEffect.Configure(data.titleClueID, questID, data.title);
 
         PanelLinkParagraphEffect titleLinkEffect = titleText.gameObject.GetComponent<PanelLinkParagraphEffect>();
         if (data.title.Contains("<link=\""))
@@ -136,35 +124,15 @@ public class PostDetailPageUI : MonoBehaviour
                     ? taggedClueID
                     : (isLegacySingleClueParagraph ? data.bodyClueID : null);
 
-                if (!string.IsNullOrEmpty(finalClueID))
+                // 💡 [변경] 단서 문단인지 여부와 상관없이 모든 문단에 항상 ClueTextHoverEffect를 붙입니다.
+                ClueTextHoverEffect hoverEffect = newText.gameObject.GetComponent<ClueTextHoverEffect>();
+                if (hoverEffect == null)
                 {
-                    ClueTextHoverEffect hoverEffect = newText.gameObject.GetComponent<ClueTextHoverEffect>();
-                    if (hoverEffect == null)
-                    {
-                        hoverEffect = newText.gameObject.AddComponent<ClueTextHoverEffect>();
-                    }
-
-                    newText.raycastTarget = true;
-
-                    var idField = typeof(ClueTextHoverEffect).GetField("targetClueID", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                    if (idField != null)
-                    {
-                        idField.SetValue(hoverEffect, finalClueID);
-                    }
-
-                    var questIdField = typeof(ClueTextHoverEffect).GetField("questID", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                    if (questIdField != null)
-                    {
-                        questIdField.SetValue(hoverEffect, questID);
-                    }
-
-                    // 💡 실제 게시글 제목을 sourceTitleOverride로 주입
-                    var titleField = typeof(ClueTextHoverEffect).GetField("sourceTitleOverride", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                    if (titleField != null)
-                    {
-                        titleField.SetValue(hoverEffect, data.title);
-                    }
+                    hoverEffect = newText.gameObject.AddComponent<ClueTextHoverEffect>();
                 }
+
+                newText.raycastTarget = true;
+                hoverEffect.Configure(finalClueID, questID, data.title);
 
                 if (paragraphText.Contains("<link=\""))
                 {
@@ -193,27 +161,16 @@ public class PostDetailPageUI : MonoBehaviour
                 postImage.sprite = loadedSprite;
                 postImage.gameObject.SetActive(true);
 
-                // 💡 이미지 클릭 단서 수집 세팅
+                // 💡 [변경] 단서인지 여부와 상관없이 항상 ClueImageHoverEffect를 붙입니다.
                 Button imgBtn = postImage.gameObject.GetComponent<Button>();
+                if (imgBtn != null) Destroy(imgBtn); // 기존 구식 버튼은 충돌 방지를 위해 제거
 
-                if (!string.IsNullOrEmpty(data.imageClueID) && data.imageClueID.ToLower() != "none")
-                {
-                    if (imgBtn == null) imgBtn = postImage.gameObject.AddComponent<Button>();
+                ClueImageHoverEffect imgHover = postImage.gameObject.GetComponent<ClueImageHoverEffect>();
+                if (imgHover == null) imgHover = postImage.gameObject.AddComponent<ClueImageHoverEffect>();
 
-                    imgBtn.transition = Selectable.Transition.ColorTint;
-                    imgBtn.onClick.RemoveAllListeners();
-                    imgBtn.onClick.AddListener(() => {
-                        Debug.Log($"커뮤니티 이미지 클릭으로 단서 수집: {data.imageClueID}");
-                        // 💡 [변경] data.imageQuestID는 CSV에서 채워지지 않아 항상 비어있던 값이라,
-                        // 마스터 데이터에서 자동으로 questID를 찾도록 변경
-                        string resolvedQuestID = DataLogManager.Instance.ResolveQuestID(data.imageClueID, questID);
-                        DataLogManager.Instance.AcquireClue(resolvedQuestID, data.imageClueID, data.title);
-                    });
-                }
-                else
-                {
-                    if (imgBtn != null) Destroy(imgBtn); // 단서가 없는 이미지는 버튼 기능 제거
-                }
+                string resolvedImageClueID = (!string.IsNullOrEmpty(data.imageClueID) && data.imageClueID.ToLower() != "none")
+                    ? data.imageClueID : "";
+                imgHover.Configure(resolvedImageClueID, questID, data.title);
 
                 // 💡 이미지 생성 퀘스트 수집 대상으로 자동 등록.
                 // 이 패널은 게시글마다 새로 생성되지 않고 재사용되므로,
@@ -248,23 +205,9 @@ public class PostDetailPageUI : MonoBehaviour
             foreach (CommentData cData in data.comments)
             {
                 GameObject cItem = Instantiate(commentPrefab, commentListTransform);
-                cItem.GetComponent<CommentItemUI>().Setup(cData);
-
-                // 💡 해당 댓글에 단서 ID(clueID)가 매핑되어 있다면 클릭 시 단서 수집 처리
-                // 댓글 프리팹 자체에 Button 컴포넌트가 부착되어 있거나 동적으로 추가하여 연동합니다.
-                if (!string.IsNullOrEmpty(cData.clueID) && DataLogManager.Instance != null)
-                {
-                    Button commentBtn = cItem.GetComponent<Button>();
-                    if (commentBtn == null) commentBtn = cItem.AddComponent<Button>();
-
-                    commentBtn.onClick.RemoveAllListeners();
-                    commentBtn.onClick.AddListener(() => {
-                        // 💡 [수정] 예전엔 댓글 clueID가 아니라 이미지용 ID를 잘못 넘기고 있었습니다.
-                        // 이제 댓글 자체의 clueID를 쓰고, questID도 마스터 데이터에서 자동으로 찾습니다.
-                        string resolvedQuestID = DataLogManager.Instance.ResolveQuestID(cData.clueID, questID);
-                        DataLogManager.Instance.AcquireClue(resolvedQuestID, cData.clueID, $"{data.title} ({cData.author})");
-                    });
-                }
+                // 💡 [변경] 댓글도 텍스트/이모티콘 단위로 항상 반응하도록 clueID/questID를 그대로 넘기고,
+                // 실제 부착은 CommentItemUI.Setup 내부(ClueTextHoverEffect/ClueImageHoverEffect)에서 처리합니다.
+                cItem.GetComponent<CommentItemUI>().Setup(cData, cData.clueID, questID, $"{data.title} ({cData.author})");
             }
         }
 
