@@ -58,6 +58,10 @@ public class DocumentQuestManager : MonoBehaviour
     [Tooltip("요약이 실패(isSuccess=false)했을 때 점프할 대화 CSV의 ID")]
     [SerializeField] private int failureDialogueID;
 
+    [Header("--- Archive_저장소 재열람 버튼 (선택 사항) ---")]
+    [Tooltip("Archive_저장소 패널에 있는, 이 문서를 다시 여는 버튼. 퀘스트를 완료하기 전엔 숨겨져 있다가 완료하면 나타납니다.")]
+    [SerializeField] private GameObject reopenButtonInArchive;
+
     private static readonly Dictionary<string, DocumentQuestManager> registry = new Dictionary<string, DocumentQuestManager>();
 
     private List<SentenceBlock> spawnedBlocks = new List<SentenceBlock>();
@@ -78,6 +82,12 @@ public class DocumentQuestManager : MonoBehaviour
         {
             registry[documentID] = this;
         }
+
+        // 💡 [변경] Start()가 아니라 여기서 처리합니다. 이 문서 패널 자체는 씬에서 비활성 상태로
+        // 시작하는데, Start()는 오브젝트가 최소 한 번 활성화되기 전까지 실행되지 않습니다.
+        // 반면 재열람 버튼은 Archive_저장소에 별도로 있어서 독립적으로 계속 보이는 상태였습니다.
+        // Awake()는 씬에 있는 오브젝트라면 비활성 상태여도 로드 시점에 항상 실행되므로 여기서 숨깁니다.
+        if (reopenButtonInArchive != null) reopenButtonInArchive.SetActive(IsCompleted);
     }
 
     private void Start()
@@ -98,9 +108,12 @@ public class DocumentQuestManager : MonoBehaviour
 
     private void OnEnable()
     {
-        if (IsCompleted)
+        // 💡 [변경] 완료된 문서는 더 이상 분석 패널에 접근할 수 없어야 하므로 특별히 복원할 게 없습니다.
+        // 스캔은 했지만 아직 완료 전이라면(예: OpenPanel()을 거치지 않고 다른 경로로 창이 다시 활성화된 경우),
+        // 토글 버튼/선택 결과를 다시 볼 수 있게 복원합니다.
+        if (!IsCompleted && isAnalysisActive)
         {
-            ApplyCompletedUIState();
+            ShowOriginalKeepingScanAccessible();
         }
     }
 
@@ -132,6 +145,23 @@ public class DocumentQuestManager : MonoBehaviour
 
     private bool triggerCountedForDataLog = false;
     private Coroutine scanRoutine;
+
+    /// <summary>
+    /// 💡 [추가] 문서 버블이 채팅창에 뜨는 시점(ChatDialogueManager)에 호출합니다.
+    /// 클루(isTrigger)/이미지생성(isImageGenTrigger) 트리거는 대화 CSV 행을 만나는 즉시
+    /// 사이드바 "단서 수집" 버튼을 켜두는데, 문서 트리거만 이 호출이 빠져있어서
+    /// "데이터 수집 모드를 켤 방법이 없어 스캔을 시작할 수 없는" 상태가 되는 문제가 있었습니다.
+    /// TriggerScanComplete()의 중복 카운트 방지 플래그를 그대로 재사용합니다.
+    /// </summary>
+    public void NotifyBubbleShown()
+    {
+        if (!triggerCountedForDataLog && DataLogManager.Instance != null)
+        {
+            triggerCountedForDataLog = true;
+            DataLogManager.Instance.NotifyTriggerStarted();
+        }
+    }
+
     public void TriggerScanComplete()
     {
         if (IsCompleted)
@@ -248,32 +278,28 @@ public class DocumentQuestManager : MonoBehaviour
         if (sentencesContainer != null) sentencesContainer.gameObject.SetActive(false);
     }
 
-    private void ApplyCompletedUIState()
+    /// <summary>
+    /// 💡 [추가] 스캔은 이미 했지만 아직 요약 실행 전(퀘스트 미완료)인 문서를 다시 열 때 씁니다.
+    /// ResetAllUI()와 달리 분석 패널을 자동으로 열지는 않지만, 토글 버튼과 문장 선택 결과
+    /// (SentenceBlock들의 상태)는 그대로 남겨둬서, 재스캔하지 않고도 토글 버튼으로
+    /// 하던 분석을 그대로 이어서 볼 수 있게 합니다.
+    /// </summary>
+    private void ShowOriginalKeepingScanAccessible()
     {
-        isAnalysisOpen = true;
+        isAnalysisOpen = false;
         isScanning = false;
-        isAnalysisActive = true;
+        isAnalysisActive = true; // 분석 자체는 이미 끝난 상태이므로 유지
 
         originalPanel.SetActive(true);
-        dimmedOverlay.SetActive(true);
-        analysisPanel.SetActive(true);
-        toggleAnalysisBtn.gameObject.SetActive(true);
-        if (toggleBtnText != null) toggleBtnText.text = "<<";
+        dimmedOverlay.SetActive(false);
+        analysisPanel.SetActive(false); // 자동으로는 열지 않음
+        toggleAnalysisBtn.gameObject.SetActive(true); // 다시 볼 수 있도록 버튼은 유지
+        if (toggleBtnText != null) toggleBtnText.text = ">>"; // 닫힌 상태 아이콘
 
         if (loadingGroup != null) loadingGroup.SetActive(false);
-
-        if (sentencesContainer != null)
-        {
-            sentencesContainer.gameObject.SetActive(true);
-            foreach (Transform child in sentencesContainer)
-            {
-                if (child.GetComponent<Button>() != null)
-                {
-                    child.gameObject.SetActive(true);
-                }
-            }
-            LayoutRebuilder.ForceRebuildLayoutImmediate(sentencesContainer.GetComponent<RectTransform>());
-        }
+        // 💡 sentencesContainer(및 그 안의 SentenceBlock 선택 상태)는 건드리지 않습니다.
+        // analysisPanel이 비활성화되어 있어 화면엔 안 보이지만, 토글로 다시 열면 그대로 나타납니다.
+        if (sentencesContainer != null) sentencesContainer.gameObject.SetActive(true);
     }
 
     private void ExecuteSummary()
@@ -320,6 +346,9 @@ public class DocumentQuestManager : MonoBehaviour
 
         // 완료 처리 및 저장 (재스캔 방지)
         IsCompleted = true;
+
+        // 💡 [추가] 퀘스트 완료 시점에 Archive_저장소 재열람 버튼을 활성화(보이게)합니다.
+        if (reopenButtonInArchive != null) reopenButtonInArchive.SetActive(true);
 
         if (summaryExecuteBtn != null) summaryExecuteBtn.interactable = false;
         string json = JsonUtility.ToJson(result);
@@ -371,7 +400,12 @@ public class DocumentQuestManager : MonoBehaviour
         return null;
     }
 
-    public void OpenFromChatBubble()
+    /// <summary>
+    /// 💡 [이름 변경] 채팅 버블뿐 아니라 Archive_저장소의 재열람 버튼에서도 이 함수로 문서를 엽니다.
+    /// 문서를 "열람"만 시킵니다. 스캔(분석)은 여기서 자동으로 시작하지 않습니다 —
+    /// 데이터 수집 모드가 켜진 상태에서 문서 패널을 클릭했을 때(DataLogManager.OnClickDocumentPanel)만 시작됩니다.
+    /// </summary>
+    public void OpenPanel()
     {
         if (!gameObject.activeSelf)
         {
@@ -383,15 +417,15 @@ public class DocumentQuestManager : MonoBehaviour
             panelWindowManager.RestoreWindow();
         }
 
-        // 💡 [변경] 이미 완료된 문서라면 스캔을 다시 돌리지 않고,
-        // 완료된 결과 화면 상태를 바로 적용합니다.
-        if (IsCompleted)
+        if (!IsCompleted && isAnalysisActive)
         {
-            ApplyCompletedUIState();
+            // 스캔은 이미 했지만 퀘스트는 아직 완료 전 -> 토글 버튼/선택 결과 유지 (재스캔 불필요)
+            ShowOriginalKeepingScanAccessible();
         }
         else
         {
-            TriggerScanComplete();
+            // 퀘스트가 완료됐거나(더 이상 분석 접근 불가), 아직 한 번도 스캔 안 했으면 -> 원본만
+            ResetAllUI();
         }
     }
 }

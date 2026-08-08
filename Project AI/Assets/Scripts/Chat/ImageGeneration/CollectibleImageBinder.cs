@@ -2,41 +2,30 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// CSV + ÇÁ¸®ÆÕÀ¸·Î µ¿Àû »ı¼ºµÇ´Â ¸ğµç Ã¢(´º½º, Ä¿¹Â´ÏÆ¼, SNS µî)¿¡¼­ °øÅëÀ¸·Î »ç¿ëÇÏ´Â
-/// "¼öÁı °¡´É ÀÌ¹ÌÁö ÀÚµ¿ µî·Ï" ÇïÆÛ. °¢ ¸Å´ÏÀúÀÇ Instantiate ·çÇÁ¿¡¼­ ÇÑ ÁÙ¸¸ È£ÃâÇÏ¸é µË´Ï´Ù.
+/// CSV + í”„ë¦¬íŒ¹ìœ¼ë¡œ ë™ì  ìƒì„±ë˜ëŠ” ê°ì¢… ì°½(ë‰´ìŠ¤, ì»¤ë®¤ë‹ˆí‹°, SNS ë“±)ì—ì„œ ê³µí†µìœ¼ë¡œ ì‚¬ìš©í•˜ëŠ”
+/// "ì´ë¯¸ì§€ ìƒì„± ìˆ˜ì§‘ ì´ë¯¸ì§€ ìë™ ë“±ë¡" í—¬í¼. ê° ë§¤ë‹ˆì €ê°€ Instantiate ì§í›„ì— í•œ ì¤„ë§Œ í˜¸ì¶œí•˜ë©´ ë©ë‹ˆë‹¤.
 ///
-/// ¿¹)
+/// ì˜ˆ)
 ///   GameObject go = Instantiate(itemPrefab, content);
 ///   var controller = go.GetComponent<NewsItemController>();
 ///   controller.Setup(data);
 ///   CollectibleImageBinder.Bind(controller.thumbnailImage, data.imageGenID);
-///
-///   GameObject go2 = Instantiate(communityPostPrefab, content);
-///   var post = go2.GetComponent<CommunityPostController>();
-///   post.Setup(data2);
-///   CollectibleImageBinder.Bind(post.postImage, data2.imageGenID);
-///
-///   GameObject go3 = Instantiate(snsPostPrefab, content);
-///   var sns = go3.GetComponent<SnsPostController>();
-///   sns.Setup(data3);
-///   CollectibleImageBinder.Bind(sns.attachedImage, data3.imageGenID);
 /// </summary>
 public static class CollectibleImageBinder
 {
-    /// <param name="targetImage">Å¬¸¯ ´ë»óÀÌ µÉ ½ÇÁ¦ ÀÌ¹ÌÁö UI (Image ÄÄÆ÷³ÍÆ®)</param>
+    /// <param name="targetImage">í´ë¦­ ëŒ€ìƒì´ ë  ì‹¤ì œ ì´ë¯¸ì§€ UI (Image ì»´í¬ë„ŒíŠ¸)</param>
     /// <param name="imageGenID">
-    /// ±× Ã¢ÀÇ CSV¿¡ ÀÖ´Â ImageGenID ÄÃ·³ °ª.
-    /// ImageGenSlotItems.csv ÀÇ ImageID ¿Í Á¤È®È÷ °°¾Æ¾ß ÇÔ.
-    /// ºñ¾îÀÖÀ¸¸é(¼öÁı ´ë»óÀÌ ¾Æ´Ñ ÀÏ¹İ °Ô½Ã¹°/±â»ç) ¾Æ¹« °Íµµ ºÙÀÌÁö ¾Ê°í Á¶¿ëÈ÷ ³Ñ¾î°¨.
+    /// ì´ ì¹¸ì˜ CSVì— ìˆëŠ” ImageGenID ì»¬ëŸ¼ ê°’. ImageGenSlotItems.csvì˜ ImageIDì™€ ì •í™•íˆ ê°™ì•„ì•¼ í•¨.
+    /// ğŸ’¡ [ë³€ê²½] ë¹„ì–´ìˆì–´ë„(ìˆ˜ì§‘ ëŒ€ìƒì´ ì•„ë‹Œ ì¼ë°˜ ì´ë¯¸ì§€ì—¬ë„) í•­ìƒ CollectibleImageIconì„ ë¶™ì…ë‹ˆë‹¤.
+    /// ë‹¨ì„œ ìˆ˜ì§‘ ëª¨ë“œì—ì„œ ëª¨ë“  ì´ë¯¸ì§€ê°€ ë™ì¼í•˜ê²Œ ë°˜ì‘í•˜ê³ , ì‹¤ì œ ë“±ë¡ ê°€ëŠ¥ ì—¬ë¶€ëŠ” í´ë¦­ ì‹œ ìŠ¤ìº” íŒì •ìœ¼ë¡œ êµ¬ë¶„ë©ë‹ˆë‹¤.
     /// </param>
     public static void Bind(Image targetImage, string imageGenID)
     {
         if (targetImage == null) return;
-        if (string.IsNullOrEmpty(imageGenID)) return; // ¼öÁı ´ë»ó ¾Æ´Ô -> ½ºÅµ (Á¤»ó)
 
         GameObject go = targetImage.gameObject;
         CollectibleImageIcon icon = go.GetComponent<CollectibleImageIcon>();
         if (icon == null) icon = go.AddComponent<CollectibleImageIcon>();
-        icon.Init(imageGenID);
+        icon.Configure(imageGenID);
     }
 }

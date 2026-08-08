@@ -100,10 +100,13 @@ public class ClueTextHoverEffect : MonoBehaviour, IPointerEnterHandler, IPointer
     /// 💡 [변경] 호버 반응 여부는 이제 "단서 수집 모드가 켜져 있는지"만 봅니다.
     /// 진짜 단서인지 여부와 무관하게 모든 텍스트 블록이 동일하게 반응해야
     /// 플레이어가 호버만으로 정답을 알아채지 못합니다.
+    /// 단, 이미지 생성 퀘스트가 활성화된 동안에는 이미지만 반응해야 하므로 텍스트는 제외합니다.
     /// </summary>
     private bool IsHoverable()
     {
-        return DataLogManager.Instance != null && DataLogManager.Instance.IsClueSearchModeActive;
+        if (DataLogManager.Instance == null || !DataLogManager.Instance.IsClueSearchModeActive) return false;
+        if (ImageGenerationManager.Instance != null && ImageGenerationManager.Instance.IsUnlocked) return false;
+        return true;
     }
 
     public void OnPointerEnter(PointerEventData eventData)

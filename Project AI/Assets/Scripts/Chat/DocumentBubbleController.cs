@@ -75,16 +75,13 @@ public class DocumentBubbleController : MonoBehaviour, IPointerClickHandler
         isLoadingComplete = true;
 
         OpenDocument();
-
-        Image bubbleImage = GetComponent<Image>();
-        if (bubbleImage != null) bubbleImage.raycastTarget = false;
     }
     private void OpenDocument()
     {
         DocumentQuestManager targetDoc = DocumentQuestManager.GetByID(targetDocumentID);
         if (targetDoc != null)
         {
-            targetDoc.OpenFromChatBubble();
+            targetDoc.OpenPanel();
         }
         else
         {
@@ -95,9 +92,15 @@ public class DocumentBubbleController : MonoBehaviour, IPointerClickHandler
     public void OnPointerClick(PointerEventData eventData)
     {
         if (isLoading) return;
-        if (isLoadingComplete) return;
+
+        // 💡 [변경] 이미 한 번 다운로드를 마쳤다면, 로딩 연출을 다시 반복하지 않고
+        // 바로 문서 패널을 다시 엽니다 (재시작 여부는 DocumentQuestManager가 IsCompleted로 판단).
+        if (isLoadingComplete)
+        {
+            OpenDocument();
+            return;
+        }
 
         StartCoroutine(LoadThenOpenDocument(loadingDuration));
-
     }
 }

@@ -764,6 +764,19 @@ public class ChatDialogueManager : MonoBehaviour
                     Debug.LogWarning("[ChatDialogueManager] documentBubblePrefab이 인스펙터에 연결되지 않았습니다!");
                 }
 
+                // 💡 [추가] isTrigger/isImageGenTrigger와 동일하게, 문서 버블이 뜨는 시점에
+                // 사이드바 "단서 수집" 버튼을 미리 켜둡니다. 이게 없으면 데이터 수집 모드를 켤 방법이
+                // 없어서 OnClickDocumentPanel의 게이트를 통과할 수 없습니다.
+                DocumentQuestManager targetDoc = DocumentQuestManager.GetByID(data.documentID);
+                if (targetDoc != null)
+                {
+                    targetDoc.NotifyBubbleShown();
+                }
+                else
+                {
+                    Debug.LogWarning($"[ChatDialogueManager] documentID '{data.documentID}'에 해당하는 DocumentQuestManager를 찾지 못했습니다.");
+                }
+
                 IsDialoguePaused = true;
             }
 

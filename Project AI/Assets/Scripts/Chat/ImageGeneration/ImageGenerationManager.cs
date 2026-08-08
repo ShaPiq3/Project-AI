@@ -771,6 +771,22 @@ public class ImageGenerationManager : MonoBehaviour
         return slot != null && slot.isFilled && slot.filledUniqueID == itemData.uniqueID;
     }
 
+    /// <summary>
+    /// 💡 [추가] 클릭한 이미지가 무엇인지 "판정"만 합니다 (등록/상태 변경 없음).
+    /// 뉴스/SNS/커뮤니티의 모든 이미지가 이제 클릭에 반응하므로, 실제로 RegisterImageToSlot을
+    /// 부를지 말지, 어떤 스캔 결과 연출을 보여줄지를 CollectibleImageIcon이 먼저 판단할 때 사용합니다.
+    /// DataLogManager.IdentifyClue와 동일한 판정 결과(ClueIdentifyResult)를 그대로 재사용합니다.
+    /// </summary>
+    public ClueIdentifyResult IdentifyImage(string imageID)
+    {
+        if (string.IsNullOrEmpty(imageID)) return ClueIdentifyResult.NotCollectible;
+        if (!itemsByImageID.ContainsKey(imageID)) return ClueIdentifyResult.NotCollectible;
+        if (IsImageAlreadyRegistered(imageID)) return ClueIdentifyResult.AlreadyCollected;
+        if (!IsImageValidForCurrentQuest(imageID)) return ClueIdentifyResult.NotCollectible;
+
+        return ClueIdentifyResult.Collectible;
+    }
+
     public void SetSlotSelected(ImageGenSlotButton slotButton, bool isSelected)
     {
         RefreshDeleteButtonInteractable();

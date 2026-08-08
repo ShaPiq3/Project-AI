@@ -46,17 +46,25 @@ public static class ClueHoverAttacherEditorTool
 
         int textCount = 0;
         int imageCount = 0;
+        int raycastFixedCount = 0;
         HashSet<Object> dirtyAssets = new HashSet<Object>();
 
         foreach (GameObject root in selectedRoots)
         {
             foreach (TextMeshProUGUI tmp in root.GetComponentsInChildren<TextMeshProUGUI>(true))
             {
+                if (!tmp.raycastTarget)
+                {
+                    Undo.RecordObject(tmp, "Enable Raycast Target");
+                    tmp.raycastTarget = true;
+                    raycastFixedCount++;
+                    EditorUtility.SetDirty(tmp);
+                }
+
                 // 이미 붙어있으면 건드리지 않음 (기존에 태깅해둔 진짜 단서 보존)
                 if (tmp.GetComponent<ClueTextHoverEffect>() != null) continue;
 
                 Undo.AddComponent<ClueTextHoverEffect>(tmp.gameObject);
-                tmp.raycastTarget = true;
                 textCount++;
                 EditorUtility.SetDirty(tmp.gameObject);
                 dirtyAssets.Add(tmp.gameObject);
@@ -64,6 +72,16 @@ public static class ClueHoverAttacherEditorTool
 
             foreach (Image img in root.GetComponentsInChildren<Image>(true))
             {
+                // 💡 [버그 수정] Raycast Target이 꺼져있으면 컴포넌트가 붙어있어도 클릭/호버 이벤트 자체가
+                // 전달되지 않습니다. 이미 컴포넌트가 붙어있던 곳까지 포함해서 항상 강제로 켜줍니다.
+                if (!img.raycastTarget)
+                {
+                    Undo.RecordObject(img, "Enable Raycast Target");
+                    img.raycastTarget = true;
+                    raycastFixedCount++;
+                    EditorUtility.SetDirty(img);
+                }
+
                 if (img.GetComponent<ClueImageHoverEffect>() != null) continue;
 
                 Undo.AddComponent<ClueImageHoverEffect>(img.gameObject);
@@ -81,7 +99,7 @@ public static class ClueHoverAttacherEditorTool
         EditorUtility.DisplayDialog(
             "단서 상호작용 붙이기 완료",
             $"텍스트 {textCount}개, 이미지 {imageCount}개에 컴포넌트를 새로 붙였습니다.\n" +
-            "(이미 컴포넌트가 붙어있던 곳은 건드리지 않았습니다)\n\n" +
+            $"Raycast Target이 꺼져있던 오브젝트 {raycastFixedCount}개도 함께 켰습니다(이미 컴포넌트가 붙어있던 곳 포함).\n\n" +
             "상호작용이 필요 없는 오브젝트(닫기 버튼, 배경 등)에 잘못 붙었다면 " +
             "해당 오브젝트를 선택해서 인스펙터에서 컴포넌트만 지워주세요.\n\n" +
             "Prefab Mode에서 실행했다면 Ctrl+S로 저장하는 것도 잊지 마세요.",

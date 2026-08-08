@@ -53,6 +53,12 @@ public class ClueHoverFilterOverlay : MonoBehaviour
         overlayRect.offsetMax = new Vector2(padding, padding);
         overlayRect.pivot = new Vector2(0.5f, 0.5f);
 
+        // 💡 [버그 수정] 대상(부모)이 자기 자신에게 LayoutGroup(Vertical/Horizontal 등)을 갖고 있으면,
+        // 그 레이아웃 그룹이 새로 추가된 이 자식의 크기를 자동으로 재계산해서 0으로 뭉개버립니다.
+        // LayoutElement.ignoreLayout을 켜서 부모 레이아웃 계산에서 이 오브젝트를 완전히 제외시킵니다.
+        LayoutElement layoutElement = go.AddComponent<LayoutElement>();
+        layoutElement.ignoreLayout = true;
+
         overlayImage = go.AddComponent<Image>();
         overlayImage.raycastTarget = false; // 클릭은 원래 대상(텍스트/이미지)에 그대로 전달되어야 함
         overlayImage.sprite = filterSprite;

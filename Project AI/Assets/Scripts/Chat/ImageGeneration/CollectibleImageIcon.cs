@@ -1,127 +1,85 @@
-﻿using UnityEngine;
-using UnityEngine.UI;
+using UnityEngine;
 using UnityEngine.EventSystems;
 
+/// <summary>
+/// 뉴스/SNS/커뮤니티의 이미지에 붙는 이미지 생성 퀘스트용 상호작용 컴포넌트.
+/// 💡 [변경] imageID가 비어있어도(=수집 대상 아닌 일반 이미지) 동작합니다.
+/// 호버/클릭 반응 자체는 단서 수집 모드에서 모든 이미지에 동일하게 일어나고,
+/// 실제로 슬롯에 등록되는지는 클릭 시 스캔 판정(ClueTextHoverEffect/ClueImageHoverEffect와 동일한 방식)으로만 구분됩니다.
+/// </summary>
 public class CollectibleImageIcon : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler
 {
-    [Tooltip("ImageGenSlotItems.csv 의 ImageID 와 동일하게 입력")]
-    public string imageID;
+    [Tooltip("ImageGenSlotItems.csv 의 ImageID 와 동일하게 입력 (비어있으면 수집 대상 아닌 일반 이미지)")]
+    [SerializeField] private string imageID;
 
-    [Header("자동 하이라이트 설정")]
-    [SerializeField] private Color highlightOverlayColor = new Color(1f, 1f, 0f, 0.35f); // 반투명 노란색 덮개
+    // 💡 [변경] 색상 하이라이트 대신, 이 이미지 크기에 맞는 필터 오버레이(ClueHoverFilterOverlay)를 공용으로 재사용
+    private ClueHoverFilterOverlay hoverFilter;
 
-    private GameObject generatedHighlightObj;
+    // 💡 스캔 연출이 재생되는 동안 같은 요소를 연타해서 중복 판정/등록되는 것을 막는 락
+    private bool isScanLocked = false;
 
     private void Awake()
     {
-        CreateHighlightObjectAutomatically();
+        hoverFilter = GetComponent<ClueHoverFilterOverlay>();
+        if (hoverFilter == null) hoverFilter = gameObject.AddComponent<ClueHoverFilterOverlay>();
     }
 
     /// <summary>
-    /// 원본 Image 컴포넌트의 크기, RectTransform, Sprite를 그대로 복사하여 
-    /// 자식 하이라이트 오브젝트를 코드로 자동 생성합니다.
+    /// 💡 [추가] CollectibleImageBinder/ArchiveCollectibleAutoBinder 등이 호출하는 설정 함수.
+    /// imageID가 비어있어도(단서 아닌 일반 이미지여도) 정상 동작합니다.
     /// </summary>
-    private void CreateHighlightObjectAutomatically()
+    public void Configure(string id)
     {
-        Image myImage = GetComponent<Image>();
-        if (myImage == null) return;
-
-        // 1. 자식 GameObject 생성
-        generatedHighlightObj = new GameObject("Auto_Highlight_Overlay");
-        generatedHighlightObj.transform.SetParent(transform, false);
-
-        // 2. RectTransform 설정 (부모 크기에 100% 딱 맞게 앵커 설정)
-        RectTransform rect = generatedHighlightObj.AddComponent<RectTransform>();
-        rect.anchorMin = Vector2.zero;
-        rect.anchorMax = Vector2.one;
-        rect.sizeDelta = Vector2.zero;
-        rect.anchoredPosition = Vector2.zero;
-
-        // 3. Image 컴포넌트 설정 및 원본 Sprite 복사
-        Image highlightImg = generatedHighlightObj.AddComponent<Image>();
-        highlightImg.sprite = myImage.sprite;
-        highlightImg.type = myImage.type; // Sliced 등 원본 타일링 형태 유지
-        highlightImg.color = highlightOverlayColor;
-
-        // 💡 매우 중요: 하이라이트 이미지가 마우스 커서를 가려서 이벤트가 튀지 않도록 끔
-        highlightImg.raycastTarget = false;
-
-        // 시작할 땐 꺼둠
-        generatedHighlightObj.SetActive(false);
+        imageID = id ?? "";
     }
 
-    public void Init(string id)
-    {
-        imageID = id;
-    }
+    /// <summary>기존 호출부(리플렉션 아님, 직접 호출)와의 호환을 위해 유지하는 별칭.</summary>
+    public void Init(string id) => Configure(id);
 
-    private bool IsInteractable(out string failReason)
+    /// <summary>
+    /// 💡 [변경] 호버 반응 여부는 이제 "단서 수집 모드가 켜져 있는지"만 봅니다.
+    /// 진짜 수집 대상 이미지인지 여부와 무관하게 모든 이미지가 동일하게 반응해야
+    /// 플레이어가 호버만으로 정답을 알아채지 못합니다.
+    /// </summary>
+    private bool IsHoverable()
     {
-        if (DataLogManager.Instance == null)
-        {
-            failReason = "DataLogManager.Instance가 null입니다.";
-            return false;
-        }
-        if (!DataLogManager.Instance.IsClueSearchModeActive)
-        {
-            failReason = "단서 수집 모드가 꺼져있습니다.";
-            return false;
-        }
-        if (string.IsNullOrEmpty(imageID))
-        {
-            failReason = "imageID가 비어있습니다.";
-            return false;
-        }
-        if (ImageGenerationManager.Instance == null)
-        {
-            failReason = "ImageGenerationManager.Instance가 null입니다.";
-            return false;
-        }
-        if (!ImageGenerationManager.Instance.IsImageValidForCurrentQuest(imageID))
-        {
-            failReason = $"현재 퀘스트에 유효하지 않은 imageID('{imageID}')입니다.";
-            return false;
-        }
-        if (ImageGenerationManager.Instance.IsImageAlreadyRegistered(imageID))
-        {
-            failReason = $"이미 슬롯에 등록된 imageID('{imageID}')입니다.";
-            return false;
-        }
-
-        failReason = "통과";
-        return true;
+        return DataLogManager.Instance != null && DataLogManager.Instance.IsClueSearchModeActive;
     }
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        if (!IsInteractable(out _)) return;
-
-        if (generatedHighlightObj != null)
-        {
-            generatedHighlightObj.SetActive(true);
-        }
+        if (!IsHoverable()) return;
+        hoverFilter.Show();
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
-        if (generatedHighlightObj != null)
-        {
-            generatedHighlightObj.SetActive(false);
-        }
+        hoverFilter.Hide();
     }
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        if (!IsInteractable(out _)) return;
+        if (!IsHoverable() || isScanLocked) return;
+        if (ImageGenerationManager.Instance == null) return;
 
-        if (generatedHighlightObj != null)
-        {
-            generatedHighlightObj.SetActive(false);
-        }
+        ClueIdentifyResult result = ImageGenerationManager.Instance.IdentifyImage(imageID);
+        ClueScanEffectController.Instance?.PlayScanEffect(GetComponent<RectTransform>(), result);
 
-        if (ImageGenerationManager.Instance != null)
+        if (result == ClueIdentifyResult.Collectible)
         {
             ImageGenerationManager.Instance.RegisterImageToSlot(imageID);
         }
+
+        StartCoroutine(ScanLockRoutine());
+    }
+
+    private System.Collections.IEnumerator ScanLockRoutine()
+    {
+        isScanLocked = true;
+        float lockDuration = ClueScanEffectController.Instance != null
+            ? ClueScanEffectController.Instance.TotalEffectDuration
+            : 0.9f;
+        yield return new WaitForSeconds(lockDuration);
+        isScanLocked = false;
     }
 }
