@@ -46,6 +46,13 @@ public class ClueScanEffectController : MonoBehaviour
     [Tooltip("여러 Canvas가 있는 씬이라면, 항상 최상단에 보여야 하므로 정렬 순서가 가장 높은 Canvas를 직접 연결하는 것을 권장합니다.")]
     [SerializeField] private Canvas overlayCanvasOverride;
 
+    [Header("호버 필터 오버레이 기본 Material (선택)")]
+    [Tooltip("ClueScanFrame.mat 같은 커스텀 UI 쉐이더 Material. ClueHoverFilterOverlay는 자기 자신의 Material이 비어있으면 " +
+             "이 값을 기본값으로 사용합니다. ClueTextHoverEffect/ClueImageHoverEffect가 런타임에 자동으로 컴포넌트를 붙이기 때문에, " +
+             "프리팹마다 일일이 연결하는 대신 여기 한 곳에만 연결하면 전체에 적용됩니다.")]
+    [SerializeField] private Material defaultHoverFilterMaterial;
+    public Material DefaultHoverFilterMaterial => defaultHoverFilterMaterial;
+
     /// <summary>클릭 후 이 시간(초) 동안은 같은 요소를 다시 클릭해도 무시하도록, 호출부에서 참고할 총 연출 길이.</summary>
     public float TotalEffectDuration => popInDuration + scanDuration + holdDuration + fadeOutDuration;
 

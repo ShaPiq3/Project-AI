@@ -10,11 +10,7 @@ using UnityEngine.UI;
 /// </summary>
 public class ClueImageHoverEffect : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler
 {
-    private Image imageComponent;
-    private Color originalColor;
-
     [Header("설정")]
-    [SerializeField] private Color highlightColor = new Color(1f, 1f, 0.6f, 1f);
     [SerializeField] private string targetClueID; // 단서 ID (비어있으면 단서 아닌 일반 이미지)
     [SerializeField] private string questID;       // 퀘스트 ID
 
@@ -22,16 +18,16 @@ public class ClueImageHoverEffect : MonoBehaviour, IPointerEnterHandler, IPointe
     // 엑셀 SourceTitle 대신 이 값을 그대로 DataLog에 표시합니다.
     [SerializeField] private string sourceTitleOverride;
 
-    // 💡 [추가] 스캔 연출이 재생되는 동안 같은 요소를 연타해서 중복 판정/수집되는 것을 막는 락
+    // 💡 [변경] 이미지 색을 바꾸는 대신, 이 이미지 크기에 맞는 필터 오버레이를 키우고/줄이는 방식으로 호버를 표시합니다.
+    private ClueHoverFilterOverlay hoverFilter;
+
+    // 💡 스캔 연출이 재생되는 동안 같은 요소를 연타해서 중복 판정/수집되는 것을 막는 락
     private bool isScanLocked = false;
 
     void Awake()
     {
-        imageComponent = GetComponent<Image>();
-        if (imageComponent != null)
-        {
-            originalColor = imageComponent.color;
-        }
+        hoverFilter = GetComponent<ClueHoverFilterOverlay>();
+        if (hoverFilter == null) hoverFilter = gameObject.AddComponent<ClueHoverFilterOverlay>();
     }
 
     void OnEnable()
@@ -86,18 +82,12 @@ public class ClueImageHoverEffect : MonoBehaviour, IPointerEnterHandler, IPointe
     public void OnPointerEnter(PointerEventData eventData)
     {
         if (!IsHoverable()) return;
-        if (imageComponent != null)
-        {
-            imageComponent.color = highlightColor;
-        }
+        hoverFilter.Show();
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
-        if (imageComponent != null)
-        {
-            imageComponent.color = originalColor;
-        }
+        hoverFilter.Hide();
     }
 
     public void OnPointerClick(PointerEventData eventData)
@@ -124,14 +114,6 @@ public class ClueImageHoverEffect : MonoBehaviour, IPointerEnterHandler, IPointe
             : 0.9f;
         yield return new WaitForSeconds(lockDuration);
         isScanLocked = false;
-    }
-
-    void OnDisable()
-    {
-        if (imageComponent != null)
-        {
-            imageComponent.color = originalColor;
-        }
     }
 
     private void OnDestroy()

@@ -513,7 +513,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d4fa8e44fe750324dacccb6b4cb94995, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ClueImageHoverEffect
-  highlightColor: {r: 1, g: 1, b: 0.6, a: 1}
   targetClueID: 
   questID: 
   sourceTitleOverride: 
@@ -72127,7 +72126,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ClueTextHoverEffect
   targetClueID: 
-  hexHighlightColor: '#FFFF00AA'
   questID: 
   sourceTitleOverride: 
 --- !u!1 &844068025
@@ -80387,7 +80385,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d4fa8e44fe750324dacccb6b4cb94995, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ClueImageHoverEffect
-  highlightColor: {r: 1, g: 1, b: 0.6, a: 1}
   targetClueID: 
   questID: 
   sourceTitleOverride: 
@@ -83587,7 +83584,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ClueTextHoverEffect
   targetClueID: T_Q_1_D_2
-  hexHighlightColor: '#FFFF00AA'
   questID: T_Q1
   sourceTitleOverride: 
 --- !u!1 &986068181
@@ -89357,7 +89353,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d4fa8e44fe750324dacccb6b4cb94995, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ClueImageHoverEffect
-  highlightColor: {r: 1, g: 1, b: 0.6, a: 1}
   targetClueID: 
   questID: 
   sourceTitleOverride: 
@@ -89471,7 +89466,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d4fa8e44fe750324dacccb6b4cb94995, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ClueImageHoverEffect
-  highlightColor: {r: 1, g: 1, b: 0.6, a: 1}
   targetClueID: 
   questID: 
   sourceTitleOverride: 
@@ -91596,7 +91590,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ClueTextHoverEffect
   targetClueID: 
-  hexHighlightColor: '#FFFF00AA'
   questID: 
   sourceTitleOverride: 
 --- !u!1 &1094483775
@@ -94160,7 +94153,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d4fa8e44fe750324dacccb6b4cb94995, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ClueImageHoverEffect
-  highlightColor: {r: 1, g: 1, b: 0.6, a: 1}
   targetClueID: 
   questID: 
   sourceTitleOverride: 
@@ -94751,7 +94743,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d4fa8e44fe750324dacccb6b4cb94995, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ClueImageHoverEffect
-  highlightColor: {r: 1, g: 1, b: 0.6, a: 1}
   targetClueID: 
   questID: 
   sourceTitleOverride: 
@@ -101334,7 +101325,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d4fa8e44fe750324dacccb6b4cb94995, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ClueImageHoverEffect
-  highlightColor: {r: 1, g: 1, b: 0.6, a: 1}
   targetClueID: 
   questID: 
   sourceTitleOverride: 
@@ -101811,7 +101801,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ClueTextHoverEffect
   targetClueID: T_Q_2_D_3
-  hexHighlightColor: '#FFFF00AA'
   questID: T_Q2
   sourceTitleOverride: 
 --- !u!1 &1234250351
@@ -105811,7 +105800,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d4fa8e44fe750324dacccb6b4cb94995, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ClueImageHoverEffect
-  highlightColor: {r: 1, g: 1, b: 0.6, a: 1}
   targetClueID: 
   questID: 
   sourceTitleOverride: 
@@ -108555,6 +108543,7 @@ MonoBehaviour:
   notCollectibleSfx: {fileID: 0}
   sfxSource: {fileID: 0}
   overlayCanvasOverride: {fileID: 0}
+  defaultHoverFilterMaterial: {fileID: 2100000, guid: 7d4e91c2a5b638f0d1e2a3b4c5d6e7f8, type: 2}
 --- !u!4 &1321271336
 Transform:
   m_ObjectHideFlags: 0
@@ -116150,7 +116139,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d4fa8e44fe750324dacccb6b4cb94995, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ClueImageHoverEffect
-  highlightColor: {r: 1, g: 1, b: 0.6, a: 1}
   targetClueID: 
   questID: 
   sourceTitleOverride: 
@@ -119800,7 +119788,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ClueTextHoverEffect
   targetClueID: T_Q_2_D_2
-  hexHighlightColor: '#FFFF00AA'
   questID: T_Q2
   sourceTitleOverride: 
 --- !u!1 &1430060857
@@ -121319,7 +121306,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d4fa8e44fe750324dacccb6b4cb94995, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ClueImageHoverEffect
-  highlightColor: {r: 1, g: 1, b: 0.6, a: 1}
   targetClueID: 
   questID: 
   sourceTitleOverride: 
@@ -121433,7 +121419,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d4fa8e44fe750324dacccb6b4cb94995, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ClueImageHoverEffect
-  highlightColor: {r: 1, g: 1, b: 0.6, a: 1}
   targetClueID: 
   questID: 
   sourceTitleOverride: 
@@ -122371,7 +122356,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ClueTextHoverEffect
   targetClueID: T_Q_2_D_5
-  hexHighlightColor: '#FFFF00AA'
   questID: T_Q2
   sourceTitleOverride: 
 --- !u!1 &1467038252
@@ -128041,7 +128025,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ClueTextHoverEffect
   targetClueID: 
-  hexHighlightColor: '#FFFF00AA'
   questID: 
   sourceTitleOverride: 
 --- !u!1 &1567908806
@@ -139565,7 +139548,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d4fa8e44fe750324dacccb6b4cb94995, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ClueImageHoverEffect
-  highlightColor: {r: 1, g: 1, b: 0.6, a: 1}
   targetClueID: 
   questID: 
   sourceTitleOverride: 
@@ -141255,7 +141237,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d4fa8e44fe750324dacccb6b4cb94995, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ClueImageHoverEffect
-  highlightColor: {r: 1, g: 1, b: 0.6, a: 1}
   targetClueID: 
   questID: 
   sourceTitleOverride: 
@@ -141975,7 +141956,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d4fa8e44fe750324dacccb6b4cb94995, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ClueImageHoverEffect
-  highlightColor: {r: 1, g: 1, b: 0.6, a: 1}
   targetClueID: T_Q_1_D_1
   questID: T_Q1
   sourceTitleOverride: 
@@ -151707,7 +151687,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ClueTextHoverEffect
   targetClueID: T_Q_2_D_3
-  hexHighlightColor: '#FFFF00AA'
   questID: T_Q2
   sourceTitleOverride: 
 --- !u!114 &1920713022
@@ -153643,7 +153622,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ClueTextHoverEffect
   targetClueID: 
-  hexHighlightColor: '#FFFF00AA'
   questID: 
   sourceTitleOverride: 
 --- !u!1 &1959404264
@@ -165960,6 +165938,7 @@ GameObject:
   - component: {fileID: 2088523918}
   - component: {fileID: 2088523921}
   - component: {fileID: 2088523922}
+  - component: {fileID: 2088523923}
   m_Layer: 5
   m_Name: ClueFilterPanel
   m_TagString: Untagged
@@ -166015,15 +165994,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
-  m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.6039216}
+  m_Material: {fileID: 2100000, guid: e1f4b7a9c2d635f8a4b1e9c7d2f5a8b3, type: 2}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: -3534091251982430742, guid: 8fc1601bf477d23498bfde549f1b0e2b, type: 3}
+  m_Sprite: {fileID: 0}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -166065,6 +166044,18 @@ CanvasGroup:
   m_Interactable: 1
   m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0
+--- !u!114 &2088523923
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2088523916}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b6e2a94f1c7d834e8b5f2a1c6d9e3f70, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ShaderRectSizeFeeder
 --- !u!1 &2089516493
 GameObject:
   m_ObjectHideFlags: 0
@@ -166175,7 +166166,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d4fa8e44fe750324dacccb6b4cb94995, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ClueImageHoverEffect
-  highlightColor: {r: 1, g: 1, b: 0.6, a: 1}
   targetClueID: 
   questID: 
   sourceTitleOverride: 
@@ -167625,7 +167615,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ClueTextHoverEffect
   targetClueID: 
-  hexHighlightColor: '#FFFF00AA'
   questID: 
   sourceTitleOverride: 
 --- !u!1 &2106637360
@@ -168993,7 +168982,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ClueTextHoverEffect
   targetClueID: T_Q_2_D_4
-  hexHighlightColor: '#FFFF00AA'
   questID: T_Q2
   sourceTitleOverride: 
 --- !u!1 &2125949088

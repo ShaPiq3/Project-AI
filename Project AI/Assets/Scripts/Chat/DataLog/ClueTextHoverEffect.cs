@@ -13,20 +13,27 @@ public class ClueTextHoverEffect : MonoBehaviour, IPointerEnterHandler, IPointer
 {
     private TMP_Text textComponent;
     private string cleanText;
-    private string targetClueWord = "";
     private bool isInitialized = false;
     [SerializeField] private string targetClueID;
-    [SerializeField] private string hexHighlightColor = "#FFFF00AA";
     [SerializeField] private string questID;
 
     // 💡 실제 뉴스 기사/게시글 제목. NewsCard 등이 동적으로 값을 넣어주면
     // 엑셀 SourceTitle 대신 이 값을 그대로 DataLog에 표시합니다.
     [SerializeField] private string sourceTitleOverride;
 
-    // 💡 [추가] 스캔 연출이 재생되는 동안 같은 요소를 연타해서 중복 판정/수집되는 것을 막는 락
+    // 💡 [변경] 텍스트 색을 바꾸는 대신, 이 텍스트 블록 크기에 맞는 필터 오버레이를 키우고/줄이는 방식으로 호버를 표시합니다.
+    private ClueHoverFilterOverlay hoverFilter;
+
+    // 💡 스캔 연출이 재생되는 동안 같은 요소를 연타해서 중복 판정/수집되는 것을 막는 락
     private bool isScanLocked = false;
 
-    void Awake() => textComponent = GetComponent<TMP_Text>();
+    void Awake()
+    {
+        textComponent = GetComponent<TMP_Text>();
+        hoverFilter = GetComponent<ClueHoverFilterOverlay>();
+        if (hoverFilter == null) hoverFilter = gameObject.AddComponent<ClueHoverFilterOverlay>();
+    }
+
     void OnEnable() => StartCoroutine(DelayedInitialize());
 
     /// <summary>
@@ -72,7 +79,6 @@ public class ClueTextHoverEffect : MonoBehaviour, IPointerEnterHandler, IPointer
         ClueData clueData = DataLogManager.Instance.GetClueData(targetClueID.Trim());
         if (clueData != null && !string.IsNullOrEmpty(clueData.contentText))
         {
-            targetClueWord = Regex.Replace(clueData.contentText.Trim(), @"<[^>]*>", "");
             isInitialized = true;
 
             // 💡 questID가 비어있다면(뉴스/커뮤니티에서 동적으로 붙었는데 questID를
@@ -103,23 +109,12 @@ public class ClueTextHoverEffect : MonoBehaviour, IPointerEnterHandler, IPointer
     public void OnPointerEnter(PointerEventData eventData)
     {
         if (!IsHoverable()) return;
-        if (textComponent == null || string.IsNullOrEmpty(cleanText)) return;
-
-        // 💡 특정 단어(구절)가 지정되어 있고 실제로 텍스트 안에 있으면 그 구간만 하이라이트(기존 아카이브 정밀 태깅 호환),
-        // 그렇지 않으면(단서가 아니거나, 매칭되는 구절을 못 찾으면) 블록 전체를 하이라이트합니다.
-        if (!string.IsNullOrEmpty(targetClueWord) && cleanText.Contains(targetClueWord))
-        {
-            textComponent.text = cleanText.Replace(targetClueWord, $"<mark={hexHighlightColor}>{targetClueWord}</mark>");
-        }
-        else
-        {
-            textComponent.text = $"<mark={hexHighlightColor}>{cleanText}</mark>";
-        }
+        hoverFilter.Show();
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
-        if (textComponent != null && !string.IsNullOrEmpty(cleanText)) textComponent.text = cleanText;
+        hoverFilter.Hide();
     }
 
     public void OnPointerClick(PointerEventData eventData)
