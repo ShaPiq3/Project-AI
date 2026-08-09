@@ -38,7 +38,6 @@ public class PopupPanelController : MonoBehaviour
 
     private void Start()
     {
-        gameObject.SetActive(false);
 
         if (closeButton != null)
         {

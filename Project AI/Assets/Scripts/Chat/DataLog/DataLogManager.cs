@@ -55,10 +55,19 @@ public class DataLogManager : MonoBehaviour
     [SerializeField] private Sprite edgeToggleClosedSprite;      // 패널 닫힘 상태 (">>" 펼치기)
     [SerializeField] private Sprite edgeToggleOpenSprite;        // 패널 열림 상태 ("<<" 접기)
 
+    [Tooltip("숨겨질 때 버튼이 원래 위치에서 X축으로 얼마나 밀려나는지. 방향이 반대면 마이너스 값으로 바꾸세요.")]
+    [SerializeField] private float edgeToggleHiddenOffsetX = 100f; // 💡 추가
+
+
+
     [Header("Hover Preview 설정")]
     [SerializeField] private float hoverPreviewCloseDelay = 0.15f;
 
     private Coroutine hoverCloseCoroutine;
+
+    private RectTransform edgeToggleRect;      // 💡 추가
+    private Vector2 edgeToggleShownPos;        // 💡 추가
+    private CanvasGroup edgeToggleCanvasGroup; // 💡 추가 (숨겨진 동안 클릭 막기용)
 
 
     // 전체 단서 데이터베이스 (엑셀에서 파싱해서 담아둘 사전)
@@ -176,6 +185,17 @@ public class DataLogManager : MonoBehaviour
             edgeToggleButton.onClick.AddListener(OnEdgeToggleButtonClicked);
         }
         ShowEdgeToggleButton(false);
+
+        var edgeTarget = edgeToggleButtonRoot != null ? edgeToggleButtonRoot
+                : (edgeToggleButton != null ? edgeToggleButton.gameObject : null);
+        if (edgeTarget != null)
+        {
+            edgeToggleRect = edgeTarget.GetComponent<RectTransform>();
+            if (edgeToggleRect != null) edgeToggleShownPos = edgeToggleRect.anchoredPosition;
+
+            edgeToggleCanvasGroup = edgeTarget.GetComponent<CanvasGroup>();
+            if (edgeToggleCanvasGroup == null) edgeToggleCanvasGroup = edgeTarget.AddComponent<CanvasGroup>();
+        }
     }
 
     private void OnEdgeToggleButtonClicked()
@@ -191,7 +211,18 @@ public class DataLogManager : MonoBehaviour
     {
         var target = edgeToggleButtonRoot != null ? edgeToggleButtonRoot
                     : (edgeToggleButton != null ? edgeToggleButton.gameObject : null);
-        if (target != null) target.SetActive(show);
+        if (target == null) return;
+
+        edgeToggleRect?.DOKill();
+        if (edgeToggleRect != null)
+        {
+            edgeToggleRect.anchoredPosition = show
+                ? edgeToggleShownPos
+                : new Vector2(edgeToggleShownPos.x + edgeToggleHiddenOffsetX, edgeToggleShownPos.y);
+        }
+        if (edgeToggleCanvasGroup != null) edgeToggleCanvasGroup.blocksRaycasts = show;
+
+        target.SetActive(show);
     }
 
     /// <summary>
@@ -773,18 +804,34 @@ public class DataLogManager : MonoBehaviour
     }
 
     /// <summary>
-/// 💡 [추가] 채팅 패널이 닫혀있는 동안 여닫기 탭 버튼을 강제로 숨기고,
-/// 채팅이 열리면 원래 트리거 상태(activeDatalogTriggerCount)에 맞춰 복원합니다.
-/// </summary>
-    public void SetEdgeToggleButtonForceHidden(bool hidden)
+    /// 💡 [변경] offsetX를 파라미터로 받아, 채팅 패널과 정확히 같은 이동 거리로 슬라이드합니다.
+    /// </summary>
+
+    public void SetEdgeToggleButtonForceHidden(bool hidden, float duration, float offsetX)
     {
-        if (hidden)
+        bool shouldShow = hidden ? false : (activeDatalogTriggerCount > 0);
+
+        var target = edgeToggleButtonRoot != null ? edgeToggleButtonRoot
+                    : (edgeToggleButton != null ? edgeToggleButton.gameObject : null);
+        if (target == null || edgeToggleRect == null) return;
+
+        Vector2 hiddenPos = new Vector2(edgeToggleShownPos.x + offsetX, edgeToggleShownPos.y);
+
+        if (shouldShow && !target.activeSelf)
         {
-            ShowEdgeToggleButton(false);
+            target.SetActive(true);
+            edgeToggleRect.anchoredPosition = hiddenPos;
         }
-        else
-        {
-            ShowEdgeToggleButton(activeDatalogTriggerCount > 0);
-        }
+
+        if (edgeToggleCanvasGroup != null) edgeToggleCanvasGroup.blocksRaycasts = shouldShow;
+
+        edgeToggleRect.DOKill();
+        Vector2 targetPos = shouldShow ? edgeToggleShownPos : hiddenPos;
+        edgeToggleRect.DOAnchorPosX(targetPos.x, duration)
+            .SetEase(shouldShow ? Ease.OutQuad : Ease.InQuad)
+            .OnComplete(() =>
+            {
+                if (!shouldShow) target.SetActive(false);
+            });
     }
 }

@@ -94,6 +94,13 @@ public class ImageGenerationManager : MonoBehaviour
     [Header("UI Manager (확인 팝업용)")]
     public UIManager uiManager;
 
+    [Tooltip("숨겨질 때 버튼이 원래 위치에서 X축으로 얼마나 밀려나는지.")]
+    [SerializeField] private float edgeToggleHiddenOffsetX = 100f; // 💡 추가
+
+    private RectTransform edgeToggleRect;      // 💡 추가
+    private Vector2 edgeToggleShownPos;        // 💡 추가
+    private CanvasGroup edgeToggleCanvasGroup; // 💡 추가
+
     private Coroutine hoverCloseCoroutine;
     private bool isPinnedOpen = false;
 
@@ -150,6 +157,17 @@ public class ImageGenerationManager : MonoBehaviour
         }
 
         ShowEdgeToggleButton(false);
+
+        var edgeTarget = edgeToggleButtonRoot != null ? edgeToggleButtonRoot
+                : (edgeToggleButton != null ? edgeToggleButton.gameObject : null);
+        if (edgeTarget != null)
+        {
+            edgeToggleRect = edgeTarget.GetComponent<RectTransform>();
+            if (edgeToggleRect != null) edgeToggleShownPos = edgeToggleRect.anchoredPosition;
+
+            edgeToggleCanvasGroup = edgeTarget.GetComponent<CanvasGroup>();
+            if (edgeToggleCanvasGroup == null) edgeToggleCanvasGroup = edgeTarget.AddComponent<CanvasGroup>();
+        }
 
         if (generateAnswerButton != null)
         {
@@ -678,7 +696,18 @@ public class ImageGenerationManager : MonoBehaviour
     {
         var target = edgeToggleButtonRoot != null ? edgeToggleButtonRoot
                     : (edgeToggleButton != null ? edgeToggleButton.gameObject : null);
-        if (target != null) target.SetActive(show);
+        if (target == null) return;
+
+        edgeToggleRect?.DOKill();
+        if (edgeToggleRect != null)
+        {
+            edgeToggleRect.anchoredPosition = show
+                ? edgeToggleShownPos
+                : new Vector2(edgeToggleShownPos.x + edgeToggleHiddenOffsetX, edgeToggleShownPos.y);
+        }
+        if (edgeToggleCanvasGroup != null) edgeToggleCanvasGroup.blocksRaycasts = show;
+
+        target.SetActive(show);
     }
 
     public void OpenPanel()
@@ -801,15 +830,34 @@ public class ImageGenerationManager : MonoBehaviour
         }
     }
 
-    public void SetEdgeToggleButtonForceHidden(bool hidden)
+    /// <summary>
+    /// 💡 [변경] offsetX를 파라미터로 받아, 채팅 패널과 정확히 같은 이동 거리로 슬라이드합니다.
+    /// </summary>
+    public void SetEdgeToggleButtonForceHidden(bool hidden, float duration, float offsetX)
     {
-        if (hidden)
+        bool shouldShow = hidden ? false : isUnlocked; // 💡 activeDatalogTriggerCount → isUnlocked로 수정
+
+        var target = edgeToggleButtonRoot != null ? edgeToggleButtonRoot
+                    : (edgeToggleButton != null ? edgeToggleButton.gameObject : null);
+        if (target == null || edgeToggleRect == null) return;
+
+        Vector2 hiddenPos = new Vector2(edgeToggleShownPos.x + offsetX, edgeToggleShownPos.y);
+
+        if (shouldShow && !target.activeSelf)
         {
-            ShowEdgeToggleButton(false);
+            target.SetActive(true);
+            edgeToggleRect.anchoredPosition = hiddenPos;
         }
-        else
-        {
-            ShowEdgeToggleButton(isUnlocked);
-        }
+
+        if (edgeToggleCanvasGroup != null) edgeToggleCanvasGroup.blocksRaycasts = shouldShow;
+
+        edgeToggleRect.DOKill();
+        Vector2 targetPos = shouldShow ? edgeToggleShownPos : hiddenPos;
+        edgeToggleRect.DOAnchorPosX(targetPos.x, duration)
+            .SetEase(shouldShow ? Ease.OutQuad : Ease.InQuad)
+            .OnComplete(() =>
+            {
+                if (!shouldShow) target.SetActive(false);
+            });
     }
 }

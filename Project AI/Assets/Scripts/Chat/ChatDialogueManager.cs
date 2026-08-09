@@ -451,8 +451,9 @@ public class ChatDialogueManager : MonoBehaviour
 
             dialoguePanelRect.DOAnchorPosX(targetPositionX, tweenDuration).SetEase(Ease.OutQuad);
 
-            DataLogManager.Instance?.SetEdgeToggleButtonForceHidden(false); // 💡 추가
-            ImageGenerationManager.Instance?.SetEdgeToggleButtonForceHidden(false); // 💡 추가
+            float slideDist = GetChatSlideDistance();
+            DataLogManager.Instance?.SetEdgeToggleButtonForceHidden(false, tweenDuration, slideDist);
+            ImageGenerationManager.Instance?.SetEdgeToggleButtonForceHidden(false, tweenDuration, slideDist);
 
             if (chatPanelAudioSource != null) chatPanelAudioSource.Play();
 
@@ -485,8 +486,9 @@ public class ChatDialogueManager : MonoBehaviour
 
             dialoguePanelRect.DOAnchorPosX(targetPositionX, tweenDuration).SetEase(Ease.OutQuad);
 
-            DataLogManager.Instance?.SetEdgeToggleButtonForceHidden(false); // 💡 추가
-            ImageGenerationManager.Instance?.SetEdgeToggleButtonForceHidden(false); // 💡 추가
+            float slideDist = GetChatSlideDistance();
+            DataLogManager.Instance?.SetEdgeToggleButtonForceHidden(false, tweenDuration, slideDist);
+            ImageGenerationManager.Instance?.SetEdgeToggleButtonForceHidden(false, tweenDuration, slideDist);
 
             if (windowManager != null)
             {
@@ -522,8 +524,9 @@ public class ChatDialogueManager : MonoBehaviour
             windowManager.PullWindowsRight(windowManager.GetChatPanelWidth(), tweenDuration); // 💡 추가 (isChatOpen=false 처리도 이 안에서 함)
         }
 
-        DataLogManager.Instance?.SetEdgeToggleButtonForceHidden(true);
-        ImageGenerationManager.Instance?.SetEdgeToggleButtonForceHidden(true);
+        float slideDist = GetChatSlideDistance(); // = 600
+        DataLogManager.Instance?.SetEdgeToggleButtonForceHidden(true, tweenDuration, slideDist);
+        ImageGenerationManager.Instance?.SetEdgeToggleButtonForceHidden(true, tweenDuration, slideDist);
 
         dialoguePanelRect.DOKill();
         dialoguePanelRect.DOAnchorPosX(hidePositionX, tweenDuration)
@@ -613,8 +616,9 @@ public class ChatDialogueManager : MonoBehaviour
 
                 dialoguePanelRect.DOAnchorPosX(targetPositionX, tweenDuration).SetEase(Ease.OutQuad);
 
-                DataLogManager.Instance?.SetEdgeToggleButtonForceHidden(false); // 💡 추가
-                ImageGenerationManager.Instance?.SetEdgeToggleButtonForceHidden(false); // 💡 추가
+                float slideDist = GetChatSlideDistance();
+                DataLogManager.Instance?.SetEdgeToggleButtonForceHidden(false, tweenDuration, slideDist);
+                ImageGenerationManager.Instance?.SetEdgeToggleButtonForceHidden(false, tweenDuration, slideDist);
 
                 if (windowManager != null)
                 {
@@ -1029,5 +1033,14 @@ public class ChatDialogueManager : MonoBehaviour
 
         Destroy(screenSnapshot); // 캡처한 텍스처는 더 이상 필요 없으니 메모리 해제
         SceneManager.LoadScene(sceneName);
+    }
+
+    /// <summary>
+    /// 💡 [추가] 채팅 패널이 열림↔닫힘 사이에 이동하는 X축 거리.
+    /// datalog/imageGen 탭 버튼이 채팅창과 같은 거리만큼 슬라이드되어 "붙어있는" 느낌을 내는 데 사용합니다.
+    /// </summary>
+    public float GetChatSlideDistance()
+    {
+        return Mathf.Abs(hidePositionX - targetPositionX);
     }
 }
