@@ -8,26 +8,36 @@ public class TaskbarItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
     [SerializeField] private TMP_Text titleText;
     [SerializeField] private GameObject highlightImage;
 
+    // 💡 [추가] 제목이 이 글자 수를 넘으면 뒤를 자르고 "..."을 붙입니다.
+    [SerializeField] private int maxTitleLength = 12;
+
     public GameObject TargetWindow { get; private set; }
 
     public void Setup(string windowName, GameObject window)
     {
-        if (titleText != null) titleText.text = windowName;
+        if (titleText != null) titleText.text = TruncateTitle(windowName);
         TargetWindow = window;
-
         Button btn = GetComponent<Button>();
         if (btn != null)
         {
             btn.onClick.RemoveAllListeners();
             btn.onClick.AddListener(OnButtonClick);
         }
-
         // 시작할 때는 하이라이트 이미지를 꺼둡니다.
         UpdateHighlightState(false);
     }
 
-    // ❌ 실시간으로 창 상태를 체크해서 하이라이트를 강제하던 Update 로직 삭제
+    /// <summary>
+    /// 💡 [추가] 제목이 maxTitleLength보다 길면 잘라내고 "..."을 붙입니다.
+    /// </summary>
+    private string TruncateTitle(string title)
+    {
+        if (string.IsNullOrEmpty(title)) return title;
+        if (title.Length <= maxTitleLength) return title;
+        return title.Substring(0, maxTitleLength) + "...";
+    }
 
+    // ❌ 실시간으로 창 상태를 체크해서 하이라이트를 강제하던 Update 로직 삭제
     // 🌟 오직 마우스가 들어왔을 때만 하이라이트 켬
     public void OnPointerEnter(PointerEventData eventData)
     {

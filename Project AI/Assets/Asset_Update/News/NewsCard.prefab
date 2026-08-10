@@ -159,6 +159,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SoundManager
   audioSource: {fileID: 0}
   clickClip: {fileID: 8300000, guid: 3458510fb6d9f2d44ab80a3ee542ddcc, type: 3}
+  notification06: {fileID: 0}
+  notification11: {fileID: 0}
+  notification14: {fileID: 0}
+  notification15: {fileID: 0}
+  chatMessageReceived06: {fileID: 0}
 --- !u!1 &1835143134244950762
 GameObject:
   m_ObjectHideFlags: 0
@@ -706,7 +711,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d4fa8e44fe750324dacccb6b4cb94995, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ClueImageHoverEffect
-  highlightColor: {r: 1, g: 1, b: 0.6, a: 1}
   targetClueID: 
   questID: 
   sourceTitleOverride: 
@@ -915,6 +919,7 @@ GameObject:
   - component: {fileID: 6601820083906621089}
   - component: {fileID: 8493371611245872435}
   - component: {fileID: 2754624749494049835}
+  - component: {fileID: 9199490684380363975}
   m_Layer: 5
   m_Name: NewsCard
   m_TagString: Untagged
@@ -1025,6 +1030,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PopupSpawnAnimation
   animationSpeed: 15
   scalePunchMultiplier: 1.1
+--- !u!114 &9199490684380363975
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5761355633373061784}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6cee39289a336b4a9df8d8ca6fb7ec3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TaskbarWindowTrigger
+  windowType: 1
+  windowTitle: 
 --- !u!1 &7544878978629848543
 GameObject:
   m_ObjectHideFlags: 0
@@ -1184,6 +1203,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SoundManager
   audioSource: {fileID: 0}
   clickClip: {fileID: 8300000, guid: 3458510fb6d9f2d44ab80a3ee542ddcc, type: 3}
+  notification06: {fileID: 0}
+  notification11: {fileID: 0}
+  notification14: {fileID: 0}
+  notification15: {fileID: 0}
+  chatMessageReceived06: {fileID: 0}
 --- !u!1 &8554405083773059441
 GameObject:
   m_ObjectHideFlags: 0
@@ -1515,7 +1539,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ClueTextHoverEffect
   targetClueID: NEWS_TXT_01
-  hexHighlightColor: '#FFFF00AA'
   questID: T_Q1
   sourceTitleOverride: 
 --- !u!224 &3576061610078207320 stripped

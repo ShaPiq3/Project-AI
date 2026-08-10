@@ -24,6 +24,13 @@ public class NewsCard : MonoBehaviour
         titleText.text = data.title;
         infoText.text = data.info;
 
+        // 💡 [추가] 이 창의 실제 기사 제목을 태스크바에도 반영
+        TaskbarWindowTrigger taskbarTrigger = GetComponent<TaskbarWindowTrigger>();
+        if (taskbarTrigger != null)
+        {
+            taskbarTrigger.SetWindowTitle(data.title);
+        }
+
         // 💡 [변경] 제목이 단서인지 여부와 상관없이 항상 ClueTextHoverEffect를 붙입니다.
         // 단서 수집 모드에서는 제목도 다른 문단과 동일하게 반응하고,
         // 실제로 수집 가능한지는 클릭 시 스캔 판정으로 구분됩니다.

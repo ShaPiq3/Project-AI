@@ -32,6 +32,10 @@ public class WindowManager : MonoBehaviour
     [SerializeField] private float sidebarClosedWidth = 88f;
     [SerializeField] private float sidebarOpenWidth = 250f;
 
+    [Header("Taskbar Settings (하단 태스크바 높이 설정)")]
+    [Tooltip("창이 이 높이보다 아래(태스크바 영역)로는 드래그되거나 배치되지 않도록 막습니다.")]
+    [SerializeField] private float taskbarHeight = 60f;
+
     [Header("Chat Dynamic Move Settings (채팅창 연동 밀기)")]
     [SerializeField] private float chatPanelWidth = 350f;
 
@@ -87,7 +91,7 @@ public class WindowManager : MonoBehaviour
             isDatalogOpen = false;
         }
 
-        // 💡 [추가] 이미지 생성 패널도 datalog와 동일하게 초기화
+        // 💡 이미지 생성 패널도 datalog와 동일하게 초기화
         if (imageGenWindowRect != null)
         {
             imageGenPushAmount = imageGenWindowRect.rect.width + 20f;
@@ -139,12 +143,12 @@ public class WindowManager : MonoBehaviour
             }
 
             OpenDatalogDirect();
-           
+
         }
         else
         {
             CloseDatalogDirect();
-            
+
         }
 
         // 💡 추가: DataLog 매니저 쪽 << / >> 아이콘 동기화
@@ -168,7 +172,7 @@ public class WindowManager : MonoBehaviour
         }
 
         OpenDatalogDirect();
-        
+
 
         DataLogManager.Instance?.UpdateEdgeToggleButtonSprite();
     }
@@ -183,7 +187,7 @@ public class WindowManager : MonoBehaviour
 
         isDatalogOpen = false;
         CloseDatalogDirect();
-        
+
 
         DataLogManager.Instance?.UpdateEdgeToggleButtonSprite();
     }
@@ -244,7 +248,7 @@ public class WindowManager : MonoBehaviour
         datalogWindowRect.DOAnchorPos(initialHidePosition, slideDuration).SetEase(Ease.OutQuad);
     }
 
-    // 💡 [추가] 이미지 생성 패널 열기/닫기 (Datalog와 동일한 패턴)
+    // 💡 이미지 생성 패널 열기/닫기 (Datalog와 동일한 패턴)
     public void ToggleImageGenWindow()
     {
         if (imageGenWindowRect == null) return;
@@ -254,21 +258,21 @@ public class WindowManager : MonoBehaviour
 
         if (isImageGenOpen)
         {
-            // 💡 [추가] datalog가 열려있다면 먼저 닫음 (동시 등장 방지)
+            // 💡 datalog가 열려있다면 먼저 닫음 (동시 등장 방지)
             if (isDatalogOpen)
             {
                 isDatalogOpen = false;
                 CloseDatalogDirect();
-                
+
             }
 
             OpenImageGenDirect();
-            
+
         }
         else
         {
             CloseImageGenDirect();
-            
+
         }
     }
 
@@ -351,7 +355,7 @@ public class WindowManager : MonoBehaviour
             {
                 isDatalogOpen = true;
                 OpenDatalogDirect();
-                
+
             }
         }
         else if (targetWindow == imageGenWindowRect)
@@ -455,7 +459,7 @@ public class WindowManager : MonoBehaviour
         }
     }
 
-    // 💡 [추가] ChatDialogueManager 등 외부에서 chatPanelWidth 값을 읽을 수 있도록
+    // 💡 ChatDialogueManager 등 외부에서 chatPanelWidth 값을 읽을 수 있도록
     public float GetChatPanelWidth()
     {
         return chatPanelWidth;
@@ -466,8 +470,8 @@ public class WindowManager : MonoBehaviour
         if (isDatalogOpen) return;
 
         isDatalogOpen = true;
-        isDatalogPinnedOpen = true; // 💡 추가: 사이드바 버튼 등 다른 진입점은 고정 열림으로 취급
-        
+        isDatalogPinnedOpen = true; // 💡 사이드바 버튼 등 다른 진입점은 고정 열림으로 취급
+
     }
 
     public void NotifyDatalogClosedExternally()
@@ -476,7 +480,7 @@ public class WindowManager : MonoBehaviour
 
         isDatalogOpen = false;
         isDatalogPinnedOpen = false; // 💡 추가
-        
+
     }
 
     public void NotifyImageGenOpenedExternally()
@@ -487,20 +491,20 @@ public class WindowManager : MonoBehaviour
         {
             isDatalogOpen = false;
             CloseDatalogDirect();
-            
+
         }
 
         isImageGenOpen = true;
-        
+
     }
 
-    // 💡 [추가] ImageGenerationManager가 자체적으로 패널을 닫았을 때(ClosePanel 경유) 동기화합니다.
+    // 💡 ImageGenerationManager가 자체적으로 패널을 닫았을 때(ClosePanel 경유) 동기화합니다.
     public void NotifyImageGenClosedExternally()
     {
         if (!isImageGenOpen) return;
 
         isImageGenOpen = false;
-        
+
     }
 
     #endregion
@@ -570,10 +574,12 @@ public class WindowManager : MonoBehaviour
         float minX = spawnAreaLeftBoundary + currentSidebarWidth + (sizeX * targetWin.pivot.x) + padding;
         float maxX = spawnArea.rect.width / 2f - (sizeX * (1f - targetWin.pivot.x)) - padding;
 
-        float minY = -spawnArea.rect.height / 2f + (sizeY * targetWin.pivot.y) + padding;
+        // 💡 [추가] 하단 태스크바 영역만큼 minY를 끌어올려서, 창이 그 아래로는 못 내려가게 막습니다.
+        float minY = -spawnArea.rect.height / 2f + taskbarHeight + (sizeY * targetWin.pivot.y) + padding;
         float maxY = spawnArea.rect.height / 2f - (sizeY * (1f - targetWin.pivot.y)) - padding;
 
         if (minX > maxX) minX = maxX;
+        if (minY > maxY) minY = maxY;
 
         // 💡 [핵심 수정] currentPos(부모 기준 anchoredPosition 후보값)를,
         // targetWin이 그 위치에 있다고 가정했을 때의 spawnArea 기준 좌표로 변환합니다.
@@ -594,7 +600,7 @@ public class WindowManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 💡 [추가] targetWin이 candidateParentLocalPos(부모 기준 anchoredPosition) 위치에 있다고 가정했을 때,
+    /// 💡 targetWin이 candidateParentLocalPos(부모 기준 anchoredPosition) 위치에 있다고 가정했을 때,
     /// 그 중심점을 spawnArea 로컬 좌표계 기준으로 변환합니다.
     /// (드래그 중처럼, 아직 실제로 적용되지 않은 "후보 위치"를 검사할 때 사용)
     /// </summary>
@@ -614,7 +620,7 @@ public class WindowManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 💡 [수정] datalog, imageGen, chat 중 현재 "열려있는" 패널들을 장애물 사각형으로 취급하여
+    /// 💡 datalog, imageGen, chat 중 현재 "열려있는" 패널들을 장애물 사각형으로 취급하여
     /// targetWin이 그 사각형과 겹치면 밀어냅니다.
     /// 이전에는 "가장 짧은 이동 거리" 방향만 골랐는데, 그 방향이 화면 경계에 막혀
     /// 완전히 벗어나지 못하고 경계에 눌린 채 겹침이 유지되는 문제(위로 밀려 화면 맨 위에 붙어
@@ -698,7 +704,7 @@ public class WindowManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 💡 [신규] 현재 "열려있는" 벽 패널들의 RectTransform 목록을 반환합니다.
+    /// 💡 현재 "열려있는" 벽 패널들의 RectTransform 목록을 반환합니다.
     /// </summary>
     private List<RectTransform> GetActiveBlockingRects()
     {
@@ -710,10 +716,8 @@ public class WindowManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 💡 [신규] RectTransform의 실제 사각형을 spawnArea 로컬 좌표 기준으로 계산합니다.
-    /// </summary>
-    /// <summary>
-    /// 💡 [수정] target이 spawnArea와 다른 부모를 가지고 있어도 정확하게 동작하도록,
+    /// 💡 RectTransform의 실제 사각형을 spawnArea 로컬 좌표 기준으로 계산합니다.
+    /// target이 spawnArea와 다른 부모를 가지고 있어도 정확하게 동작하도록,
     /// 월드 좌표를 거쳐서 spawnArea의 로컬 좌표계로 변환합니다.
     /// (anchoredPosition은 각자의 부모 기준이라 서로 다른 부모끼리 직접 빼면 안 됩니다)
     /// </summary>
@@ -794,7 +798,7 @@ public class WindowManager : MonoBehaviour
                 candidate.x = Mathf.Clamp(candidate.x, minX, maxX);
                 candidate.y = Mathf.Clamp(candidate.y, minY, maxY);
 
-                // 💡 [변경] 경계값을 같이 넘김
+                // 💡 경계값을 같이 넘김
                 candidate = PushOutOfBlockingPanels(targetWin, candidate, minX, maxX, minY, maxY);
                 candidate.x = Mathf.Clamp(candidate.x, minX, maxX);
                 candidate.y = Mathf.Clamp(candidate.y, minY, maxY);
@@ -811,7 +815,7 @@ public class WindowManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 💡 [수정] InGameWindowManager처럼 spawnArea 좌표계를 직접 모르는 외부 스크립트가
+    /// 💡 InGameWindowManager처럼 spawnArea 좌표계를 직접 모르는 외부 스크립트가
     /// 안전하게 벽 회피 위치를 요청할 수 있도록, 화면 경계 계산까지 포함해서 처리해주는 헬퍼입니다.
     /// targetWin이 spawnArea의 직계 자식이 아니어도(예: DocumentQuestGroup_First의 자식인 경우)
     /// 정확하게 동작하도록, spawnArea 기준 좌표로 변환해서 계산한 뒤 다시 원래 부모 기준
@@ -828,10 +832,12 @@ public class WindowManager : MonoBehaviour
 
         float minX = spawnAreaLeftBoundary + currentSidebarWidth + (sizeX * targetWin.pivot.x) + padding;
         float maxX = spawnArea.rect.width / 2f - (sizeX * (1f - targetWin.pivot.x)) - padding;
-        float minY = -spawnArea.rect.height / 2f + (sizeY * targetWin.pivot.y) + padding;
+        // 💡 [추가] 하단 태스크바 영역만큼 minY를 끌어올림
+        float minY = -spawnArea.rect.height / 2f + taskbarHeight + (sizeY * targetWin.pivot.y) + padding;
         float maxY = spawnArea.rect.height / 2f - (sizeY * (1f - targetWin.pivot.y)) - padding;
 
         if (minX > maxX) minX = maxX;
+        if (minY > maxY) minY = maxY;
 
         // 💡 [핵심] targetWin의 현재 위치를, 부모 기준이 아니라 spawnArea 기준 로컬 좌표로 변환
         Vector2 spawnAreaLocalCurrentPos = GetSpawnAreaLocalPosition(targetWin);
@@ -852,7 +858,7 @@ public class WindowManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 💡 [추가] targetWin의 중심점을 spawnArea의 로컬 좌표계 기준으로 변환합니다.
+    /// 💡 targetWin의 중심점을 spawnArea의 로컬 좌표계 기준으로 변환합니다.
     /// targetWin이 spawnArea의 직계 자식이 아니어도(중간에 다른 부모가 껴 있어도) 정확합니다.
     /// </summary>
     private Vector2 GetSpawnAreaLocalPosition(RectTransform targetWin)
@@ -868,7 +874,7 @@ public class WindowManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 💡 [추가] spawnArea 기준 로컬 좌표(창의 중심 기준)를, targetWin의 실제 부모가
+    /// 💡 spawnArea 기준 로컬 좌표(창의 중심 기준)를, targetWin의 실제 부모가
     /// 사용하는 anchoredPosition 값으로 역변환합니다.
     /// </summary>
     private Vector2 ConvertSpawnAreaLocalToParentLocal(RectTransform targetWin, Vector2 spawnAreaLocalCenterPos)
@@ -895,12 +901,14 @@ public class WindowManager : MonoBehaviour
 
         minX = spawnAreaLeftBoundary + currentSidebarWidth + (size.x * targetWin.pivot.x) + padding;
         maxX = spawnArea.rect.width / 2f - (size.x * (1f - targetWin.pivot.x)) - padding;
-        minY = -spawnArea.rect.height / 2f + (size.y * targetWin.pivot.y) + padding;
+        // 💡 [추가] 하단 태스크바 영역만큼 minY를 끌어올려서, 새로 생성되는 창도 그 아래로는 안 뜨게 막습니다.
+        minY = -spawnArea.rect.height / 2f + taskbarHeight + (size.y * targetWin.pivot.y) + padding;
         maxY = spawnArea.rect.height / 2f - (size.y * (1f - targetWin.pivot.y)) - padding;
 
         if (isChatOpen) maxX -= chatPanelWidth;
 
         if (minX > maxX) minX = maxX;
+        if (minY > maxY) minY = maxY;
     }
 
     private Vector2 GetValidRandomPositionInBounds(RectTransform targetWin, Vector2 size, float minX, float maxX, float minY, float maxY)

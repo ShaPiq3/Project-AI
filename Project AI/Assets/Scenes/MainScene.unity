@@ -6289,7 +6289,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TaskbarWindowTrigger
   windowType: 0
-  windowTitle: TaskBar_Window
+  windowTitle: "\uD2F0\uC154\uCE20"
 --- !u!114 &58396738
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6892,7 +6892,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TaskbarWindowTrigger
   windowType: 0
-  windowTitle: TaskBar_Window
+  windowTitle: AD
 --- !u!114 &69050842
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10752,7 +10752,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TaskbarWindowTrigger
   windowType: 0
-  windowTitle: TaskBar_Window
+  windowTitle: "\uC544\uCE74\uC774\uBE0C_\uC0C9\uC0C1_\uC8FC\uD669\uC0C9"
 --- !u!114 &117621766
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11036,7 +11036,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TaskbarWindowTrigger
   windowType: 0
-  windowTitle: TaskBar_Window
+  windowTitle: Plaude
 --- !u!114 &119939551
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11985,7 +11985,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TaskbarWindowTrigger
   windowType: 0
-  windowTitle: TaskBar_Window
+  windowTitle: "\uC544\uCE74\uC774\uBE0C_\uC0C9\uC0C1_\uD30C\uB780\uC0C9"
 --- !u!114 &130388401
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12122,7 +12122,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TaskbarWindowTrigger
   windowType: 0
-  windowTitle: TaskBar_Window
+  windowTitle: "\uC544\uCE74\uC774\uBE0C_\uC0C9\uC0C1_\uBE68\uAC04\uC0C9"
 --- !u!114 &137008551
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -54748,7 +54748,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TaskbarWindowTrigger
   windowType: 0
-  windowTitle: TaskBar_Window
+  windowTitle: ProGo
 --- !u!114 &637923368
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -66337,7 +66337,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TaskbarWindowTrigger
   windowType: 0
-  windowTitle: TaskBar_Window
+  windowTitle: "\uAC00\uC774\uB4DC_\uB370\uC774\uD130\uC218\uC9D1"
 --- !u!114 &751043009
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -71502,7 +71502,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TaskbarWindowTrigger
   windowType: 0
-  windowTitle: TaskBar_Window
+  windowTitle: Prok
 --- !u!114 &833605885
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -72450,7 +72450,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TaskbarWindowTrigger
   windowType: 0
-  windowTitle: TaskBar_Window
+  windowTitle: "\uD22C\uD53C\uC2A4"
 --- !u!114 &844068029
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -73790,7 +73790,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TaskbarWindowTrigger
   windowType: 0
-  windowTitle: TaskBar_Window
+  windowTitle: "\uC774\uC11D"
 --- !u!114 &857678317
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -74484,6 +74484,7 @@ MonoBehaviour:
   panelWindowManager: {fileID: 1812316848}
   successDialogueID: 42
   failureDialogueID: 44
+  contactID: 
   reopenButtonInArchive: {fileID: 47481829}
 --- !u!114 &869748228
 MonoBehaviour:
@@ -76744,7 +76745,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TaskbarWindowTrigger
   windowType: 0
-  windowTitle: TaskBar_Window
+  windowTitle: "\uCE58\uB9C8"
 --- !u!114 &896539238
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -83438,7 +83439,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TaskbarWindowTrigger
   windowType: 0
-  windowTitle: TaskBar_Window
+  windowTitle: "\uC5ED\uC0AC"
 --- !u!114 &976652702
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -99286,7 +99287,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TaskbarWindowTrigger
   windowType: 0
-  windowTitle: TaskBar_Window
+  windowTitle: "\uC544\uCE74\uC774\uBE0C_\uC0C9\uC0C1_\uB178\uB780\uC0C9"
 --- !u!114 &1196259444
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -99952,7 +99953,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TaskbarWindowTrigger
   windowType: 0
-  windowTitle: TaskBar_Window
+  windowTitle: "\uC6D0\uD53C\uC2A4"
 --- !u!114 &1202305062
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -101166,7 +101167,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TaskbarWindowTrigger
   windowType: 0
-  windowTitle: TaskBar_Window
+  windowTitle: "\uC544\uD2F0\uD53C\uC15C\uB525\uB7EC\uB2DD\uCC4C\uB9B0\uC9C0\uB9E4\uCE58"
 --- !u!114 &1220395860
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -117109,6 +117110,123 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1383342000}
   m_CullTransparentMesh: 1
+--- !u!1 &1383485998
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1383485999}
+  - component: {fileID: 1383486003}
+  - component: {fileID: 1383486002}
+  - component: {fileID: 1383486001}
+  - component: {fileID: 1383486000}
+  m_Layer: 5
+  m_Name: Community_Popup_Panel
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!224 &1383485999
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1383485998}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1447509954}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0}
+  m_AnchorMax: {x: 0.5, y: 0}
+  m_AnchoredPosition: {x: -0.0000088215, y: 213.3}
+  m_SizeDelta: {x: 180, y: 317}
+  m_Pivot: {x: 0.49999994, y: 0.50000006}
+--- !u!114 &1383486000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1383485998}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3245ec927659c4140ac4f8d17403cc18, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.ContentSizeFitter
+  m_HorizontalFit: 0
+  m_VerticalFit: 2
+--- !u!114 &1383486001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1383485998}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 59f8146938fff824cb5fd77236b75775, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.VerticalLayoutGroup
+  m_Padding:
+    m_Left: 0
+    m_Right: 0
+    m_Top: 0
+    m_Bottom: 0
+  m_ChildAlignment: 7
+  m_Spacing: 0
+  m_ChildForceExpandWidth: 0
+  m_ChildForceExpandHeight: 0
+  m_ChildControlWidth: 0
+  m_ChildControlHeight: 0
+  m_ChildScaleWidth: 0
+  m_ChildScaleHeight: 0
+  m_ReverseArrangement: 0
+--- !u!114 &1383486002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1383485998}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: -4167428281047634714, guid: d38a6af1b92440f4cabe4b7ee356dce8, type: 3}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!222 &1383486003
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1383485998}
+  m_CullTransparentMesh: 1
 --- !u!1 &1386604276
 GameObject:
   m_ObjectHideFlags: 0
@@ -118437,6 +118555,7 @@ GameObject:
   - component: {fileID: 1404972205}
   - component: {fileID: 1404972204}
   - component: {fileID: 1404972203}
+  - component: {fileID: 1404972206}
   m_Layer: 5
   m_Name: News_Taskbar_Button
   m_TagString: Untagged
@@ -118558,6 +118677,22 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1404972200}
   m_CullTransparentMesh: 1
+--- !u!114 &1404972206
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1404972200}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ee871db4981f1194aa047c71355f3762, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TaskbarPopupButton
+  popupType: 1
+  indicatorImage: {fileID: 1404972204}
+  turnedOnSprite: {fileID: -1993234337621533555, guid: 6026da81c0abfdc478d72dfa6baa3c89, type: 3}
+  turnedOffSprite: {fileID: 7777520891451040537, guid: f1dd1f935dbd4ae4da770e176ff5cbcb, type: 3}
 --- !u!1 &1405339745
 GameObject:
   m_ObjectHideFlags: 0
@@ -119755,7 +119890,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TaskbarWindowTrigger
   windowType: 0
-  windowTitle: TaskBar_Window
+  windowTitle: "\uAC1C\uC694"
 --- !u!114 &1422512775
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -119859,7 +119994,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TaskbarWindowTrigger
   windowType: 0
-  windowTitle: TaskBar_Window
+  windowTitle: PGT
 --- !u!114 &1425379006
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -121500,6 +121635,156 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1447428425}
   m_CullTransparentMesh: 1
+--- !u!1 &1447509953
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1447509954}
+  - component: {fileID: 1447509957}
+  - component: {fileID: 1447509956}
+  - component: {fileID: 1447509955}
+  - component: {fileID: 1447509958}
+  m_Layer: 5
+  m_Name: 'Community_Taskbar_Button '
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1447509954
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1447509953}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1383485999}
+  m_Father: {fileID: 1942404623}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 180, y: 55}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1447509955
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1447509953}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
+  m_Navigation:
+    m_Mode: 3
+    m_WrapAround: 0
+    m_SelectOnUp: {fileID: 0}
+    m_SelectOnDown: {fileID: 0}
+    m_SelectOnLeft: {fileID: 0}
+    m_SelectOnRight: {fileID: 0}
+  m_Transition: 2
+  m_Colors:
+    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
+    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
+    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_ColorMultiplier: 1
+    m_FadeDuration: 0.1
+  m_SpriteState:
+    m_HighlightedSprite: {fileID: 0}
+    m_PressedSprite: {fileID: -1993234337621533555, guid: 6026da81c0abfdc478d72dfa6baa3c89, type: 3}
+    m_SelectedSprite: {fileID: -1993234337621533555, guid: 6026da81c0abfdc478d72dfa6baa3c89, type: 3}
+    m_DisabledSprite: {fileID: 0}
+  m_AnimationTriggers:
+    m_NormalTrigger: Normal
+    m_HighlightedTrigger: Highlighted
+    m_PressedTrigger: Pressed
+    m_SelectedTrigger: Selected
+    m_DisabledTrigger: Disabled
+  m_Interactable: 1
+  m_TargetGraphic: {fileID: 1447509956}
+  m_OnClick:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 1942404627}
+        m_TargetAssemblyTypeName: TaskbarManager, Assembly-CSharp
+        m_MethodName: ToggleCommunityPopup
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+--- !u!114 &1447509956
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1447509953}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 7777520891451040537, guid: f1dd1f935dbd4ae4da770e176ff5cbcb, type: 3}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!222 &1447509957
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1447509953}
+  m_CullTransparentMesh: 1
+--- !u!114 &1447509958
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1447509953}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ee871db4981f1194aa047c71355f3762, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TaskbarPopupButton
+  popupType: 2
+  indicatorImage: {fileID: 1447509956}
+  turnedOnSprite: {fileID: -1993234337621533555, guid: 6026da81c0abfdc478d72dfa6baa3c89, type: 3}
+  turnedOffSprite: {fileID: 7777520891451040537, guid: f1dd1f935dbd4ae4da770e176ff5cbcb, type: 3}
 --- !u!1 &1447797782
 GameObject:
   m_ObjectHideFlags: 0
@@ -123749,7 +124034,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TaskbarWindowTrigger
   windowType: 0
-  windowTitle: TaskBar_Window
+  windowTitle: "\uC544\uCE74\uC774\uBE0C_\uC0C9\uC0C1_\uCD08\uB85D\uC0C9"
 --- !u!114 &1480565872
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -131244,7 +131529,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TaskbarWindowTrigger
   windowType: 0
-  windowTitle: TaskBar_Window
+  windowTitle: "\uAC00\uC774\uB4DC_\uBB38\uC11C\uC694\uC57D"
 --- !u!114 &1604127776
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -136097,7 +136382,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TaskbarWindowTrigger
   windowType: 0
-  windowTitle: TaskBar_Window
+  windowTitle: "\uC544\uCE74\uC774\uBE0C_\uC0C9\uC0C1_\uAC08\uC0C9"
 --- !u!114 &1684297552
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -143998,7 +144283,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TaskbarWindowTrigger
   windowType: 0
-  windowTitle: TaskBar_Window
+  windowTitle: "\uAC00\uC774\uB4DC_\uC774\uBBF8\uC9C0\uC0DD\uC131"
 --- !u!114 &1843965487
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -152931,6 +153216,7 @@ RectTransform:
   m_Children:
   - {fileID: 1758502010}
   - {fileID: 1404972201}
+  - {fileID: 1447509954}
   m_Father: {fileID: 1075388119}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -153024,8 +153310,14 @@ MonoBehaviour:
     groupName: "\uB274\uC2A4"
     mainButton: {fileID: 1404972200}
     popupPanel: {fileID: 384963442}
-    buttonPrefab: {fileID: 6561027997268181174, guid: 8afb0437ed1508b498d349bde4f79ce8, type: 3}
+    buttonPrefab: {fileID: 2835637338586850820, guid: aacb8aa86f68df7409b5251fa24ff167, type: 3}
     buttonContainer: {fileID: 384963443}
+  communitySet:
+    groupName: "\uCEE4\uBBA4\uB2C8\uD2F0"
+    mainButton: {fileID: 1447509953}
+    popupPanel: {fileID: 1383485998}
+    buttonPrefab: {fileID: 2835637338586850820, guid: c604df1b89421e7498bf4ef456910602, type: 3}
+    buttonContainer: {fileID: 1383485999}
 --- !u!1 &1945880245
 GameObject:
   m_ObjectHideFlags: 0
@@ -158793,6 +159085,7 @@ MonoBehaviour:
   padding: 0
   sidebarClosedWidth: 88
   sidebarOpenWidth: 250
+  taskbarHeight: 56
   chatPanelWidth: 420
   datalogPushAmount: 250
   nearSearchStartRadius: 10

@@ -888,7 +888,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ClueTextHoverEffect
   targetClueID: 
-  hexHighlightColor: '#FFFF00AA'
   questID: 
   sourceTitleOverride: 
 --- !u!1 &3880568826419465644
@@ -2341,6 +2340,7 @@ GameObject:
   - component: {fileID: 7717921518863229491}
   - component: {fileID: 1543439075926663525}
   - component: {fileID: 2439987028195633080}
+  - component: {fileID: 7271052907720401547}
   m_Layer: 5
   m_Name: "PostDetailPage(\uC0C1\uC138 \uD398\uC774\uC9C0)"
   m_TagString: Untagged
@@ -2505,6 +2505,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PopupSpawnAnimation
   animationSpeed: 15
   scalePunchMultiplier: 1.1
+--- !u!114 &7271052907720401547
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7294876630385585422}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6cee39289a336b4a9df8d8ca6fb7ec3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TaskbarWindowTrigger
+  windowType: 2
+  windowTitle: 
 --- !u!1 &7559631374288287733
 GameObject:
   m_ObjectHideFlags: 0
@@ -2757,7 +2771,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d4fa8e44fe750324dacccb6b4cb94995, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ClueImageHoverEffect
-  highlightColor: {r: 1, g: 1, b: 0.6, a: 1}
   targetClueID: 
   questID: 
   sourceTitleOverride: 

@@ -50,6 +50,13 @@ public class PostDetailPageUI : MonoBehaviour
         authorText.text = data.author;
         dateText.text = data.date;
 
+        // 💡 [추가] 이 창의 실제 게시글 제목을 태스크바에도 반영
+        TaskbarWindowTrigger taskbarTrigger = GetComponent<TaskbarWindowTrigger>();
+        if (taskbarTrigger != null)
+        {
+            taskbarTrigger.SetWindowTitle(data.title);
+        }
+
         // 💡 [변경] 제목이 단서인지 여부와 상관없이 항상 ClueTextHoverEffect를 붙입니다.
         Button titleBtn = titleText.gameObject.GetComponent<Button>();
         if (titleBtn != null) Destroy(titleBtn); // 기존 구식 버튼은 충돌 방지를 위해 제거
