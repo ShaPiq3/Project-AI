@@ -1,0 +1,5 @@
+id,speakerType,speakerName,dialogueText,HasImage,imagePath,delayTime,ipAddress,isBranch,branchText1,nextId1,branchText2,nextId2,branchText3,nextId3,isTrigger,questID,targetCount,isDocumentBubble,documentID,bubbleLoadingDuration,overrideNextId,correctDialogueID,incorrectDialogueID,isImageGenTrigger,imageGenQuestID,imageGenTruthDialogueID,imageGenFalseDialogueID,imageGenMalfunctionDialogueID,isImageGenMalfunctionEnd,isSceneTransition,nextSceneName,typingSpeed,isPanelTrigger,panelID,isOpenNextRoomTrigger,nextRoomContactID,isCloseRoomTrigger
+1,NPC,김민준,안녕하세요` 잠깐 시간 괜찮으시면 이야기 좀 할 수 있을까요?,FALSE,,1,22201,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+2,NPC,김민준,요 며칠 회사에서 이상한 소문을 들었는데` 사실인지 좀 확인해주실 수 있으세요?,,,,22201,TRUE,확인해볼게요,100,나중에 할게요,200,,,,,,,,,,,,,,,,,,,,,,,,,
+100,NPC,김민준,역시 그랬군요. 확인해주셔서 감사해요. 이번엔 다른 동료에게도 물어봐야 할 것 같아요.,,,,22201,,,,,,,,,,,,,,,,,,,,,,,,,,,,TRUE,C2_NPC_LEE,TRUE
+200,NPC,김민준,그렇군요. 그래도 다른 동료한테도 한 번 물어봐야겠어요.,,,,22201,,,,,,,,,,,,,,,,,,,,,,,,,,,,TRUE,C2_NPC_LEE,TRUE

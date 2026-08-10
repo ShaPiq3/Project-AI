@@ -163,6 +163,7 @@ public class DataLogManager : MonoBehaviour
         public string questID;
         public int correctDialogueID;
         public int incorrectDialogueID;
+        public string contactID; // 멀티 NPC 챕터에서 정답/오답 대화를 어느 연락처 스레드로 점프시킬지
     }
     private Dictionary<string, QuestDialogueConfig> questDialogueConfigs = new Dictionary<string, QuestDialogueConfig>();
 
@@ -305,7 +306,7 @@ public class DataLogManager : MonoBehaviour
     /// (ChatDialogueManager가 isTrigger 행을 처리할 때, 같은 행에 적힌
     ///  correctDialogueID/incorrectDialogueID를 그대로 넘겨줍니다)
     /// </summary>
-    public void StartQuest(string questID, int targetCount, int correctDialogueID = 0, int incorrectDialogueID = 0)
+    public void StartQuest(string questID, int targetCount, int correctDialogueID = 0, int incorrectDialogueID = 0, string contactID = "")
     {
         questTargetCounts[questID] = targetCount;
         questCollectedClues[questID] = new List<string>();
@@ -315,7 +316,8 @@ public class DataLogManager : MonoBehaviour
         {
             questID = questID,
             correctDialogueID = correctDialogueID,
-            incorrectDialogueID = incorrectDialogueID
+            incorrectDialogueID = incorrectDialogueID,
+            contactID = contactID
         };
 
         questStatusUI?.UpdateDisplay();
@@ -389,7 +391,8 @@ public class DataLogManager : MonoBehaviour
         string cleanClueID = clueID.Trim();
 
         if (collectedClues.Exists(c => c.clueID == cleanClueID)) return;
-        if (ChatDialogueManager.Instance == null) return;
+        // 챕터1(ChatDialogueManager)/챕터2(ChatCoordinator) 둘 중 하나라도 있으면 진행
+        if (ChatDialogueManager.Instance == null && ChatCoordinator.Instance == null) return;
 
         if (!questCollectedClues.ContainsKey(questID))
         {
@@ -772,10 +775,7 @@ public class DataLogManager : MonoBehaviour
 
         int targetDialogueID = isSuccess ? config.correctDialogueID : config.incorrectDialogueID;
 
-        if (ChatDialogueManager.Instance != null)
-        {
-            ChatDialogueManager.Instance.JumpToDialogue(targetDialogueID);
-        }
+        ChatCoordinator.JumpToDialogueSafe(config.contactID, targetDialogueID);
     }
 
     // ============================================================

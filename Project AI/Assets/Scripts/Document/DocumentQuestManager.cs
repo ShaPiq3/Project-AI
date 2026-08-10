@@ -57,6 +57,8 @@ public class DocumentQuestManager : MonoBehaviour
     [SerializeField] private int successDialogueID;
     [Tooltip("요약이 실패(isSuccess=false)했을 때 점프할 대화 CSV의 ID")]
     [SerializeField] private int failureDialogueID;
+    [Tooltip("멀티 NPC 챕터(ChatCoordinator)에서 이 문서가 어느 연락처 스레드에 속하는지. 챕터1에서는 비워두면 됨")]
+    [SerializeField] private string contactID = "";
 
     [Header("--- Archive_저장소 재열람 버튼 (선택 사항) ---")]
     [Tooltip("Archive_저장소 패널에 있는, 이 문서를 다시 여는 버튼. 퀘스트를 완료하기 전엔 숨겨져 있다가 완료하면 나타납니다.")]
@@ -361,11 +363,8 @@ public class DocumentQuestManager : MonoBehaviour
 
         OnQuestComplete?.Invoke(result);
 
-        if (ChatDialogueManager.Instance != null)
-        {
-            int targetDialogueID = success ? successDialogueID : failureDialogueID;
-            ChatDialogueManager.Instance.JumpToDialogue(targetDialogueID);
-        }
+        int targetDialogueID = success ? successDialogueID : failureDialogueID;
+        ChatCoordinator.JumpToDialogueSafe(contactID, targetDialogueID);
 
         ResetAllUI();
 

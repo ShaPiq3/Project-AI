@@ -2,36 +2,47 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// ChatDialogueManager.IsTriggerActive °ª¿¡ ¸ÂÃç ÁöÁ¤ÇÑ Button ÀÇ interactable À»
-/// ÀÚµ¿À¸·Î ¿­°í Àá±Ş´Ï´Ù. (isTrigger=true ÀÎ ´ëÈ­°¡ ÁøÇà ÁßÀÏ ¶§¸¸ ¿­¸²)
+/// íŠ¸ë¦¬ê±°(í€˜ìŠ¤íŠ¸) í™œì„± ìƒíƒœì— ë”°ë¼ ì§€ì •ëœ Button ì˜ interactable ì„ ìë™ìœ¼ë¡œ ì ê¸‰ë‹ˆë‹¤.
+/// (isTrigger=true ì¸ ëŒ€í™”ê°€ ì§„í–‰ ì¤‘ì¼ ë•ŒëŠ” ì ê¸ˆ)
 ///
-/// »ç¿ë¹ı: µ¥ÀÌÅÍ ¼öÁı ¹öÆ°(¶Ç´Â Àá°¡µÎ°í ½ÍÀº ¾Æ¹« ¹öÆ°) ¿ÀºêÁ§Æ®¿¡ ÀÌ ½ºÅ©¸³Æ®¸¦ ºÙÀÌ°í,
-/// targetButton ¿¡ ±× ¹öÆ°À» ¿¬°áÇÏ¼¼¿ä. DataLogManager.cs ´Â ÀüÇô ¼öÁ¤ÇÏÁö ¾Ê¾Æµµ µË´Ï´Ù.
+/// ì±•í„°2(ChatCoordinator ì¡´ì¬)ì—ì„œëŠ” í˜„ì¬ í¬ì»¤ìŠ¤ëœ ì—°ë½ì²˜ ìŠ¤ë ˆë“œì˜ íŠ¸ë¦¬ê±° ìƒíƒœë¥¼,
+/// ì±•í„°1(ChatCoordinator ì—†ìŒ)ì—ì„œëŠ” ê¸°ì¡´ ChatDialogueManagerì˜ íŠ¸ë¦¬ê±° ìƒíƒœë¥¼ ë”°ë¼ê°„ë‹¤.
+///
+/// ì‚¬ìš©ë²•: ì ê·¸ê³  ì‹¶ì€ ë²„íŠ¼(ë˜ëŠ” ë­ê°€ ëë“  ì•„ë¬´ ë²„íŠ¼) ì˜¤ë¸Œì íŠ¸ì— ì´ ìŠ¤í¬ë¦½íŠ¸ë¥¼ ë¶™ì´ê³ ,
+/// targetButton ì— ê·¸ ë²„íŠ¼ì„ ì—°ê²°í•˜ì„¸ìš”. DataLogManager.cs ëŠ” ë”°ë¡œ ê±´ë“œë¦¬ì§€ ì•Šì•„ë„ ë©ë‹ˆë‹¤.
 /// </summary>
 public class TriggerLockedButton : MonoBehaviour
 {
     [SerializeField] private Button targetButton;
 
-    [Tooltip("Àá°Ü ÀÖÀ» ¶§ ¹öÆ°À» ¿ÏÀüÈ÷ ¼û±æÁö(false) ¿©ºÎ. Ã¼Å© ÇØÁ¦ ½Ã interactable ¸¸ ²¨Áü(º¸ÀÌ±ä ÇÔ)")]
+    [Tooltip("ì ê²¼ì„ ë•Œ ë²„íŠ¼ì„ ì™„ì „íˆ ìˆ¨ê¸¸ì§€(false) ì—¬ë¶€. ì²´í¬ ì•ˆ í•˜ë©´ interactable ë§Œ êº¼ì§(ë³´ì´ê¸°ëŠ” í•¨)")]
     [SerializeField] private bool hideWhenLocked = false;
 
     void OnEnable()
     {
-        if (ChatDialogueManager.Instance != null)
+        if (ChatCoordinator.Instance != null)
+        {
+            ChatCoordinator.Instance.OnTriggerActiveChanged += HandleTriggerActiveChanged;
+            HandleTriggerActiveChanged(ChatCoordinator.Instance.IsTriggerActive);
+        }
+        else if (ChatDialogueManager.Instance != null)
         {
             ChatDialogueManager.Instance.OnTriggerActiveChanged += HandleTriggerActiveChanged;
-            // ÀÌ¹Ì Æ®¸®°Å°¡ ÄÑÁ®ÀÖ´Â »óÅÂ¿¡¼­ ÀÌ ¿ÀºêÁ§Æ®°¡ ³ªÁß¿¡ È°¼ºÈ­µÉ ¼öµµ ÀÖÀ¸´Ï ÇöÀç »óÅÂ·Î Áï½Ã µ¿±âÈ­
             HandleTriggerActiveChanged(ChatDialogueManager.Instance.IsTriggerActive);
         }
         else
         {
-            // ¾ÆÁ÷ ¸Å´ÏÀú°¡ ÁØºñ ¾ÈµÆ´Ù¸é ±âº»Àº Àá±İ
+            // ì•„ì§ ë§¤ë‹ˆì €ê°€ ì¤€ë¹„ ì•ˆ ëë‹¤ë©´ ê¸°ë³¸ê°’ ì‚¬ìš©
             HandleTriggerActiveChanged(false);
         }
     }
 
     void OnDisable()
     {
+        if (ChatCoordinator.Instance != null)
+        {
+            ChatCoordinator.Instance.OnTriggerActiveChanged -= HandleTriggerActiveChanged;
+        }
         if (ChatDialogueManager.Instance != null)
         {
             ChatDialogueManager.Instance.OnTriggerActiveChanged -= HandleTriggerActiveChanged;

@@ -41,6 +41,7 @@ public class ImageGenQuestResultConfig
     public int truthDialogueID;
     public int falseDialogueID;
     public int malfunctionDialogueID;
+    public string contactID; // 멀티 NPC 챕터에서 판정 결과 대화를 어느 연락처 스레드로 점프시킬지
 }
 
 /// <summary>
@@ -306,7 +307,7 @@ public class ImageGenerationManager : MonoBehaviour
     /// <param name="truthDialogueID">correctDialogueID 재사용</param>
     /// <param name="falseDialogueID">incorrectDialogueID 재사용</param>
     /// <param name="malfunctionDialogueID">신규 컬럼</param>
-    public void UnlockAndOpen(string questID, int truthDialogueID, int falseDialogueID, int malfunctionDialogueID)
+    public void UnlockAndOpen(string questID, int truthDialogueID, int falseDialogueID, int malfunctionDialogueID, string contactID = "")
     {
         if (string.IsNullOrEmpty(questID) || !layoutByQuestID.ContainsKey(questID))
         {
@@ -322,6 +323,7 @@ public class ImageGenerationManager : MonoBehaviour
         cfg.truthDialogueID = truthDialogueID;
         cfg.falseDialogueID = falseDialogueID;
         cfg.malfunctionDialogueID = malfunctionDialogueID;
+        cfg.contactID = contactID;
 
         currentQuestID = questID;
         isUnlocked = true;
@@ -568,10 +570,7 @@ public class ImageGenerationManager : MonoBehaviour
             targetDialogueID = cfg.malfunctionDialogueID; // 오작동 -> 대화에서 텍스트+이미지 출력 후 재시도 가능
         }
 
-        if (ChatDialogueManager.Instance != null)
-        {
-            ChatDialogueManager.Instance.JumpToDialogue(targetDialogueID);
-        }
+        ChatCoordinator.JumpToDialogueSafe(cfg.contactID, targetDialogueID);
 
         // 오작동이어도 슬롯 데이터는 절대 초기화하지 않음 (요구사항)
         bool isResolved = (targetDialogueID == cfg.truthDialogueID || targetDialogueID == cfg.falseDialogueID);

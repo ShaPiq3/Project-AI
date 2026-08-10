@@ -59,4 +59,14 @@ public class DialogueData
     public float typingSpeed;
     public bool isPanelTrigger;   // 이 대화 행에서 특정 패널을 팝업으로 열지 여부
     public string panelID;
+
+    // ==========================================================
+    // 💡 [멀티 NPC 연락처 - 대화방 탭] 36, 37, 38번째 컬럼
+    // ==========================================================
+    /// <summary> 이 대화 행 처리 후 다른 연락처의 대화방을 새로 연다(탭 생성). </summary>
+    public bool isOpenNextRoomTrigger;
+    /// <summary> isOpenNextRoomTrigger가 true일 때 열 연락처의 contactID (NPCContactData.contactID와 매칭). </summary>
+    public string nextRoomContactID;
+    /// <summary> 이 대화 행 처리 후 "지금 이 CSV(자기 자신)"의 대화방을 닫는다(탭 제거). 기록은 유지됨. </summary>
+    public bool isCloseRoomTrigger;
 }
