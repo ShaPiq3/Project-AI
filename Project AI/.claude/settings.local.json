@@ -2,7 +2,16 @@
   "permissions": {
     "allow": [
       "Bash(xargs grep -l \"ClueTextHoverEffect\\\\|ClueImageHoverEffect\")",
-      "Bash(xargs -n1 basename)"
+      "Bash(xargs -n1 basename)",
+      "Bash(python3 -c ' *)",
+      "Bash(command -v python3)",
+      "Bash(command -v python)",
+      "Bash(command -v node)",
+      "Bash(grep -v \"^[0-9]*:.*,TRUE,,,,$\")",
+      "Bash(grep -n \"m_Script: {fileID: 11500000, guid: 410b08304ec215c4f9cf3aaf50b7470d\" \"C:\\\\Users\\\\bumz2\\\\Project AI\\\\Assets\\\\Scenes\\\\MainScene.unity\")",
+      "Bash(grep -n \",Glitch$\\\\|,Glitch_Scene$\" \"C:\\\\Users\\\\bumz2\\\\Project AI\\\\Assets\\\\Resources\\\\PopupChatData.csv\")",
+      "Bash(grep -n \"&28467516$\" \"C:\\\\Users\\\\bumz2\\\\Project AI\\\\Assets\\\\Scenes\\\\MainScene_2.unity\")",
+      "Bash(grep -c \"^--- !u!.* &28467519$\" MainScene_2.unity)"
     ]
   }
 }

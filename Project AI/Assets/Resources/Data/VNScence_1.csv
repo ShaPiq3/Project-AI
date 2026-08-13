@@ -127,4 +127,4 @@
 2127,,,,,,,,,,,······.,2128,AD...,2128,,,,
 2128,AD-001,"그럼, 모든 절차가 끝난 후에 다시 만나도록 하죠.",,,img_standing_M_C1_normal,,,,,,,,,,,,,
 2129,AD-001,그때는 또 다른 PM-0066과 만나게 되겠지만 말이에요.,,,img_standing_M_C1_normal,,,,,,,,,,,,,
-2130,AD-001,"그럼, 안녕히.",,,img_standing_M_C1_smile,,,,,"Fadeout_BG, fadeout_mid",,,,,,QUIT,,스탠딩을 서서히 사라지게 하고 싶으면 fadeout을 쓰면 됨
+2130,AD-001,"그럼, 안녕히.",,,img_standing_M_C1_smile,,,,,"Fadeout_BG, fadeout_mid",,,,,,,QUIT_TITLE,스탠딩을 서서히 사라지게 하고 싶으면 fadeout을 쓰면 됨

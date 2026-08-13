@@ -216,6 +216,7 @@ public class ChatThreadController : MonoBehaviour
             data.isOpenNextRoomTrigger = columns.Length >= 36 && bool.TryParse(columns[35].Trim(), out var ionr) && ionr;
             data.nextRoomContactID = columns.Length >= 37 ? columns[36].Trim() : "";
             data.isCloseRoomTrigger = columns.Length >= 38 && bool.TryParse(columns[37].Trim(), out var icrt) && icrt;
+            data.glitchEffect = columns.Length >= 39 ? columns[38].Trim() : "";
 
             if (!dialogueDictionary.ContainsKey(data.id))
             {
@@ -352,6 +353,12 @@ public class ChatThreadController : MonoBehaviour
                 yield return new WaitForSeconds(data.delayTime);
             }
 
+            // 💡 [추가] 이 줄에서 화면이 잠깐 깨졌다가 복구되는 글리치 연출 (씬 전환 없음, ChatCoordinator가 소유한 공용 오버레이 사용)
+            if (!string.IsNullOrEmpty(data.glitchEffect) && data.glitchEffect.Equals("Glitch", StringComparison.OrdinalIgnoreCase))
+            {
+                yield return ChatCoordinator.Instance?.PlayMidGlitch();
+            }
+
             if (data.isImageGenMalfunctionEnd)
             {
                 ImageGenerationManager.Instance?.OnMalfunctionDialogueFinished();
@@ -466,8 +473,17 @@ public class ChatThreadController : MonoBehaviour
             {
                 if (!string.IsNullOrEmpty(data.nextSceneName))
                 {
-                    Debug.Log($"[ChatThreadController:{contactID}] 대화 종료 -> 씬 전환: {data.nextSceneName}");
-                    SceneManager.LoadScene(data.nextSceneName);
+                    bool useGlitch = !string.IsNullOrEmpty(data.glitchEffect) && data.glitchEffect.Equals("Glitch_Scene", StringComparison.OrdinalIgnoreCase);
+                    Debug.Log($"[ChatThreadController:{contactID}] 대화 종료 -> 씬 전환: {data.nextSceneName} (Glitch_Scene: {useGlitch})");
+
+                    if (ChatCoordinator.Instance != null)
+                    {
+                        ChatCoordinator.Instance.TriggerSceneTransition(data.nextSceneName, useGlitch);
+                    }
+                    else
+                    {
+                        SceneManager.LoadScene(data.nextSceneName);
+                    }
                 }
                 else
                 {

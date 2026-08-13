@@ -391,8 +391,7 @@ public class DataLogManager : MonoBehaviour
         string cleanClueID = clueID.Trim();
 
         if (collectedClues.Exists(c => c.clueID == cleanClueID)) return;
-        // 챕터1(ChatDialogueManager)/챕터2(ChatCoordinator) 둘 중 하나라도 있으면 진행
-        if (ChatDialogueManager.Instance == null && ChatCoordinator.Instance == null) return;
+        if (ChatCoordinator.Instance == null) return;
 
         if (!questCollectedClues.ContainsKey(questID))
         {

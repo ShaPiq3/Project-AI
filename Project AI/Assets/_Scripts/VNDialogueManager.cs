@@ -50,6 +50,12 @@ public class VNDialogueManager : MonoBehaviour
     [Header("Scene Transition")]
     [SerializeField] private string nextSceneName = "MainScene";
 
+    [Header("Ending Title Card (임시 연출 - 추후 교체)")]
+    [SerializeField] private string endingTitleText = "PROJECT AI";
+    [SerializeField] private float postWhiteoutDelay = 0.3f;
+    [SerializeField] private float titleFadeInDuration = 1.5f;
+    [SerializeField] private float titleHoldDuration = 2.0f;
+
     private List<DialogueRow> dialogueRows;
     private int currentLineIndex = 0;
     private string currentBgmName = "";
@@ -70,6 +76,7 @@ public class VNDialogueManager : MonoBehaviour
     private Image fullScreenFadeImage;
     private Image baseBlackImage;
     private Image bgEffectOverlayImage;
+    private TextMeshProUGUI endingTitleLabel;
 
     private Image bgDissolveTemp;
     private Image leftDissolveTemp;
@@ -85,6 +92,7 @@ public class VNDialogueManager : MonoBehaviour
         CreateFullScreenFadeObject(defaultCanvasTransform);
         CreateBaseBlackObject();
         CreateBgEffectOverlayObject();
+        CreateEndingTitleObject(defaultCanvasTransform);
 
         if (backgroundImage != null)
             bgDissolveTemp = CreateDissolveTempObject(backgroundImage, "BG_Dissolve_Temp");
@@ -193,6 +201,22 @@ public class VNDialogueManager : MonoBehaviour
         SetStretchAnchor(overlayObj.GetComponent<RectTransform>());
     }
 
+    private void CreateEndingTitleObject(Transform parentCanvas)
+    {
+        if (parentCanvas == null || endingTitleLabel != null) return;
+        GameObject titleObj = new GameObject("Ending_Title_Text");
+        titleObj.transform.SetParent(parentCanvas, false);
+        titleObj.transform.SetAsLastSibling(); // 화이트아웃 오버레이보다 위에 그려지도록
+        endingTitleLabel = titleObj.AddComponent<TextMeshProUGUI>();
+        endingTitleLabel.text = endingTitleText;
+        endingTitleLabel.alignment = TextAlignmentOptions.Center;
+        endingTitleLabel.fontSize = 96f;
+        endingTitleLabel.fontStyle = FontStyles.Bold;
+        endingTitleLabel.color = new Color(0f, 0f, 0f, 0f);
+        endingTitleLabel.raycastTarget = false;
+        SetStretchAnchor(titleObj.GetComponent<RectTransform>());
+    }
+
     private Image CreateDissolveTempObject(Image sourceImage, string name)
     {
         if (sourceImage == null) return null;
@@ -240,6 +264,12 @@ public class VNDialogueManager : MonoBehaviour
 
             if (!string.IsNullOrEmpty(autoNextID))
             {
+                if (autoNextID.Equals("QUIT_TITLE", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    TriggerExitVisualNovelWithTitle();
+                    return;
+                }
+
                 if (autoNextID.Equals("QUIT", System.StringComparison.OrdinalIgnoreCase))
                 {
                     TriggerExitVisualNovel();
@@ -268,6 +298,7 @@ public class VNDialogueManager : MonoBehaviour
         }
     }
 
+    /// <summary>Next_ID == "QUIT" : 타이틀 연출 없이 곧바로 다음 씬으로 전환</summary>
     private void TriggerExitVisualNovel()
     {
         Debug.Log($"[시스템] 비주얼 노벨 시나리오 종료 -> {nextSceneName}씬으로 전환");
@@ -275,6 +306,54 @@ public class VNDialogueManager : MonoBehaviour
         {
             SceneManager.LoadScene(nextSceneName);
         }
+    }
+
+    /// <summary>Next_ID == "QUIT_TITLE" : 화이트아웃 + 타이틀 연출 후 다음 씬으로 전환</summary>
+    private void TriggerExitVisualNovelWithTitle()
+    {
+        StartCoroutine(PlayEndingTitleAndLoadScene());
+    }
+
+    private IEnumerator PlayEndingTitleAndLoadScene()
+    {
+        Debug.Log($"[시스템] 비주얼 노벨 시나리오 종료(타이틀 연출) -> {nextSceneName}씬으로 전환");
+
+        if (dialogueWindow != null) dialogueWindow.SetActive(false);
+        if (choiceContainer != null) choiceContainer.SetActive(false);
+
+        // 직전 대사의 fadeout_bg로 화면이 검은색으로 덮여있는 상태 -> 검은색에서 흰색으로 색 자체를 전환
+        if (bgEffectOverlayImage != null)
+        {
+            yield return StartCoroutine(OverlayColorLerpCoroutine(bgEffectOverlayImage, Color.white, whiteoutDuration));
+        }
+
+        yield return new WaitForSeconds(postWhiteoutDelay);
+
+        if (endingTitleLabel != null)
+        {
+            yield return StartCoroutine(FadeTextAlphaCoroutine(endingTitleLabel, 1f, titleFadeInDuration));
+        }
+
+        yield return new WaitForSeconds(titleHoldDuration);
+
+        if (!string.IsNullOrEmpty(nextSceneName))
+        {
+            SceneManager.LoadScene(nextSceneName);
+        }
+    }
+
+    private IEnumerator FadeTextAlphaCoroutine(TextMeshProUGUI label, float targetAlpha, float duration)
+    {
+        float startAlpha = label.color.a;
+        float elapsed = 0f;
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float a = Mathf.Lerp(startAlpha, targetAlpha, Mathf.Clamp01(elapsed / duration));
+            label.color = new Color(0f, 0f, 0f, a);
+            yield return null;
+        }
+        label.color = new Color(0f, 0f, 0f, targetAlpha);
     }
 
     private void PlayLine(int index)
@@ -786,6 +865,20 @@ public class VNDialogueManager : MonoBehaviour
         mainImage.gameObject.SetActive(true);
         mainImage.sprite = nextSprite;
         mainImage.color = new Color(1f, 1f, 1f, 1f);
+    }
+
+    /// <summary>오버레이의 알파는 그대로 두고 색상(RGB)만 현재 색에서 targetColor로 서서히 전환합니다.</summary>
+    private IEnumerator OverlayColorLerpCoroutine(Image overlay, Color targetColor, float duration)
+    {
+        Color startColor = overlay.color;
+        float elapsed = 0.0f;
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            overlay.color = Color.Lerp(startColor, targetColor, Mathf.Clamp01(elapsed / duration));
+            yield return null;
+        }
+        overlay.color = targetColor;
     }
 
     private IEnumerator OverlayFadeCoroutine(Image overlay, Color targetColor, float duration)

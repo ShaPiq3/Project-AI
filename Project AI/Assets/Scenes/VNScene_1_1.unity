@@ -2813,7 +2813,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7453f5f3052fcd745b441d9e2adeccce, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DialogueManager
-  csvFileName: Data/VNScence_1
+  csvFileName: Data/VNScence_1_1
   speakerText: {fileID: 983581615}
   dialogueText: {fileID: 795355847}
   backgroundImage: {fileID: 868859761}
@@ -2842,7 +2842,7 @@ MonoBehaviour:
   whiteoutDuration: 1.5
   whiteinDuration: 1.5
   fadeOutDuration: 1.5
-  nextSceneName: VNScene_1_1
+  nextSceneName: MainScene_2
   endingTitleText: PROJECT AI
   postWhiteoutDelay: 0.3
   titleFadeInDuration: 1.5

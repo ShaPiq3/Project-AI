@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 using DG.Tweening;
 
 /// <summary>
@@ -20,9 +21,8 @@ using DG.Tweening;
 /// - "이전대화" 슬롯 (1개) : 사이드바에서 과거 대화를 불러올 때 쓰는 슬롯. 이미 뭔가 열려있으면
 ///   새로 여는 것으로 교체(기존 것은 자동으로 닫힘)
 ///
-/// 챕터1(MainScene)은 이 클래스를 전혀 쓰지 않고 기존 ChatDialogueManager를 그대로 사용한다.
-/// 공유 코드(DataLogManager 등)에서의 호출부는 JumpToDialogueSafe를 통해 두 시스템 중
-/// 씬에 실제로 존재하는 쪽으로 자동 라우팅된다.
+/// 이제 챕터1(MainScene)도 연락처 1개짜리 구성으로 이 클래스를 그대로 쓴다.
+/// 공유 코드(DataLogManager 등)에서의 호출부는 JumpToDialogueSafe를 통해 ChatCoordinator로 라우팅된다.
 /// </summary>
 public class ChatCoordinator : MonoBehaviour
 {
@@ -73,6 +73,48 @@ public class ChatCoordinator : MonoBehaviour
     [Tooltip("연락처를 열기 전에 '메시지 도착' 알림+확인을 먼저 보여줄 팝업. 비워두면 알림 없이 바로 열림")]
     [SerializeField] private IncomingMessagePopup incomingMessagePopup;
 
+    [Header("Screen Shatter Glitch (공용 - 쉐이더/오버레이 설정)")]
+    [Tooltip("Custom/ScreenShatterGlitch 쉐이더로 만든 머티리얼. 비워두면 글리치 없이 기존 방식(즉시 전환/즉시 다음 대사)으로 동작합니다.")]
+    [SerializeField] private Material vhsNoiseMaterial;
+    [Tooltip("비워두면 이 오브젝트에 자동으로 AudioSource를 하나 추가해서 사용합니다.")]
+    [SerializeField] private AudioSource vhsSfxSource;
+    [Tooltip("화면이 깨지기 시작하는 순간 재생할 효과음")]
+    [SerializeField] private AudioClip vhsGlitchSfxClip;
+    [Range(0f, 1f)][SerializeField] private float vhsGlitchSfxVolume = 1f;
+
+    [Tooltip("화면을 나누는 블록 크기 (화면 비율 기준). 작을수록 조각이 잘게 쪼개짐")]
+    [Range(0.005f, 0.2f)][SerializeField] private float vhsBlockSize = 0.045f;
+    [Tooltip("블록이 어긋나는(밀리는) 최대 거리 (화면 비율 기준)")]
+    [Range(0f, 0.3f)][SerializeField] private float vhsMaxBlockOffset = 0.07f;
+    [Tooltip("색수차(RGB 채널 분리) 강도")]
+    [Range(0f, 0.05f)][SerializeField] private float vhsChromaticAberration = 0.012f;
+    [Tooltip("세로로 길게 번지는 스트릭(스미어) 강도")]
+    [Range(0f, 1f)][SerializeField] private float vhsStreakAmount = 0.55f;
+
+    [Header("Glitch_Scene (씬 전환에 물려서 나오는 연출, 화면이 깨진 채로 씬이 넘어감)")]
+    [Tooltip("화면이 블록 단위로 완전히 깨질 때까지 걸리는 시간")]
+    [SerializeField] private float vhsTearDuration = 0.28f;
+    [Tooltip("완전히 깨진 상태로 유지되는 시간 (다음 씬 로드 직전 잠깐의 정적)")]
+    [SerializeField] private float vhsHoldDuration = 0.08f;
+    [SerializeField] private AnimationCurve vhsTearCurve = new AnimationCurve(new Keyframe(0f, 0f, 0f, 0f), new Keyframe(1f, 1f, 2f, 0f));
+
+    [Header("Glitch (대화 중간에 잠깐 나오는 연출, 화면이 깨졌다가 다시 복구됨)")]
+    [Tooltip("화면이 깨지기 시작해서 완전히 깨질 때까지 걸리는 시간")]
+    [SerializeField] private float midGlitchTearInDuration = 0.15f;
+    [Tooltip("완전히 깨진 상태로 유지되는 시간")]
+    [SerializeField] private float midGlitchHoldDuration = 0.15f;
+    [Tooltip("깨진 화면이 원래대로 복구되는 데 걸리는 시간")]
+    [SerializeField] private float midGlitchTearOutDuration = 0.25f;
+
+    private Image vhsNoiseOverlayImage;
+    private Material vhsNoiseMaterialInstance;
+    private static readonly int VhsTearAmountID = Shader.PropertyToID("_TearAmount");
+    private static readonly int VhsBlockSizeID = Shader.PropertyToID("_BlockSize");
+    private static readonly int VhsMaxBlockOffsetID = Shader.PropertyToID("_MaxBlockOffset");
+    private static readonly int VhsChromaticAberrationID = Shader.PropertyToID("_ChromaticAberration");
+    private static readonly int VhsStreakAmountID = Shader.PropertyToID("_StreakAmount");
+    private static readonly int VhsSnapshotTexID = Shader.PropertyToID("_SnapshotTex");
+
     private string pendingContactID = "";
 
     private readonly Dictionary<string, ChatThreadController> threadsByID = new Dictionary<string, ChatThreadController>();
@@ -112,6 +154,8 @@ public class ChatCoordinator : MonoBehaviour
             Destroy(gameObject);
             return;
         }
+
+        CreateVhsNoiseOverlayObject(); // 모든 ChatThreadController가 공유하는 글리치 오버레이 (여러 스레드가 각자 만들면 캔버스에 중복 생성됨)
 
         foreach (var thread in threadControllers)
         {
@@ -526,9 +570,9 @@ public class ChatCoordinator : MonoBehaviour
     }
 
     /// <summary>
-    /// 챕터1/챕터2 겸용 호출부(DataLogManager, ImageGenerationManager, DocumentQuestManager)에서 쓰는
-    /// 안전 라우팅 헬퍼. 씬에 ChatCoordinator가 있으면(챕터2) 그쪽으로, 없으면(챕터1) 기존
-    /// ChatDialogueManager로 보낸다.
+    /// DataLogManager/ImageGenerationManager/DocumentQuestManager에서 정답/오답 판정 후
+    /// 대화를 점프시킬 때 쓰는 헬퍼. contactID가 비어있거나 ChatCoordinator가 없으면
+    /// 점프가 불가능하므로, 조용히 무시하지 않고 경고를 남깁니다.
     /// </summary>
     public static void JumpToDialogueSafe(string contactID, int targetId)
     {
@@ -538,7 +582,167 @@ public class ChatCoordinator : MonoBehaviour
         }
         else
         {
-            ChatDialogueManager.Instance?.JumpToDialogue(targetId);
+            Debug.LogWarning($"[ChatCoordinator] JumpToDialogueSafe 실패: contactID가 비어있거나 ChatCoordinator가 없어서 대화 ID {targetId}로 점프하지 못했습니다.");
         }
+    }
+
+    // ===================== Screen Shatter Glitch (모든 ChatThreadController가 공유) =====================
+
+    private void CreateVhsNoiseOverlayObject()
+    {
+        if (vhsNoiseMaterial == null) return; // 머티리얼 미설정 시 오버레이 생성 안 함 (기존 동작 유지)
+
+        Canvas parentCanvas = dialoguePanelRect != null
+            ? dialoguePanelRect.GetComponentInParent<Canvas>()
+            : FindAnyObjectByType<Canvas>();
+        if (parentCanvas == null)
+        {
+            Debug.LogWarning("[ChatCoordinator] 글리치 전환 오버레이를 붙일 Canvas를 찾지 못했습니다.");
+            return;
+        }
+
+        GameObject glitchObj = new GameObject("ScreenShatter_Glitch_Overlay_Panel");
+        glitchObj.transform.SetParent(parentCanvas.transform, false);
+        glitchObj.transform.SetAsLastSibling();
+
+        vhsNoiseOverlayImage = glitchObj.AddComponent<Image>();
+        vhsNoiseOverlayImage.color = new Color(1f, 1f, 1f, 0f);
+        vhsNoiseOverlayImage.raycastTarget = false;
+        vhsNoiseOverlayImage.canvasRenderer.cullTransparentMesh = false;
+
+        RectTransform rt = glitchObj.GetComponent<RectTransform>();
+        rt.anchorMin = Vector2.zero;
+        rt.anchorMax = Vector2.one;
+        rt.offsetMin = Vector2.zero;
+        rt.offsetMax = Vector2.zero;
+
+        vhsNoiseMaterialInstance = Instantiate(vhsNoiseMaterial);
+        vhsNoiseOverlayImage.material = vhsNoiseMaterialInstance;
+        vhsNoiseMaterialInstance.SetFloat(VhsBlockSizeID, vhsBlockSize);
+        vhsNoiseMaterialInstance.SetFloat(VhsMaxBlockOffsetID, vhsMaxBlockOffset);
+        vhsNoiseMaterialInstance.SetFloat(VhsChromaticAberrationID, vhsChromaticAberration);
+        vhsNoiseMaterialInstance.SetFloat(VhsStreakAmountID, vhsStreakAmount);
+        vhsNoiseMaterialInstance.SetFloat(VhsTearAmountID, 0f);
+
+        glitchObj.SetActive(false);
+
+        if (vhsSfxSource == null)
+        {
+            vhsSfxSource = gameObject.AddComponent<AudioSource>();
+            vhsSfxSource.playOnAwake = false;
+        }
+    }
+
+    private void SetVhsTearAmount(float tear)
+    {
+        if (vhsNoiseMaterialInstance == null) return;
+        vhsNoiseMaterialInstance.SetFloat(VhsTearAmountID, tear);
+    }
+
+    /// <summary>
+    /// ChatThreadController가 glitchEffect="Glitch_Scene"인 줄에서 씬 전환할 때 호출.
+    /// useGlitch가 false거나 머티리얼이 없으면 기존처럼 즉시 전환.
+    /// </summary>
+    public void TriggerSceneTransition(string sceneName, bool useGlitch)
+    {
+        if (string.IsNullOrEmpty(sceneName))
+        {
+            Debug.LogError("[ChatCoordinator] TriggerSceneTransition에 sceneName이 비어있습니다!");
+            return;
+        }
+
+        if (useGlitch && vhsNoiseMaterialInstance != null && vhsNoiseOverlayImage != null)
+        {
+            StartCoroutine(VhsNoiseThenLoadSceneCoroutine(sceneName));
+        }
+        else
+        {
+            SceneManager.LoadScene(sceneName);
+        }
+    }
+
+    private IEnumerator VhsNoiseThenLoadSceneCoroutine(string sceneName)
+    {
+        vhsNoiseOverlayImage.gameObject.SetActive(true);
+        vhsNoiseOverlayImage.raycastTarget = true;
+        SetVhsTearAmount(0f); // 스냅샷을 찍는 순간엔 패널이 완전히 투명해야 함
+
+        yield return new WaitForEndOfFrame();
+        Texture2D screenSnapshot = ScreenCapture.CaptureScreenshotAsTexture();
+        vhsNoiseMaterialInstance.SetTexture(VhsSnapshotTexID, screenSnapshot);
+
+        if (vhsGlitchSfxClip != null && vhsSfxSource != null)
+        {
+            vhsSfxSource.PlayOneShot(vhsGlitchSfxClip, vhsGlitchSfxVolume);
+        }
+
+        float elapsed = 0f;
+        while (elapsed < vhsTearDuration)
+        {
+            elapsed += Time.deltaTime;
+            float p = vhsTearCurve.Evaluate(Mathf.Clamp01(elapsed / vhsTearDuration));
+            SetVhsTearAmount(p);
+            yield return null;
+        }
+        SetVhsTearAmount(1f);
+
+        yield return new WaitForSeconds(vhsHoldDuration);
+
+        Destroy(screenSnapshot);
+        SceneManager.LoadScene(sceneName);
+    }
+
+    /// <summary>
+    /// ChatThreadController가 glitchEffect="Glitch"인 줄에서 호출. 씬 전환 없이 화면이
+    /// 잠깐 깨졌다가 복구된 뒤 대화가 계속 진행됩니다. 호출부에서 yield return으로 대기하세요.
+    /// </summary>
+    public Coroutine PlayMidGlitch()
+    {
+        return StartCoroutine(PlayMidGlitchCoroutine());
+    }
+
+    private IEnumerator PlayMidGlitchCoroutine()
+    {
+        if (vhsNoiseMaterialInstance == null || vhsNoiseOverlayImage == null) yield break;
+
+        vhsNoiseOverlayImage.gameObject.SetActive(true);
+        vhsNoiseOverlayImage.raycastTarget = true;
+        SetVhsTearAmount(0f);
+
+        yield return new WaitForEndOfFrame();
+        Texture2D screenSnapshot = ScreenCapture.CaptureScreenshotAsTexture();
+        vhsNoiseMaterialInstance.SetTexture(VhsSnapshotTexID, screenSnapshot);
+
+        if (vhsGlitchSfxClip != null && vhsSfxSource != null)
+        {
+            vhsSfxSource.PlayOneShot(vhsGlitchSfxClip, vhsGlitchSfxVolume);
+        }
+
+        float elapsed = 0f;
+        while (elapsed < midGlitchTearInDuration)
+        {
+            elapsed += Time.deltaTime;
+            SetVhsTearAmount(Mathf.Clamp01(elapsed / midGlitchTearInDuration));
+            yield return null;
+        }
+        SetVhsTearAmount(1f);
+
+        yield return new WaitForSeconds(midGlitchHoldDuration);
+
+        elapsed = 0f;
+        while (elapsed < midGlitchTearOutDuration)
+        {
+            elapsed += Time.deltaTime;
+            SetVhsTearAmount(1f - Mathf.Clamp01(elapsed / midGlitchTearOutDuration));
+            yield return null;
+        }
+        SetVhsTearAmount(0f);
+
+        // 연출이 끝나는 시점에 효과음도 같이 끊음 (클립이 지속시간보다 길게 남아 계속 들리는 것 방지)
+        if (vhsSfxSource != null) vhsSfxSource.Stop();
+
+        Destroy(screenSnapshot);
+        vhsNoiseOverlayImage.raycastTarget = false;
+        vhsNoiseOverlayImage.gameObject.SetActive(false);
     }
 }
