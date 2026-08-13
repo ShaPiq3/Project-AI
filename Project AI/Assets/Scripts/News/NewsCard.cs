@@ -15,11 +15,15 @@ public class NewsCard : MonoBehaviour
     [SerializeField] private Transform textContainer;     // Vertical Layout Group이 있는 부모
 
     private List<TextMeshProUGUI> spawnedTexts = new List<TextMeshProUGUI>();
+    private int currentNewsID = -1;
+
 
     public void SetNewsData(NewsData data)
     {
         // 기존에 생성된 텍스트 오브젝트들 초기화
         ClearSpawnedTexts();
+
+        currentNewsID = data.id;
 
         titleText.text = data.title;
         infoText.text = data.info;
@@ -163,6 +167,12 @@ public class NewsCard : MonoBehaviour
 
     public void ClosePopup()
     {
+
+        if (NewsListManager.Instance != null)
+        {
+            NewsListManager.Instance.NotifyWindowClosed(currentNewsID);
+        }
+
         // 💡 이 오브젝트는 클릭할 때마다 새로 복제된 것이므로, 완전히 파괴합니다.
         ClearSpawnedTexts();
         Destroy(gameObject);

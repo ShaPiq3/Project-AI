@@ -90,17 +90,29 @@ public class TaskbarManager : MonoBehaviour
     {
         if (set == null || set.buttonContainer == null) return;
 
+        GameObject targetChild = null;
         foreach (Transform child in set.buttonContainer)
         {
             TaskbarItem item = child.GetComponent<TaskbarItem>();
             if (item != null && item.TargetWindow == winObj)
             {
-                Destroy(child.gameObject);
+                targetChild = child.gameObject;
                 break;
             }
         }
 
-        if (set.buttonContainer.childCount <= 1)
+        Debug.Log($"[TaskbarManager] DestroyItemButton 호출됨. winObj={winObj?.name}, 매칭된 버튼 찾음={targetChild != null}, 현재 buttonContainer 자식 수={set.buttonContainer.childCount}"); // 💡 추가
+
+        if (targetChild != null)
+        {
+            Destroy(targetChild);
+        }
+
+        // 💡 [수정] Destroy()는 프레임 끝에 실제로 파괴되므로,
+        // 방금 파괴 예약한 자식을 제외하고 "진짜 남는 개수"를 직접 계산합니다.
+        int remainingCount = set.buttonContainer.childCount - (targetChild != null ? 1 : 0);
+
+        if (remainingCount <= 0)
         {
             if (set.mainButton != null) set.mainButton.SetActive(false);
             if (set.popupPanel != null) set.popupPanel.SetActive(false);

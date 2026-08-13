@@ -373,7 +373,7 @@ public class DataLogManager : MonoBehaviour
 
         if (!isActive && sidebarController != null && clueCollectTaskbarIndex >= 0)
         {
-            sidebarController.UpdateTaskbarStatus(clueCollectTaskbarIndex, 0);
+            sidebarController.UpdateTaskbarStatus(clueCollectTaskbarIndex, 0, this);
         }
 
         if (activeTriggerCount == 0 && IsClueSearchModeActive)
@@ -580,7 +580,7 @@ public class DataLogManager : MonoBehaviour
 
         if (!IsClueSearchModeActive && sidebarController != null && clueCollectTaskbarIndex >= 0)
         {
-            sidebarController.UpdateTaskbarStatus(clueCollectTaskbarIndex, 0);
+            sidebarController.UpdateTaskbarStatus(clueCollectTaskbarIndex, 0, this);
         }
     }
 
@@ -672,7 +672,7 @@ public class DataLogManager : MonoBehaviour
 
         if (sidebarController != null && clueCollectTaskbarIndex >= 0)
         {
-            sidebarController.UpdateTaskbarStatus(clueCollectTaskbarIndex, 2);
+            sidebarController.UpdateTaskbarStatus(clueCollectTaskbarIndex, 2, this);
         }
 
         OpenClueSearchMode();

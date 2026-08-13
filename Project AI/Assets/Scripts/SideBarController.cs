@@ -1,22 +1,21 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class SidebarController : MonoBehaviour
 {
     [Header("UI References")]
-    [SerializeField] private RectTransform sidebarRect;      // 사이드바 전체 RectTransform
-    [SerializeField] private RectTransform[] menuTextRects;  // 숨길 텍스트들의 RectTransform 배열
-
-    // ★ [버그 해결 핵심 추가] 제미나이 스타일 마스터 버튼들(Menu_Item_Archive 등)의 RectTransform 배열
+    [SerializeField] private RectTransform sidebarRect;
+    [SerializeField] private RectTransform[] menuTextRects;
     [SerializeField] private RectTransform[] menuButtonRects;
 
     [Header("Overlay MiniIcon References")]
     [SerializeField] private RectTransform[] menuMiniIconRects;
 
     [Header("Button References")]
-    [SerializeField] private Button openButton;          // 사이드바를 '여는' 마스터 버튼
-    [SerializeField] private Button closeButton;         // 사이드바를 '닫는' 버튼
+    [SerializeField] private Button openButton;
+    [SerializeField] private Button closeButton;
 
     [Header("Sidebar Animation Settings")]
     [SerializeField] private float slideSpeed = 15f;
@@ -34,6 +33,12 @@ public class SidebarController : MonoBehaviour
     private Coroutine currentCoroutine;
     private float[] miniIconHeights;
     private Image[] miniIconImages;
+
+    // 💡 [추가] 인덱스별로 "열려있는(open)" 창과 "최소화(minimized)"된 창을 참조로 추적합니다.
+    // 같은 인덱스를 공유하는 여러 창(메인 창 + 상세 창들) 중 하나가 닫혀도,
+    // 나머지가 남아있으면 아이콘이 꺼지지 않도록 하기 위함입니다.
+    private Dictionary<int, HashSet<object>> openWindowsByIndex = new Dictionary<int, HashSet<object>>();
+    private Dictionary<int, HashSet<object>> minimizedWindowsByIndex = new Dictionary<int, HashSet<object>>();
 
     void Start()
     {
@@ -56,24 +61,52 @@ public class SidebarController : MonoBehaviour
         SetSidebarStateImmediate(isOpen);
     }
 
-    public void UpdateTaskbarStatus(int index, int status)
+    /// <summary>
+    /// 💡 [변경] windowRef(호출한 창 자기 자신, 보통 this)를 함께 넘겨서
+    /// 인덱스별 참조 카운팅을 합니다.
+    /// status: 0=완전히 닫힘, 1=최소화, 2=열림(활성)
+    /// </summary>
+    public void UpdateTaskbarStatus(int index, int status, object windowRef)
     {
         if (menuMiniIconRects == null || index < 0 || index >= menuMiniIconRects.Length) return;
         if (menuMiniIconRects[index] == null || miniIconImages[index] == null) return;
+        if (windowRef == null) return;
 
-        if (status == 0)
+        if (!openWindowsByIndex.ContainsKey(index)) openWindowsByIndex[index] = new HashSet<object>();
+        if (!minimizedWindowsByIndex.ContainsKey(index)) minimizedWindowsByIndex[index] = new HashSet<object>();
+
+        var openSet = openWindowsByIndex[index];
+        var minSet = minimizedWindowsByIndex[index];
+
+        // 일단 두 집합에서 이 창을 제거 (상태를 새로 반영하기 위해)
+        openSet.Remove(windowRef);
+        minSet.Remove(windowRef);
+
+        if (status == 2) openSet.Add(windowRef);
+        else if (status == 1) minSet.Add(windowRef);
+        // status == 0(완전히 닫힘)이면 그냥 제거된 채로 둠
+
+        RefreshIconState(index);
+    }
+
+    private void RefreshIconState(int index)
+    {
+        bool hasOpen = openWindowsByIndex.TryGetValue(index, out var openSet) && openSet.Count > 0;
+        bool hasMinimized = minimizedWindowsByIndex.TryGetValue(index, out var minSet) && minSet.Count > 0;
+
+        if (!hasOpen && !hasMinimized)
         {
             menuMiniIconRects[index].gameObject.SetActive(false);
+            return;
         }
-        else
-        {
-            menuMiniIconRects[index].gameObject.SetActive(true);
 
-            float targetAlpha = (status == 2) ? activeAlpha : minimizedAlpha;
-            Color color = miniIconImages[index].color;
-            color.a = targetAlpha;
-            miniIconImages[index].color = color;
-        }
+        menuMiniIconRects[index].gameObject.SetActive(true);
+
+        // 💡 열려있는 창이 하나라도 있으면 activeAlpha, 전부 최소화 상태면 minimizedAlpha
+        float targetAlpha = hasOpen ? activeAlpha : minimizedAlpha;
+        Color color = miniIconImages[index].color;
+        color.a = targetAlpha;
+        miniIconImages[index].color = color;
     }
 
     public void ToggleSidebar()
@@ -85,14 +118,8 @@ public class SidebarController : MonoBehaviour
 
         ToggleActionButtons(isOpen);
 
-        if (isOpen)
-        {
-            ToggleTextObjects(true);
-        }
-        else
-        {
-            ToggleTextObjects(false);
-        }
+        if (isOpen) ToggleTextObjects(true);
+        else ToggleTextObjects(false);
 
         if (currentCoroutine != null) StopCoroutine(currentCoroutine);
         currentCoroutine = StartCoroutine(AnimateSidebar(targetSidebarWidth, targetTextWidth));
@@ -105,7 +132,6 @@ public class SidebarController : MonoBehaviour
             float currentSidebarWidth = Mathf.Lerp(sidebarRect.sizeDelta.x, targetSidebarWidth, Time.deltaTime * slideSpeed);
             sidebarRect.sizeDelta = new Vector2(currentSidebarWidth, sidebarRect.sizeDelta.y);
 
-            // ★ [버그 해결 핵심] 마스터 버튼 컴포넌트들의 전체 클릭 범위(Width)도 사이드바 크기와 실시간 동기화
             if (menuButtonRects != null)
             {
                 foreach (var btnRect in menuButtonRects)
@@ -177,7 +203,6 @@ public class SidebarController : MonoBehaviour
         ToggleTextObjects(open);
         ToggleActionButtons(open);
 
-        // ★ [버그 해결 핵심] 즉시 상태가 변할 때도 버튼 범위를 최종 크기(70 또는 280)로 강제 고정
         if (menuButtonRects != null)
         {
             foreach (var btnRect in menuButtonRects)

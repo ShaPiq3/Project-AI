@@ -327,4 +327,17 @@ public class NewsListManager : MonoBehaviour
 
         return false;
     }
+
+    /// <summary>
+    /// 💡 [추가] 뉴스 상세 팝업(NewsCard)이 닫힐 때 호출되어, openNewsWindows 딕셔너리에서
+    /// 해당 기사 참조를 제거합니다. 이게 없으면 창을 닫아도 딕셔너리에 죽은 참조가
+    /// 남아서, 같은 기사를 다시 열 때 새 창을 안 만들고 죽은 창을 앞으로 가져오려다 실패합니다.
+    /// </summary>
+    public void NotifyWindowClosed(int newsID)
+    {
+        if (openNewsWindows.ContainsKey(newsID))
+        {
+            openNewsWindows.Remove(newsID);
+        }
+    }
 }

@@ -290,4 +290,17 @@ public class CommunityManager : MonoBehaviour
 
         return false;
     }
+
+    /// <summary>
+    /// 💡 [추가] 상세 페이지 창이 닫힐 때 호출되어, openPostWindows 딕셔너리에서
+    /// 해당 게시글 참조를 제거합니다. 이게 없으면 창을 닫아도 딕셔너리에 죽은 참조가
+    /// 남아서, 같은 글을 다시 열 때 새 창을 안 만들고 죽은 창을 앞으로 가져오려다 실패합니다.
+    /// </summary>
+    public void NotifyWindowClosed(int postID)
+    {
+        if (openPostWindows.ContainsKey(postID))
+        {
+            openPostWindows.Remove(postID);
+        }
+    }
 }

@@ -1,5 +1,5 @@
-using System.Collections;
 using UnityEngine;
+using System.Collections;
 
 public class InGameWindowManager : MonoBehaviour
 {
@@ -9,53 +9,78 @@ public class InGameWindowManager : MonoBehaviour
 
     [Header("Sub Panels (Auto Close ONLY on Complete Close)")]
     [SerializeField] private GameObject[] subPanels;
-    
+
     [Header("Pop-up Animation Settings")]
-    [SerializeField] private float animationSpeed = 15f;    // ¾Ö´Ï¸ŞÀÌ¼Ç ¼Óµµ
-    [SerializeField] private float scalePunchMultiplier = 1.1f; // ÃÖ´ë·Î Ä¿Áú ¶§ÀÇ ¹èÀ² (1.1 = 110%)
+    [SerializeField] private float animationSpeed = 15f;
+    [SerializeField] private float scalePunchMultiplier = 1.1f;
 
     private Coroutine popUpCoroutine;
     private Vector3 originalScale = Vector3.one;
 
+    // ğŸ’¡ [ì¶”ê°€] ìµœì†Œí™”(ToggleWindowImmediate)ë¡œ ì¸í•œ ë¹„í™œì„±í™”ì¸ì§€ êµ¬ë¶„í•˜ëŠ” í”Œë˜ê·¸.
+    // trueë©´ OnDisableì—ì„œ ì‚¬ì´ë“œë°” ì œê±°ë¥¼ ê±´ë„ˆëœë‹ˆë‹¤ (ì´ë¯¸ status=1ë¡œ ë“±ë¡í–ˆìœ¼ë¯€ë¡œ).
+    private bool isMinimizingSelf = false;
+
     private void Awake()
     {
-        // ¿ø·¡ ¿ÀºêÁ§Æ®ÀÇ ½ºÄÉÀÏÀ» ±â¾ïÇØ µÓ´Ï´Ù. (±âº»°ª Vector3.one)
         originalScale = transform.localScale;
     }
 
     private void OnEnable()
     {
+        isMinimizingSelf = false; // ğŸ’¡ ì¶”ê°€: ë‹¤ì‹œ ì¼œì§€ë©´ í”Œë˜ê·¸ ì´ˆê¸°í™”
+
         if (sidebarController != null)
         {
-            sidebarController.UpdateTaskbarStatus(myTaskbarIndex, 2);
+            sidebarController.UpdateTaskbarStatus(myTaskbarIndex, 2, this);
+        }
+    }
+
+    // ğŸ’¡ [ì¶”ê°€] Destroy()ë‚˜ ê·¸ ì™¸ ì–´ë–¤ ê²½ë¡œë¡œë“  ì´ ì˜¤ë¸Œì íŠ¸ê°€ ë¹„í™œì„±í™”/íŒŒê´´ë˜ë©´
+    // (ìµœì†Œí™”ê°€ ì•„ë‹Œ í•œ) ì‚¬ì´ë“œë°”ì—ì„œ ë°˜ë“œì‹œ ìì‹ ì„ ì œê±°í•©ë‹ˆë‹¤.
+    // PostDetailPageUI.ClosePage()/NewsCard.ClosePopup()ì²˜ëŸ¼ CloseWindow()ë¥¼ ê±°ì¹˜ì§€ ì•Šê³ 
+    // ë°”ë¡œ Destroyí•˜ëŠ” ì°½ë“¤ë„ ì´ê±¸ë¡œ ì•ˆì „í•˜ê²Œ ì •ë¦¬ë©ë‹ˆë‹¤.
+    private void OnDisable()
+    {
+        if (isMinimizingSelf)
+        {
+            isMinimizingSelf = false;
+            return;
+        }
+
+        if (sidebarController != null)
+        {
+            sidebarController.UpdateTaskbarStatus(myTaskbarIndex, 0, this);
         }
     }
 
     public void ToggleWindowImmediate()
     {
-        if (sidebarController != null) sidebarController.UpdateTaskbarStatus(myTaskbarIndex, 1);
+        isMinimizingSelf = true; // ğŸ’¡ ì¶”ê°€: OnDisableì´ ì œê±°í•˜ì§€ ì•Šë„ë¡ ë¯¸ë¦¬ í‘œì‹œ
+
+        if (sidebarController != null) sidebarController.UpdateTaskbarStatus(myTaskbarIndex, 1, this);
+
+        TaskbarWindowTrigger taskbarTrigger = GetComponent<TaskbarWindowTrigger>();
+        if (taskbarTrigger != null) taskbarTrigger.MarkAsMinimizing();
+
         this.gameObject.SetActive(false);
     }
 
-    // ¡Ú [»çÀÌµå¹Ù ³»ºÎÀÇ ¸Ş´º ±×·ì ¹öÆ°]¿¡ ¿¬°áÇÏ´Â ÇÙ½É ÇÔ¼ö
     public void RestoreWindow()
     {
-        Debug.Log($"[Áø´Ü] RestoreWindow È£ÃâµÊ! ´ë»ó ¿ÀºêÁ§Æ®: {gameObject.name}");
+        Debug.Log($"[ì§„ë‹¨] RestoreWindow í˜¸ì¶œë¨! ëŒ€ìƒ ì˜¤ë¸Œì íŠ¸: {gameObject.name}");
 
-        // 1. Ã¢ ÀüÃ¼¸¦ Áï½Ã È­¸é¿¡ È°¼ºÈ­ÇÕ´Ï´Ù.
         this.gameObject.SetActive(true);
-
-        // 2. ÀÌ Ã¢À» ÇüÁ¦ ¿ÀºêÁ§Æ®µé Áß °¡Àå ¸Ç ¾Æ·¡(È­¸é ¸Ç ¾Õ)·Î °­Á¦ Á¤·ÄÇÕ´Ï´Ù!
         this.transform.SetAsLastSibling();
 
         RectTransform rectTransform = GetComponent<RectTransform>();
         if (rectTransform == null)
         {
-            Debug.LogError($"[Áø´Ü] {gameObject.name}¿¡ RectTransformÀÌ ¾ø½À´Ï´Ù!");
+            Debug.LogError($"[ì§„ë‹¨] {gameObject.name}ì— RectTransformì´ ì—†ìŠµë‹ˆë‹¤!");
         }
         else if (WindowManager.Instance == null)
         {
-            Debug.LogError($"[Áø´Ü] WindowManager.Instance°¡ nullÀÔ´Ï´Ù! ¾À¿¡ WindowManager°¡ ¾ø°Å³ª ¾ÆÁ÷ AwakeµÇÁö ¾Ê¾Ò½À´Ï´Ù.");
+            Debug.LogError($"[ì§„ë‹¨] WindowManager.Instanceê°€ nullì…ë‹ˆë‹¤!");
         }
         else
         {
@@ -64,12 +89,11 @@ public class InGameWindowManager : MonoBehaviour
 
             Vector2 pushedPos = WindowManager.Instance.PushOutOfBlockingPanelsWithBounds(rectTransform, rectTransform.anchoredPosition);
 
-            Debug.Log($"[Áø´Ü] {gameObject.name} | size:{sizeBefore} | before:{beforePos} -> after:{pushedPos} | pivot:{rectTransform.pivot} | anchorMin:{rectTransform.anchorMin} anchorMax:{rectTransform.anchorMax}");
+            Debug.Log($"[ì§„ë‹¨] {gameObject.name} | size:{sizeBefore} | before:{beforePos} -> after:{pushedPos}");
 
             rectTransform.anchoredPosition = pushedPos;
         }
 
-        // 3. ¸¸¾à ¼­ºê ÆĞ³ÎÀÌ ÃÖ¼ÒÈ­ ÀüºÎÅÍ ÄÑÁ® ÀÖ¾ú´Ù¸é ¼­ºê ÆĞ³ÎÀ» ³» ¸ŞÀÎ È­¸éº¸´Ù ´õ ¾ÕÀ¸·Î °­Á¦ Á¤·Ä
         if (subPanels != null)
         {
             foreach (var subPanel in subPanels)
@@ -81,18 +105,14 @@ public class InGameWindowManager : MonoBehaviour
             }
         }
 
-        // 4. »çÀÌµå¹Ù¿¡°Ô ´Ù½Ã ÄÑÁü ½ÅÈ£¸¦ º¸³À´Ï´Ù.
-        if (sidebarController != null) sidebarController.UpdateTaskbarStatus(myTaskbarIndex, 2);
+        if (sidebarController != null) sidebarController.UpdateTaskbarStatus(myTaskbarIndex, 2, this);
 
-        // ¡Ú [»õ·Î Ãß°¡] ¸Ç ¾ÕÀ¸·Î ³ª¿Ã ¶§ Àá±ñ Ä¿Á³´Ù ÀÛ¾ÆÁö´Â È¿°ú ½ÇÇà
         if (popUpCoroutine != null) StopCoroutine(popUpCoroutine);
         popUpCoroutine = StartCoroutine(AnimatePopUp());
     }
 
-    // ¡Ú [»õ·Î Ãß°¡] ÆË¾÷ ¿¬Ãâ ÄÚ·çÆ¾
     private IEnumerator AnimatePopUp()
     {
-        // 1´Ü°è: Å¸°Ù Å©±â¸¦ ¿ø·¡ Å©±âº¸´Ù »ìÂ¦ Å©°Ô Àâ°í Lerp·Î ºü¸£°Ô Å°¿ó´Ï´Ù.
         Vector3 targetMaxScale = originalScale * scalePunchMultiplier;
 
         while (Vector3.Distance(transform.localScale, targetMaxScale) > 0.01f)
@@ -102,7 +122,6 @@ public class InGameWindowManager : MonoBehaviour
         }
         transform.localScale = targetMaxScale;
 
-        // 2´Ü°è: ´Ù½Ã ¿ø·¡ Á¤»ó Å©±â·Î µÇµ¹¸³´Ï´Ù.
         while (Vector3.Distance(transform.localScale, originalScale) > 0.01f)
         {
             transform.localScale = Vector3.Lerp(transform.localScale, originalScale, Time.deltaTime * animationSpeed);
@@ -113,7 +132,6 @@ public class InGameWindowManager : MonoBehaviour
 
     public void CloseWindow()
     {
-        // Ã¢ÀÌ ´İÈú ¶§´Â ÄÚ·çÆ¾À» ¸ØÃß°í ½ºÄÉÀÏÀ» ¿ø»óº¹±¸ÇØ µÓ´Ï´Ù.
         if (popUpCoroutine != null) StopCoroutine(popUpCoroutine);
         transform.localScale = originalScale;
 
@@ -125,8 +143,9 @@ public class InGameWindowManager : MonoBehaviour
             }
         }
 
-        this.gameObject.SetActive(false);
+        this.gameObject.SetActive(false); // ğŸ’¡ ì´ ì¤„ì´ OnDisableì„ íŠ¸ë¦¬ê±°í•´ì„œ ì‚¬ì´ë“œë°” ì •ë¦¬ê¹Œì§€ ìë™ìœ¼ë¡œ ë¨
 
-        if (sidebarController != null) sidebarController.UpdateTaskbarStatus(myTaskbarIndex, 0);
+        // ì•„ë˜ ì¤„ì€ OnDisableì—ì„œë„ ë™ì¼í•˜ê²Œ ì²˜ë¦¬ë˜ì§€ë§Œ, ëª…ì‹œì ìœ¼ë¡œ ë‚¨ê²¨ë‘¬ë„ ë¬´ë°©í•©ë‹ˆë‹¤ (ì¤‘ë³µ í˜¸ì¶œì€ ì•ˆì „í•¨)
+        if (sidebarController != null) sidebarController.UpdateTaskbarStatus(myTaskbarIndex, 0, this);
     }
 }

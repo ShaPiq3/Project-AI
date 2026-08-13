@@ -42,9 +42,12 @@ public class PostDetailPageUI : MonoBehaviour
     public Transform commentListTransform;
     public GameObject commentPrefab;
 
+    private int currentPostID = -1;
+
     public void DisplayPost(PostData data)
     {
         transform.SetAsLastSibling();
+        currentPostID = data.postID;
         // 1. ①번 구역 세팅
         titleText.text = data.title;
         authorText.text = data.author;
@@ -251,8 +254,12 @@ public class PostDetailPageUI : MonoBehaviour
 
     public void ClosePage()
     {
-        // 💡 [변경] 이제 이 오브젝트는 클릭할 때마다 새로 복제된 것이므로,
-        // 그냥 숨기지 않고 완전히 파괴합니다.
+        // 💡 [추가] CommunityManager가 들고 있는 참조도 같이 정리
+        if (CommunityManager.Instance != null)
+        {
+            CommunityManager.Instance.NotifyWindowClosed(currentPostID);
+        }
+
         Destroy(gameObject);
     }
 }

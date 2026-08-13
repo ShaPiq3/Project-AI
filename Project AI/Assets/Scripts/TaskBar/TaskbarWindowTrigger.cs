@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
-using System.Collections; // 👈 IEnumerator 사용을 위해 필요
+using System.Collections;
+
 public class TaskbarWindowTrigger : MonoBehaviour
 {
     public enum WindowType { Archive, News, Community }
@@ -7,31 +8,43 @@ public class TaskbarWindowTrigger : MonoBehaviour
     [SerializeField] private WindowType windowType;
     [SerializeField] private string windowTitle;
 
-    /// <summary>
-    /// 💡 [추가] 뉴스/커뮤니티처럼 창이 동적으로 생성되는 경우,
-    /// 실제 기사/게시글 제목(엑셀에서 온 값)을 런타임에 주입하기 위한 함수.
-    /// OnEnable의 등록 코루틴이 실행되기 전(같은 프레임 안)에 호출해야 합니다.
-    /// </summary>
+    private bool isMinimizing = false;
+
+    // 💡 [추가] 최소화 때문에 OnDisable에서 제거를 건너뛰었는지 기억.
+    // true면, 다음 OnEnable(복원)에서도 재등록을 건너뛰어야 함 (이미 taskbar에 등록되어 있으므로).
+    private bool wasMinimized = false;
+
     public void SetWindowTitle(string title)
     {
         windowTitle = title;
     }
 
-    // 🌟 [수정] OnEnable 대신 코루틴을 사용해 매니저가 완전히 준비된 후 등록하도록 만듭니다.
+    public void MarkAsMinimizing()
+    {
+        isMinimizing = true;
+    }
+
     private void OnEnable()
     {
+        // 💡 [수정] 방금 최소화 상태에서 복원된 거라면, 이미 taskbar에 등록되어 있으므로
+        // 재등록하지 않고 건너뜁니다.
+        if (wasMinimized)
+        {
+            wasMinimized = false;
+            return;
+        }
+
         StartCoroutine(RegisterToTaskbarCo());
     }
+
     private IEnumerator RegisterToTaskbarCo()
     {
-        // TaskbarManager가 싱글톤 인스턴스를 채울 때까지 한 프레임 대기합니다.
         yield return null;
         if (TaskbarManager.Instance == null)
         {
             Debug.LogError($"{gameObject.name}: 씬에 TaskbarManager 오브젝트가 없거나 생성되지 않았습니다!");
             yield break;
         }
-        // 안전하게 매니저가 준비된 상태에서 버튼 생성 신호를 보냅니다.
         switch (windowType)
         {
             case WindowType.Archive:
@@ -40,15 +53,27 @@ public class TaskbarWindowTrigger : MonoBehaviour
             case WindowType.News:
                 TaskbarManager.Instance.AddNewsWindow(windowTitle, this.gameObject);
                 break;
-            // 💡 [추가]
             case WindowType.Community:
                 TaskbarManager.Instance.AddCommunityWindow(windowTitle, this.gameObject);
                 break;
         }
     }
+
     private void OnDisable()
     {
+        // 💡 [수정] 최소화로 인한 비활성화라면 taskbar 항목을 지우지 않고,
+        // 다음 복원 시 재등록도 건너뛰도록 플래그를 세팅
+        if (isMinimizing)
+        {
+            isMinimizing = false;
+            wasMinimized = true; // 💡 추가
+            return;
+        }
+
         if (TaskbarManager.Instance == null) return;
+
+        Debug.Log("TaskbarWindowTrigger OnDisable called! windowType=" + windowType);
+
         switch (windowType)
         {
             case WindowType.Archive:
@@ -57,7 +82,6 @@ public class TaskbarWindowTrigger : MonoBehaviour
             case WindowType.News:
                 TaskbarManager.Instance.RemoveNewsWindow(this.gameObject);
                 break;
-            // 💡 [추가]
             case WindowType.Community:
                 TaskbarManager.Instance.RemoveCommunityWindow(this.gameObject);
                 break;

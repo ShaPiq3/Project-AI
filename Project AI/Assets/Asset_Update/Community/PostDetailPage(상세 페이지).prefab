@@ -2092,7 +2092,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 4114920645877396495}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 7294876630385585422}
+        m_TargetAssemblyTypeName: 
+        m_MethodName: 
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: 
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &6452966859279517963
 GameObject:
   m_ObjectHideFlags: 0
@@ -2341,6 +2353,7 @@ GameObject:
   - component: {fileID: 1543439075926663525}
   - component: {fileID: 2439987028195633080}
   - component: {fileID: 7271052907720401547}
+  - component: {fileID: 22500076227385677}
   m_Layer: 5
   m_Name: "PostDetailPage(\uC0C1\uC138 \uD398\uC774\uC9C0)"
   m_TagString: Untagged
@@ -2519,6 +2532,23 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TaskbarWindowTrigger
   windowType: 2
   windowTitle: 
+--- !u!114 &22500076227385677
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7294876630385585422}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2ef8287b8ce956844891a2fafee87589, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::InGameWindowManager
+  sidebarController: {fileID: 0}
+  myTaskbarIndex: 2
+  subPanels: []
+  animationSpeed: 15
+  scalePunchMultiplier: 1.1
 --- !u!1 &7559631374288287733
 GameObject:
   m_ObjectHideFlags: 0

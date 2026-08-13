@@ -6757,8 +6757,8 @@ RectTransform:
   m_Children:
   - {fileID: 803155569}
   - {fileID: 968512886}
-  - {fileID: 1345440033}
   - {fileID: 1114883230}
+  - {fileID: 1345440033}
   - {fileID: 1320756967}
   - {fileID: 2083078930}
   - {fileID: 31393966}
@@ -17328,6 +17328,30 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 176081201}
   m_CullTransparentMesh: 1
+--- !u!1 &178489878 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6199902600096829264, guid: ce85ba289631e414392f1ff440268a9a, type: 3}
+  m_PrefabInstance: {fileID: 924919879}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &178489883
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 178489878}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: be256ff13a098c6418bfc3bac0cebced, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SoundManager
+  audioSource: {fileID: 0}
+  clickClip: {fileID: 8300000, guid: 3458510fb6d9f2d44ab80a3ee542ddcc, type: 3}
+  notification06: {fileID: 0}
+  notification11: {fileID: 0}
+  notification14: {fileID: 0}
+  notification15: {fileID: 0}
+  chatMessageReceived06: {fileID: 0}
 --- !u!1 &178674997
 GameObject:
   m_ObjectHideFlags: 0
@@ -25720,7 +25744,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &301333631
 RectTransform:
   m_ObjectHideFlags: 0
@@ -25737,7 +25761,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 0, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 246.099}
+  m_AnchoredPosition: {x: 0, y: 126.1}
   m_SizeDelta: {x: 88, y: 55}
   m_Pivot: {x: 0, y: 0.5}
 --- !u!114 &301333632
@@ -26532,8 +26556,8 @@ RectTransform:
   - {fileID: 686091204}
   - {fileID: 282981179}
   - {fileID: 588976402}
-  - {fileID: 326468770}
   - {fileID: 889606545}
+  - {fileID: 326468770}
   m_Father: {fileID: 1331481951}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
@@ -28969,7 +28993,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &326468770
 RectTransform:
   m_ObjectHideFlags: 0
@@ -28986,10 +29010,10 @@ RectTransform:
   - {fileID: 1566176391}
   m_Father: {fileID: 319419288}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 45, y: -210}
-  m_SizeDelta: {x: 90, y: 100}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &326468771
 MonoBehaviour:
@@ -42213,7 +42237,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
+      - m_Target: {fileID: 857678314}
         m_TargetAssemblyTypeName: InGameWindowManager, Assembly-CSharp
         m_MethodName: ToggleWindowImmediate
         m_Mode: 1
@@ -55328,7 +55352,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
+      - m_Target: {fileID: 976652706}
         m_TargetAssemblyTypeName: InGameWindowManager, Assembly-CSharp
         m_MethodName: ToggleWindowImmediate
         m_Mode: 1
@@ -59595,7 +59619,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
+      - m_Target: {fileID: 896539235}
         m_TargetAssemblyTypeName: InGameWindowManager, Assembly-CSharp
         m_MethodName: ToggleWindowImmediate
         m_Mode: 1
@@ -68130,7 +68154,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
+      - m_Target: {fileID: 751043006}
         m_TargetAssemblyTypeName: InGameWindowManager, Assembly-CSharp
         m_MethodName: ToggleWindowImmediate
         m_Mode: 1
@@ -70813,7 +70837,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
+      - m_Target: {fileID: 117621763}
         m_TargetAssemblyTypeName: InGameWindowManager, Assembly-CSharp
         m_MethodName: ToggleWindowImmediate
         m_Mode: 1
@@ -75163,7 +75187,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
+      - m_Target: {fileID: 119939555}
         m_TargetAssemblyTypeName: InGameWindowManager, Assembly-CSharp
         m_MethodName: ToggleWindowImmediate
         m_Mode: 1
@@ -75827,6 +75851,11 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 888567348}
   m_CullTransparentMesh: 1
+--- !u!1 &888712767 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5761355633373061784, guid: f4825174e1594704192a4fb5a0fdf718, type: 3}
+  m_PrefabInstance: {fileID: 1179708383}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &889261468
 GameObject:
   m_ObjectHideFlags: 0
@@ -75929,7 +75958,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
+      - m_Target: {fileID: 1422512776}
         m_TargetAssemblyTypeName: InGameWindowManager, Assembly-CSharp
         m_MethodName: ToggleWindowImmediate
         m_Mode: 1
@@ -79611,6 +79640,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 63796039}
     m_Modifications:
+    - target: {fileID: 22500076227385677, guid: ce85ba289631e414392f1ff440268a9a, type: 3}
+      propertyPath: myTaskbarIndex
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 22500076227385677, guid: ce85ba289631e414392f1ff440268a9a, type: 3}
+      propertyPath: sidebarController
+      value: 
+      objectReference: {fileID: 1991241176}
     - target: {fileID: 160897002673669672, guid: ce85ba289631e414392f1ff440268a9a, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -79834,6 +79871,18 @@ PrefabInstance:
     - target: {fileID: 1543439075926663525, guid: ce85ba289631e414392f1ff440268a9a, type: 3}
       propertyPath: m_Colors.m_DisabledColor.r
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1543439075926663525, guid: ce85ba289631e414392f1ff440268a9a, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.size
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1543439075926663525, guid: ce85ba289631e414392f1ff440268a9a, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1543439075926663525, guid: ce85ba289631e414392f1ff440268a9a, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 1838151483705372791, guid: ce85ba289631e414392f1ff440268a9a, type: 3}
       propertyPath: m_fontSize
@@ -80379,6 +80428,50 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: -6.33
       objectReference: {fileID: 0}
+    - target: {fileID: 7279039142744304231, guid: ce85ba289631e414392f1ff440268a9a, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7279039142744304231, guid: ce85ba289631e414392f1ff440268a9a, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_Mode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7279039142744304231, guid: ce85ba289631e414392f1ff440268a9a, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 1538552729}
+    - target: {fileID: 7279039142744304231, guid: ce85ba289631e414392f1ff440268a9a, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_Target
+      value: 
+      objectReference: {fileID: 178489883}
+    - target: {fileID: 7279039142744304231, guid: ce85ba289631e414392f1ff440268a9a, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7279039142744304231, guid: ce85ba289631e414392f1ff440268a9a, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: ToggleWindowImmediate
+      objectReference: {fileID: 0}
+    - target: {fileID: 7279039142744304231, guid: ce85ba289631e414392f1ff440268a9a, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_MethodName
+      value: PlayClickSound
+      objectReference: {fileID: 0}
+    - target: {fileID: 7279039142744304231, guid: ce85ba289631e414392f1ff440268a9a, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: InGameWindowManager, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 7279039142744304231, guid: ce85ba289631e414392f1ff440268a9a, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_TargetAssemblyTypeName
+      value: SoundManager, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 7279039142744304231, guid: ce85ba289631e414392f1ff440268a9a, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
+      value: UnityEngine.Object, UnityEngine
+      objectReference: {fileID: 0}
+    - target: {fileID: 7279039142744304231, guid: ce85ba289631e414392f1ff440268a9a, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_Arguments.m_ObjectArgumentAssemblyTypeName
+      value: UnityEngine.Object, UnityEngine
+      objectReference: {fileID: 0}
     - target: {fileID: 7294876630385585422, guid: ce85ba289631e414392f1ff440268a9a, type: 3}
       propertyPath: m_Name
       value: PostDetailPage
@@ -80496,6 +80589,9 @@ PrefabInstance:
     - {fileID: 5023300231842364512, guid: ce85ba289631e414392f1ff440268a9a, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 6199902600096829264, guid: ce85ba289631e414392f1ff440268a9a, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 178489883}
     - targetCorrespondingSourceObject: {fileID: 5594800408164147003, guid: ce85ba289631e414392f1ff440268a9a, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1635342937}
@@ -81355,7 +81451,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
+      - m_Target: {fileID: 844068026}
         m_TargetAssemblyTypeName: InGameWindowManager, Assembly-CSharp
         m_MethodName: ToggleWindowImmediate
         m_Mode: 1
@@ -81598,7 +81694,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
+      - m_Target: {fileID: 833605889}
         m_TargetAssemblyTypeName: InGameWindowManager, Assembly-CSharp
         m_MethodName: ToggleWindowImmediate
         m_Mode: 1
@@ -87064,7 +87160,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
+      - m_Target: {fileID: 1604127773}
         m_TargetAssemblyTypeName: InGameWindowManager, Assembly-CSharp
         m_MethodName: ToggleWindowImmediate
         m_Mode: 1
@@ -88286,7 +88382,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
+      - m_Target: {fileID: 1196259441}
         m_TargetAssemblyTypeName: InGameWindowManager, Assembly-CSharp
         m_MethodName: ToggleWindowImmediate
         m_Mode: 1
@@ -91352,10 +91448,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 326468770}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 35, y: -50}
-  m_SizeDelta: {x: 40, y: 40}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1087869307
 MonoBehaviour:
@@ -98225,7 +98321,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
+      - m_Target: {fileID: 58396735}
         m_TargetAssemblyTypeName: InGameWindowManager, Assembly-CSharp
         m_MethodName: ToggleWindowImmediate
         m_Mode: 1
@@ -98551,10 +98647,21 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: -81.575
       objectReference: {fileID: 0}
+    - target: {fileID: 9022368504322747720, guid: f4825174e1594704192a4fb5a0fdf718, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 1619495409}
+    - target: {fileID: 9022368504322747720, guid: f4825174e1594704192a4fb5a0fdf718, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: ToggleWindowImmediate
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 5761355633373061784, guid: f4825174e1594704192a4fb5a0fdf718, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1619495409}
     - targetCorrespondingSourceObject: {fileID: 1835143134244950762, guid: f4825174e1594704192a4fb5a0fdf718, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1789104577}
@@ -102161,7 +102268,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
+      - m_Target: {fileID: 1202305059}
         m_TargetAssemblyTypeName: InGameWindowManager, Assembly-CSharp
         m_MethodName: ToggleWindowImmediate
         m_Mode: 1
@@ -103392,7 +103499,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
+      - m_Target: {fileID: 637923365}
         m_TargetAssemblyTypeName: InGameWindowManager, Assembly-CSharp
         m_MethodName: ToggleWindowImmediate
         m_Mode: 1
@@ -105577,7 +105684,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
+      - m_Target: {fileID: 130388398}
         m_TargetAssemblyTypeName: InGameWindowManager, Assembly-CSharp
         m_MethodName: ToggleWindowImmediate
         m_Mode: 1
@@ -109489,8 +109596,8 @@ RectTransform:
   - {fileID: 319419288}
   - {fileID: 1417961708}
   - {fileID: 710149494}
-  - {fileID: 301333631}
   - {fileID: 1511556345}
+  - {fileID: 301333631}
   - {fileID: 2073428933}
   m_Father: {fileID: 1075388119}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -110990,13 +111097,13 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1345440032}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2ef8287b8ce956844891a2fafee87589, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::InGameWindowManager
   sidebarController: {fileID: 1991241176}
-  myTaskbarIndex: 2
+  myTaskbarIndex: 3
   subPanels: []
   animationSpeed: 15
   scalePunchMultiplier: 1.1
@@ -117570,7 +117677,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
+      - m_Target: {fileID: 1843965484}
         m_TargetAssemblyTypeName: InGameWindowManager, Assembly-CSharp
         m_MethodName: ToggleWindowImmediate
         m_Mode: 1
@@ -125017,7 +125124,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
+      - m_Target: {fileID: 1220395857}
         m_TargetAssemblyTypeName: InGameWindowManager, Assembly-CSharp
         m_MethodName: ToggleWindowImmediate
         m_Mode: 1
@@ -125221,7 +125328,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 0, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 185.6}
+  m_AnchoredPosition: {x: 0, y: 186.1}
   m_SizeDelta: {x: 88, y: 55}
   m_Pivot: {x: 0, y: 0.5}
 --- !u!114 &1511556346
@@ -126696,6 +126803,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
+--- !u!114 &1538552729 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 22500076227385677, guid: ce85ba289631e414392f1ff440268a9a, type: 3}
+  m_PrefabInstance: {fileID: 924919879}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2ef8287b8ce956844891a2fafee87589, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::InGameWindowManager
 --- !u!1 &1540547826
 GameObject:
   m_ObjectHideFlags: 0
@@ -128335,10 +128453,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 326468770}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 75, y: -50}
-  m_SizeDelta: {x: 0, y: 41.41}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0.5}
 --- !u!114 &1566176392
 MonoBehaviour:
@@ -132735,7 +132853,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
+      - m_Target: {fileID: 69050846}
         m_TargetAssemblyTypeName: InGameWindowManager, Assembly-CSharp
         m_MethodName: ToggleWindowImmediate
         m_Mode: 1
@@ -133089,12 +133207,29 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 8493371611245872435, guid: f4825174e1594704192a4fb5a0fdf718, type: 3}
   m_PrefabInstance: {fileID: 1179708383}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 888712767}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 412418c415e25134582766b560a800a5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NewsCard
+--- !u!114 &1619495409
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 888712767}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2ef8287b8ce956844891a2fafee87589, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::InGameWindowManager
+  sidebarController: {fileID: 1991241176}
+  myTaskbarIndex: 1
+  subPanels: []
+  animationSpeed: 15
+  scalePunchMultiplier: 1.1
 --- !u!1 &1620154693
 GameObject:
   m_ObjectHideFlags: 0
@@ -135925,7 +136060,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
+      - m_Target: {fileID: 1684297549}
         m_TargetAssemblyTypeName: InGameWindowManager, Assembly-CSharp
         m_MethodName: ToggleWindowImmediate
         m_Mode: 1
@@ -154927,7 +155062,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
+      - m_Target: {fileID: 1425379010}
         m_TargetAssemblyTypeName: InGameWindowManager, Assembly-CSharp
         m_MethodName: ToggleWindowImmediate
         m_Mode: 1
@@ -159109,15 +159244,18 @@ MonoBehaviour:
   - {fileID: 1542495395}
   - {fileID: 1305755455}
   - {fileID: 831853675}
+  - {fileID: 1566176391}
   menuButtonRects:
   - {fileID: 686091204}
   - {fileID: 282981179}
   - {fileID: 588976402}
   - {fileID: 889606545}
+  - {fileID: 326468770}
   menuMiniIconRects:
   - {fileID: 1417961708}
   - {fileID: 710149494}
   - {fileID: 1511556345}
+  - {fileID: 301333631}
   openButton: {fileID: 1854114210}
   closeButton: {fileID: 295656532}
   slideSpeed: 10
@@ -165344,7 +165482,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
+      - m_Target: {fileID: 137008548}
         m_TargetAssemblyTypeName: InGameWindowManager, Assembly-CSharp
         m_MethodName: ToggleWindowImmediate
         m_Mode: 1
@@ -170463,7 +170601,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
+      - m_Target: {fileID: 1480565869}
         m_TargetAssemblyTypeName: InGameWindowManager, Assembly-CSharp
         m_MethodName: ToggleWindowImmediate
         m_Mode: 1

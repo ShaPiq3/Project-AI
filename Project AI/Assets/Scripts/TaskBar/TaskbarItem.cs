@@ -49,12 +49,20 @@ public class TaskbarItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHand
     {
         UpdateHighlightState(false);
     }
-
-    // 🌟 버튼을 클릭했을 때 창만 띄우고, 하이라이트는 마우스가 올라가 있으니 유지됨
     private void OnButtonClick()
     {
         if (TargetWindow != null)
         {
+            Transform current = TargetWindow.transform;
+            while (current != null)
+            {
+                if (!current.gameObject.activeSelf)
+                {
+                    current.gameObject.SetActive(true);
+                }
+                current = current.parent;
+            }
+
             TargetWindow.SetActive(true);
             TargetWindow.transform.SetAsLastSibling();
         }
