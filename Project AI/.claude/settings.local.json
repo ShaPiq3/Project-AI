@@ -11,7 +11,28 @@
       "Bash(grep -n \"m_Script: {fileID: 11500000, guid: 410b08304ec215c4f9cf3aaf50b7470d\" \"C:\\\\Users\\\\bumz2\\\\Project AI\\\\Assets\\\\Scenes\\\\MainScene.unity\")",
       "Bash(grep -n \",Glitch$\\\\|,Glitch_Scene$\" \"C:\\\\Users\\\\bumz2\\\\Project AI\\\\Assets\\\\Resources\\\\PopupChatData.csv\")",
       "Bash(grep -n \"&28467516$\" \"C:\\\\Users\\\\bumz2\\\\Project AI\\\\Assets\\\\Scenes\\\\MainScene_2.unity\")",
-      "Bash(grep -c \"^--- !u!.* &28467519$\" MainScene_2.unity)"
+      "Bash(grep -c \"^--- !u!.* &28467519$\" MainScene_2.unity)",
+      "Bash(grep -n \"^--- !u!.*&434950075$\" -A 40 \"/c/Users/bumz2/Project AI/Assets/Scenes/MainScene.unity\")",
+      "Bash(grep -n \"^--- !u!.*&1390192933$\" -A 20 \"/c/Users/bumz2/Project AI/Assets/Scenes/MainScene.unity\")",
+      "Bash(grep -n \"^--- !u!.*&1156354619$\" -A 40 \"/c/Users/bumz2/Project AI/Assets/Scenes/MainScene.unity\")",
+      "Bash(grep -n \"^--- !u!1 &1390192932$\" -A 15 \"/c/Users/bumz2/Project AI/Assets/Scenes/MainScene.unity\")",
+      "Bash(grep -v \"\\\\.prefab$\")",
+      "Bash(xargs grep -l \"5c886b4dc146719459b6413dbfb0926a\")",
+      "Bash(grep -n \"^--- !u!1 &2083896635$\" -A 20 \"/c/Users/bumz2/Project AI/Assets/Scenes/MainScene.unity\")",
+      "Bash(grep -n \"&2083896635$\" \"/c/Users/bumz2/Project AI/Assets/Scenes/MainScene.unity\")",
+      "Bash(grep -n \"&2083896634$\" \"/c/Users/bumz2/Project AI/Assets/Scenes/MainScene.unity\")",
+      "Bash(grep -n \"&2083896638$\\\\|&2083896637$\\\\|&2083896636$\" \"/c/Users/bumz2/Project AI/Assets/Scenes/MainScene.unity\")",
+      "Bash(grep -n \"&2139215545$\" \"/c/Users/bumz2/Project AI/Assets/Scenes/MainScene.unity\")",
+      "Bash(grep -n \"&2139215544$\" -A 16 \"/c/Users/bumz2/Project AI/Assets/Scenes/MainScene.unity\")",
+      "Bash(grep -n \"&1020359338$\" -A 30 \"/c/Users/bumz2/Project AI/Assets/Scenes/MainScene.unity\")",
+      "Bash(grep -n \"&1020359334$\" -A 20 \"/c/Users/bumz2/Project AI/Assets/Scenes/MainScene.unity\")",
+      "Bash(grep -n \"&514974537$\" -A 3 \"/c/Users/bumz2/Project AI/Assets/Scenes/MainScene.unity\")",
+      "Bash(grep -n \"&514974536$\" -A 16 \"/c/Users/bumz2/Project AI/Assets/Scenes/MainScene.unity\")",
+      "Bash(grep -n \"&2074171102$\" -A 16 \"/c/Users/bumz2/Project AI/Assets/Scenes/MainScene.unity\")",
+      "Bash(grep -n \"&1737701607$\" -A 16 \"/c/Users/bumz2/Project AI/Assets/Scenes/MainScene.unity\")",
+      "Bash(grep -cE \"&\\(900000001|900000002|900000003|900000004|900000005|900000006|900000007|900000008|900000011|900000012|900000013|900000014|900000015|900000016|900000017|900000018\\)$\" \"/c/Users/bumz2/Project AI/Assets/Scenes/MainScene.unity\")",
+      "Bash(grep -n \"&556040332$\" -A 20 \"/c/Users/bumz2/Project AI/Assets/Scenes/MainScene.unity\")",
+      "Bash(grep -cE \"&\\(900000021|900000022|900000023|900000024|900000031|900000032|900000033|900000034\\)$\" \"/c/Users/bumz2/Project AI/Assets/Scenes/MainScene.unity\")"
     ]
   }
 }

@@ -24,6 +24,34 @@ public class DataLogManager : MonoBehaviour
     [SerializeField] private Transform clueContainer;
     [SerializeField] private AudioSource clueCollectedAudioSource;
 
+    [System.Serializable]
+    public class SourceIconEntry
+    {
+        [Tooltip("ClueExcelData.csv의 SourceType 값과 대소문자 무관하게 비교됩니다 (예: NEWS, SNS, COMMUNITY, ARCHIVE)")]
+        public string sourceType;
+        public Sprite icon;
+    }
+
+    [Header("단서 출처 아이콘")]
+    [Tooltip("ClueSlot 헤더에 표시할 출처별 아이콘. 여기 한 곳에만 연결하면 모든 ClueSlot에 공통 적용됩니다.")]
+    [SerializeField] private List<SourceIconEntry> sourceIcons = new List<SourceIconEntry>();
+
+    /// <summary>
+    /// 💡 [추가] SourceType에 해당하는 아이콘을 찾습니다. 등록 안 돼있으면 null(아이콘 숨김).
+    /// </summary>
+    public Sprite GetSourceIcon(string sourceType)
+    {
+        if (string.IsNullOrEmpty(sourceType)) return null;
+        string normalized = sourceType.Trim().ToUpper();
+
+        foreach (var entry in sourceIcons)
+        {
+            if (!string.IsNullOrEmpty(entry.sourceType) && entry.sourceType.Trim().ToUpper() == normalized)
+                return entry.icon;
+        }
+        return null;
+    }
+
     [Header("Filter Settings")]
     [SerializeField] private GameObject clueFilterPanel;
     [SerializeField] private CanvasGroup clueFilterPanelCanvasGroup;

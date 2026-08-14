@@ -31303,8 +31303,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ClueSlot
   sourceText: {fileID: 0}
+  sourceIcon: {fileID: 0}
   contentText: {fileID: 0}
   clueImage: {fileID: 0}
+  imageContainer: {fileID: 0}
   selectionToggle: {fileID: 0}
   containerAspectRatioFitter: {fileID: 0}
   clueData:
@@ -46538,8 +46540,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ClueSlot
   sourceText: {fileID: 0}
+  sourceIcon: {fileID: 0}
   contentText: {fileID: 0}
   clueImage: {fileID: 0}
+  imageContainer: {fileID: 0}
   selectionToggle: {fileID: 0}
   containerAspectRatioFitter: {fileID: 0}
   clueData:
@@ -90708,6 +90712,7 @@ MonoBehaviour:
   clueSlotPrefab: {fileID: 7136726821231719044, guid: b5f3abe4a331c5c4bb6d458624df8151, type: 3}
   clueContainer: {fileID: 434950075}
   clueCollectedAudioSource: {fileID: 1013929297}
+  sourceIcons: []
   clueFilterPanel: {fileID: 2088523916}
   clueFilterPanelCanvasGroup: {fileID: 2088523922}
   duration: 0.4
@@ -107248,8 +107253,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ClueSlot
   sourceText: {fileID: 0}
+  sourceIcon: {fileID: 0}
   contentText: {fileID: 0}
   clueImage: {fileID: 0}
+  imageContainer: {fileID: 0}
   selectionToggle: {fileID: 0}
   containerAspectRatioFitter: {fileID: 0}
   clueData:
@@ -135343,7 +135350,7 @@ MonoBehaviour:
     csvFile: {fileID: 4900000, guid: f7b656ee041f9fb42aafe04498dc1caf, type: 3}
     startDialogueID: 1
     isSystemContact: 0
-    portraitSprite: {fileID: 0}
+    portraitSprite: {fileID: 2186716405851272205, guid: 9035cbf3740d6a343b2d9c6ca74bb690, type: 3}
   - contactID: C2_NPC_LEE
     displayName: "\uC774\uC11C\uC5F0"
     csvFile: {fileID: 4900000, guid: 694474d4ef38840458ff67f4dc7e2b85, type: 3}
@@ -149075,8 +149082,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ClueSlot
   sourceText: {fileID: 0}
+  sourceIcon: {fileID: 0}
   contentText: {fileID: 0}
   clueImage: {fileID: 0}
+  imageContainer: {fileID: 0}
   selectionToggle: {fileID: 0}
   containerAspectRatioFitter: {fileID: 0}
   clueData:
@@ -174056,8 +174065,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ClueSlot
   sourceText: {fileID: 0}
+  sourceIcon: {fileID: 0}
   contentText: {fileID: 0}
   clueImage: {fileID: 0}
+  imageContainer: {fileID: 0}
   selectionToggle: {fileID: 0}
   containerAspectRatioFitter: {fileID: 0}
   clueData:
@@ -174359,8 +174370,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ClueSlot
   sourceText: {fileID: 0}
+  sourceIcon: {fileID: 0}
   contentText: {fileID: 0}
   clueImage: {fileID: 0}
+  imageContainer: {fileID: 0}
   selectionToggle: {fileID: 0}
   containerAspectRatioFitter: {fileID: 0}
   clueData:

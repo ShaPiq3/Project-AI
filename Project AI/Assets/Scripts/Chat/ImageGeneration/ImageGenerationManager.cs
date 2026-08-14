@@ -70,6 +70,15 @@ public class ImageGenerationManager : MonoBehaviour
     [SerializeField] private CanvasGroup panelCanvasGroup;
     [SerializeField] private Button generateAnswerButton; // 답변 생성 버튼
     [SerializeField] private TMP_Text progressText; // 💡 "2/3" 형태로 진행도를 보여줄 텍스트 (DataLogManager의 questStatusUI와 동일한 역할)
+    [Tooltip("빈 배경(트랙) 쪽 RectTransform. 이 폭을 기준으로 채움 바의 폭을 계산합니다.")]
+    [SerializeField] private RectTransform progressGaugeTrackRect;
+    [Tooltip("채워지는 쪽 Image. Type=Simple(스프라이트 없음)이어야 합니다 - fillAmount 대신 폭을 직접 조절합니다.")]
+    [SerializeField] private Image progressGaugeFillImage;
+    [Tooltip("게이지 위에 '25%' 형태로 표시할 텍스트 (선택)")]
+    [SerializeField] private TMP_Text progressGaugePercentText;
+    [Tooltip("게이지가 목표 폭까지 차오르는 데 걸리는 시간(초)")]
+    [SerializeField] private float progressGaugeTweenDuration = 0.4f;
+    private Tween progressGaugeTween;
     [SerializeField] private Button deleteSelectedButton;  // 항상 떠있는 삭제 버튼 (체크된 슬롯을 지움)
     [SerializeField] private AudioSource panelAudioSource;
     [SerializeField] private AudioSource imageRegisteredAudioSource; // 💡 추가
@@ -426,6 +435,25 @@ public class ImageGenerationManager : MonoBehaviour
 
         // 💡 DataLogManager의 진행도 표시와 동일한 역할
         if (progressText != null) progressText.text = $"{filledCount}/{totalCount}";
+
+        // 💡 [추가] 게이지 바 채움 비율 갱신 (fillAmount 대신 폭을 직접 조절 - Image Type=Filled는
+        // 스프라이트가 없으면 fillAmount를 무시하고 항상 꽉 찬 채로 그려지는 제약이 있음)
+        float ratio = totalCount > 0 ? Mathf.Clamp01((float)filledCount / totalCount) : 0f;
+
+        if (progressGaugePercentText != null)
+        {
+            progressGaugePercentText.text = $"{Mathf.RoundToInt(ratio * 100f)}%";
+        }
+
+        if (progressGaugeFillImage != null && progressGaugeTrackRect != null)
+        {
+            RectTransform fillRect = progressGaugeFillImage.rectTransform;
+            float targetWidth = progressGaugeTrackRect.rect.width * ratio;
+
+            progressGaugeTween?.Kill();
+            progressGaugeTween = fillRect.DOSizeDelta(new Vector2(targetWidth, fillRect.sizeDelta.y), progressGaugeTweenDuration)
+                .SetEase(Ease.OutQuad);
+        }
     }
 
     // =========================================================

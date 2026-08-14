@@ -7,8 +7,11 @@ public class ClueSlot : MonoBehaviour
 {
     [Header("단서 슬롯 UI 컴포넌트들")]
     [SerializeField] private TextMeshProUGUI sourceText;
+    [SerializeField] private Image sourceIcon;
     [SerializeField] private TextMeshProUGUI contentText;
     [SerializeField] private Image clueImage;
+    [Tooltip("clueImage의 부모(이미지가 없을 때 통째로 숨겨서, 텍스트만 있는 단서에서 빈 여백이 남지 않도록 함)")]
+    [SerializeField] private GameObject imageContainer;
 
     [Header("다중 선택용 체크박스")]
     [SerializeField] private Toggle selectionToggle;
@@ -34,14 +37,25 @@ public class ClueSlot : MonoBehaviour
             sourceText.text = string.IsNullOrEmpty(data.sourceType) ? "" : $"[{data.sourceType}]";
         }
 
+        if (sourceIcon != null)
+        {
+            Sprite icon = DataLogManager.Instance != null ? DataLogManager.Instance.GetSourceIcon(data.sourceType) : null;
+            sourceIcon.sprite = icon;
+            sourceIcon.gameObject.SetActive(icon != null);
+        }
+
         if (contentText != null)
         {
-            contentText.text = data.contentText;
+            bool hasText = !string.IsNullOrEmpty(data.contentText);
+            contentText.gameObject.SetActive(hasText);
+            if (hasText) contentText.text = data.contentText;
         }
 
         if (clueImage != null)
         {
-            if (!string.IsNullOrEmpty(data.imageName))
+            bool hasImage = !string.IsNullOrEmpty(data.imageName);
+
+            if (hasImage)
             {
                 Sprite loadedSprite = LoadClueSprite(data.imageName);
 
@@ -49,6 +63,7 @@ public class ClueSlot : MonoBehaviour
                 {
                     clueImage.sprite = loadedSprite;
                     clueImage.gameObject.SetActive(true);
+                    if (imageContainer != null) imageContainer.SetActive(true);
 
                     // 💡 이미지 비율에 맞춰 AspectRatioFitter 값 갱신
                     if (containerAspectRatioFitter != null)
@@ -60,12 +75,14 @@ public class ClueSlot : MonoBehaviour
                 else
                 {
                     clueImage.gameObject.SetActive(false);
+                    if (imageContainer != null) imageContainer.SetActive(false);
                     Debug.LogWarning($"[ClueSlot] 이미지 로드 실패: {data.imageName} (모든 폴더에서 찾지 못함)");
                 }
             }
             else
             {
                 clueImage.gameObject.SetActive(false);
+                if (imageContainer != null) imageContainer.SetActive(false);
             }
         }
 
