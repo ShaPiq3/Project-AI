@@ -33,9 +33,11 @@ public class PostItemUI : MonoBehaviour
         postData = data;
         manager = communityManager;
 
+        // 💡 [추가] 아카라이브 스타일 - 제목 옆에 댓글 수를 [숫자]로 붙여서 표시.
+        // 댓글이 0개면 [0]으로 나오는 게 어색하면 아래 3항 연산자를 조건부로 바꿔도 됩니다.
+        int commentCount = (data.comments != null) ? data.comments.Count : 0;
+        titleText.text = $"{data.title} [{commentCount}]";
 
-        // 화면에 엑셀에서 읽어온 텍스트 뿌려주기
-        titleText.text = data.title;
         authorText.text = data.author;
         dateText.text = data.date;
         likesText.text = data.likes.ToString();
