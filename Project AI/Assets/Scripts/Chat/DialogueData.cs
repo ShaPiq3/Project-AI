@@ -35,6 +35,9 @@ public class DialogueData
     public int correctDialogueID;
     public int incorrectDialogueID;
 
+    // 💡 [오류 파라미터] isTrigger 행에서만 의미가 있음. 이 퀘스트를 실패했을 때 오류 파라미터가 오르는 양.
+    public float errorWeight;
+
     // ==========================================================
     // 💡 [이미지 생성 퀘스트 추가] DialogueData 클래스 내부에 아래 3개 필드를 추가하세요.
     // 메인 대화 CSV의 25, 26, 27번째 컬럼 (기존 24번째 컬럼 incorrectDialogueID 바로 뒤)

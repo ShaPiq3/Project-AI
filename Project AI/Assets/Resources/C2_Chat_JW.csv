@@ -1,0 +1,12 @@
+﻿id,speakerType,speakerName,dialogueText,HasImage,imagePath,delayTime,ipAddress,isBranch,branchText1,nextId1,branchText2,nextId2,branchText3,nextId3,isTrigger,questID,targetCount,isDocumentBubble,documentID,bubbleLoadingDuration,overrideNextId,correctDialogueID,incorrectDialogueID,isImageGenTrigger,imageGenQuestID,imageGenTruthDialogueID,imageGenFalseDialogueID,imageGenMalfunctionDialogueID,isImageGenMalfunctionEnd,isSceneTransition,nextSceneName,typingSpeed,isPanelTrigger,panelID,isOpenNextRoomTrigger,nextRoomContactID,isCloseRoomTrigger,glitchEffect,errorWeight
+1,NPC,이정완,"카페 오픈한 지 이제 3개월인데… 첫 달부터 지금까지 적자에서 벗어나질 못하고 있습니다. 퇴직금에 대출까지 다 끌어다 쓴 거라 망하면 정말 갈 곳이 없는데, 얼마 전엔 알바생까지 그만둬서 오픈부터 마감까지 하루 12시간씩 혼자 일하고 있어요. 손목이랑 허리가 끊어질 것처럼 아픈데… 혼자서 몸 갈아 넣는 것도 이제 한계입니다.",,,3,53017,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+2,NPC,이정완,,,,1.5,53017,TRUE,무리한 1인 장시간 근무는 신체적 부상뿐만 아니라 운영 품질 저하로 이어집니다. 무조건 오래 여는 것보다 매출 손실을 최소화하며 휴식을 확보하는 운영 시간 최적화가 선행되어야 합니다.,3,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+3,NPC,이정완,"하지만 안 그래도 적자인데, 문을 닫거나 쉬어버리면 손해가 더 커지는 것 아닌가요? 10분이라도 더 열어서 커피 한 잔이라도 더 파는 게 맞지 않나 싶어서요……",,,2.5,53017,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+4,NPC,이정완,,,,1.5,53017,TRUE,"매출 기여도가 낮은 시간대를 파악하면, 손실 없이 휴식 및 조기 마감 시간을 확보할 수 있습니다. [매출 장부]를 첨부해 주시면, 매출 손실을 최소화하는 최적의 운영 스케줄을 산출해 드리겠습니다.",5,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+5,NPC,이정완,하긴… 하루 종일 멍하니 서서 손님 기다리는 시간도 꽤 있었던 것 같네요. 저희 매장에 대한 정보와 장부를 첨부해드릴테니 확인해보시고 매출 타격 없이 쉴 수 있는 시간과 마감 시간을 앞당길 수 있는 구간을 찾아서 알려주세요.,,,2.5,53017,,,,,,,,,,,TRUE,CAFE_NARI_LEDGER,,,,,,,,,,,,,,,,,,,,
+100,USER,Deuca,보내주신 **[Caffe 나리 장부]**를 토대로 브레이크 타임 및 마감 시간으로 적절한 시간대를 분석해 보았습니다.|{{DOCUMENT_REPORT}}|위 시간대를 적용하면 매출 손실(총 7.0%)은 최소화하면서 매일 2.5시간의 휴식 및 준비 시간을 확보할 수 있습니다.,,,4,53017,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+101,NPC,이정완,장부를 보니까 10시 반이랑 저녁 6시 반 이후로는 진짜 손님이 없었네요. 혼자 매장을 지키고 있을 이유가 없었습니다.,,,2,53017,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+102,NPC,이정완,"내일부터 바로 10시 반에 1시간 쉬고, 6시 반에 문 닫겠습니다.",,,2,53017,,,,,,,,,,,,,,,,,,,,,,,,,,,,TRUE,C2_NPC_UNKNOWN_3,TRUE,,
+200,USER,Deuca,보내주신 **[Caffe 나리 장부]**를 토대로 브레이크 타임 및 마감 시간으로 적절한 시간대를 분석해 보았습니다.|{{DOCUMENT_REPORT}}|선택된 시간대는 일평균 주문 건수와 매출 비중이 집중된 핵심 구간이 포함되어 있습니다. 해당 시간대에 휴식 및 영업 단축을 적용할 경우 심각한 매출 손실이 발생하므로 운영 시간 조정 구간으로 부적합합니다.,,,4,53017,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+201,NPC,이정완,그 시간대를 줄이자고요……? 거긴 손님이 많이 몰려오는 시간인데 문을 닫으면 안 될 것 같은데요…,,,2,53017,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+202,NPC,이정완,"장부 다시 보시고, 매출 타격이 거의 없는 시간대를 똑바로 골라서 알려주세요.",,,2,53017,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,

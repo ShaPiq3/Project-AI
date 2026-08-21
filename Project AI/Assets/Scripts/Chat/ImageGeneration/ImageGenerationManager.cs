@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
@@ -42,6 +43,7 @@ public class ImageGenQuestResultConfig
     public int falseDialogueID;
     public int malfunctionDialogueID;
     public string contactID; // 멀티 NPC 챕터에서 판정 결과 대화를 어느 연락처 스레드로 점프시킬지
+    public float errorWeight = 10f; // 💡 [오류 파라미터] "오작동" 판정일 때 오류 파라미터가 오르는 양
 }
 
 /// <summary>
@@ -59,6 +61,9 @@ public class ImageGenSlotRuntime
 public class ImageGenerationManager : MonoBehaviour
 {
     public static ImageGenerationManager Instance { get; private set; }
+
+    /// <summary> 💡 [오류 파라미터] 이미지생성 퀘스트가 "오작동" 판정일 때 (questID, errorWeight)와 함께 발생 </summary>
+    public static event Action<string, float> OnQuestMalfunction;
 
     [Header("CSV 데이터")]
     public TextAsset slotItemCsv;      // ImageGenSlotItems.csv
@@ -305,6 +310,7 @@ public class ImageGenerationManager : MonoBehaviour
             int.TryParse(c[3].Trim(), out cfg.truthDialogueID);
             int.TryParse(c[4].Trim(), out cfg.falseDialogueID);
             int.TryParse(c[5].Trim(), out cfg.malfunctionDialogueID);
+            if (c.Length >= 7 && float.TryParse(c[6].Trim(), out var ew)) cfg.errorWeight = ew;
 
             resultByQuestID[cfg.questID] = cfg;
         }
@@ -596,6 +602,7 @@ public class ImageGenerationManager : MonoBehaviour
         else
         {
             targetDialogueID = cfg.malfunctionDialogueID; // 오작동 -> 대화에서 텍스트+이미지 출력 후 재시도 가능
+            OnQuestMalfunction?.Invoke(currentQuestID, cfg.errorWeight);
         }
 
         ChatCoordinator.JumpToDialogueSafe(cfg.contactID, targetDialogueID);

@@ -7,6 +7,7 @@ public class TaskbarManager : MonoBehaviour
     public bool IsNewsPanelActive() => newsSet.popupPanel != null && newsSet.popupPanel.activeSelf;
     // 💡 [추가]
     public bool IsCommunityPanelActive() => communitySet.popupPanel != null && communitySet.popupPanel.activeSelf;
+    public bool IsHumanDBPanelActive() => humanDBSet.popupPanel != null && humanDBSet.popupPanel.activeSelf;
 
     public static TaskbarManager Instance { get; private set; }
 
@@ -26,6 +27,7 @@ public class TaskbarManager : MonoBehaviour
     [SerializeField] private TaskbarSet newsSet = new TaskbarSet();
     // 💡 [추가]
     [SerializeField] private TaskbarSet communitySet = new TaskbarSet();
+    [SerializeField] private TaskbarSet humanDBSet = new TaskbarSet();
 
     void Awake()
     {
@@ -36,6 +38,7 @@ public class TaskbarManager : MonoBehaviour
         InitSet(newsSet);
         // 💡 [추가]
         InitSet(communitySet);
+        InitSet(humanDBSet);
     }
 
     private void InitSet(TaskbarSet set)
@@ -49,6 +52,7 @@ public class TaskbarManager : MonoBehaviour
     public void ToggleNewsPopup() => TogglePopup(newsSet.popupPanel);
     // 💡 [추가]
     public void ToggleCommunityPopup() => TogglePopup(communitySet.popupPanel);
+    public void ToggleHumanDBPopup() => TogglePopup(humanDBSet.popupPanel);
 
     private void TogglePopup(GameObject panel)
     {
@@ -59,11 +63,13 @@ public class TaskbarManager : MonoBehaviour
     public void AddNewsWindow(string windowName, GameObject windowObject) => SpawnItemButton(newsSet, windowName, windowObject);
     // 💡 [추가]
     public void AddCommunityWindow(string windowName, GameObject windowObject) => SpawnItemButton(communitySet, windowName, windowObject);
+    public void AddHumanDBWindow(string windowName, GameObject windowObject) => SpawnItemButton(humanDBSet, windowName, windowObject);
 
     public void RemoveArchiveWindow(GameObject windowObject) => DestroyItemButton(archiveSet, windowObject);
     public void RemoveNewsWindow(GameObject windowObject) => DestroyItemButton(newsSet, windowObject);
     // 💡 [추가]
     public void RemoveCommunityWindow(GameObject windowObject) => DestroyItemButton(communitySet, windowObject);
+    public void RemoveHumanDBWindow(GameObject windowObject) => DestroyItemButton(humanDBSet, windowObject);
 
     private void SpawnItemButton(TaskbarSet set, string name, GameObject winObj)
     {

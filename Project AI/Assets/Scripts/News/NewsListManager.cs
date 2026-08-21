@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using System.Text;
 
 public class NewsListManager : MonoBehaviour
@@ -32,9 +34,30 @@ public class NewsListManager : MonoBehaviour
     // 같은 기사를 또 열려고 하면 새로 만들지 않고 이 창을 맨 앞으로만 가져옵니다.
     private Dictionary<int, NewsCard> openNewsWindows = new Dictionary<int, NewsCard>();
 
+    // 💡 [추가] unlockQuestID가 있는 기사는 처음엔 숨겨두고, 해당 퀘스트가 EP.1_Q4처럼
+    // 성공 판정되는 순간 여기서 찾아서 보여줍니다.
+    private readonly Dictionary<string, List<GameObject>> lockedButtonsByQuestID = new Dictionary<string, List<GameObject>>();
+
+    // 💡 [추가] 게임 진행 순서대로 나열한 씬 목록. CSV의 unlockSceneName은 이 목록에 있는 이름만
+    // 인식합니다. 나중에 씬이 늘어나면(MainScene_3 등) 여기에 순서대로 추가하기만 하면 됩니다.
+    private static readonly string[] SceneProgressionOrder = { "MainScene", "MainScene_2" };
+    // 💡 [추가] 씬 조건 때문에 숨겨진 버튼들. SelectCategory()에서 카테고리를 바꿔도
+    // 다시 켜지지 않도록 lockedButtonsByQuestID와 마찬가지로 IsLocked()에서 함께 체크합니다.
+    private readonly HashSet<GameObject> sceneGatedButtons = new HashSet<GameObject>();
+
     private void Awake()
     {
         if (Instance == null) Instance = this;
+    }
+
+    private void OnEnable()
+    {
+        DataLogManager.OnQuestJudged += HandleQuestJudged;
+    }
+
+    private void OnDisable()
+    {
+        DataLogManager.OnQuestJudged -= HandleQuestJudged;
     }
 
     private void Start()
@@ -45,6 +68,23 @@ public class NewsListManager : MonoBehaviour
         SelectCategory("ALL");
     }
 
+    /// <summary>
+    /// 💡 [추가] 퀘스트가 판정될 때마다 호출됩니다. 그 questID로 잠겨있던 기사가 있고
+    /// 성공 판정이었다면, 지금부터 목록에 보이게 풀어줍니다.
+    /// </summary>
+    private void HandleQuestJudged(string questID, bool isSuccess, float errorWeight)
+    {
+        if (!isSuccess || string.IsNullOrEmpty(questID)) return;
+        if (!lockedButtonsByQuestID.TryGetValue(questID, out var buttons)) return;
+
+        foreach (var btnGo in buttons)
+        {
+            if (btnGo != null) btnGo.SetActive(true);
+        }
+
+        lockedButtonsByQuestID.Remove(questID);
+    }
+
     // 1. 엑셀 파싱 및 리스트 버튼 동적 생성
     private void ParseExcelAndGenerateButtons()
     {
@@ -52,8 +92,9 @@ public class NewsListManager : MonoBehaviour
 
         List<List<string>> csvData = ParseCSV(csvFile.text);
 
-        // i = 1 부터 시작 (첫 줄 헤더 제외)
-        for (int i = 1; i < csvData.Count; i++)
+        // 💡 [변경] CSV에 나중에 적힌(아래쪽) 기사가 목록 맨 위로 오도록 역순으로 순회합니다.
+        // (헤더 행인 0번은 제외하고, 마지막 행부터 1번 행까지)
+        for (int i = csvData.Count - 1; i >= 1; i--)
         {
             List<string> row = csvData[i];
 
@@ -81,6 +122,12 @@ public class NewsListManager : MonoBehaviour
             // 💡 제목 클릭 단서 ID (11번째 컬럼). 비어있으면 제목은 수집 대상 아님.
             string titleClue = (row.Count > 10) ? row[10] : "";
 
+            // 💡 [추가] 이 기사를 숨겨뒀다가 풀어줄 questID (12번째 컬럼). 비어있으면 항상 보임.
+            string unlockQuestID = (row.Count > 11) ? row[11] : "";
+
+            // 💡 [추가] 이 기사가 등장하기 시작하는 씬 이름 (13번째 컬럼). 비어있으면 항상 보임.
+            string unlockSceneName = (row.Count > 12) ? row[12] : "";
+
             NewsData data = new NewsData
             {
                 id = idResult,
@@ -93,7 +140,9 @@ public class NewsListManager : MonoBehaviour
                 clueParagraphIndex = paragraphIdx,
                 bodyClueID = bodyClue,
                 collectibleImageID = collectibleImageID,
-                titleClueID = titleClue
+                titleClueID = titleClue,
+                unlockQuestID = unlockQuestID,
+                unlockSceneName = unlockSceneName
             };
 
             // 💡 나중에 clueID로 검색할 수 있도록 저장
@@ -108,6 +157,23 @@ public class NewsListManager : MonoBehaviour
                 // 💡 [변경] 목록 썸네일이 아니라 "본문을 열었을 때 보이는 이미지"를
                 // 클릭해야 수집되도록, 여기서는 더 이상 바인딩하지 않습니다.
                 // (실제 바인딩은 NewsCard.SetNewsData()에서 처리)
+            }
+
+            // 💡 [추가] unlockQuestID가 있으면 처음엔 숨겨두고, 나중에 퀘스트 성공 시 풀어줍니다.
+            if (!string.IsNullOrEmpty(unlockQuestID))
+            {
+                btnGo.SetActive(false);
+
+                if (!lockedButtonsByQuestID.ContainsKey(unlockQuestID))
+                    lockedButtonsByQuestID[unlockQuestID] = new List<GameObject>();
+                lockedButtonsByQuestID[unlockQuestID].Add(btnGo);
+            }
+
+            // 💡 [추가] unlockSceneName이 지정되어 있고 아직 그 씬에 도달하지 않았다면 숨겨둡니다.
+            if (!string.IsNullOrEmpty(unlockSceneName) && !HasReachedScene(unlockSceneName))
+            {
+                btnGo.SetActive(false);
+                sceneGatedButtons.Add(btnGo);
             }
         }
     }
@@ -197,6 +263,13 @@ public class NewsListManager : MonoBehaviour
             Transform child = contentParent.GetChild(i);
             if (child == null) continue;
 
+            // 💡 [추가] 아직 퀘스트가 안 풀려서 잠겨있는 기사는 카테고리 필터와 무관하게 계속 숨겨둡니다.
+            if (IsLocked(child.gameObject))
+            {
+                child.gameObject.SetActive(false);
+                continue;
+            }
+
             if (isAll)
             {
                 child.gameObject.SetActive(true);
@@ -221,6 +294,42 @@ public class NewsListManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 💡 [추가] 현재 활성화된 씬이 requiredSceneName "이상"(같거나 그 이후 진행 단계)인지 확인합니다.
+    /// SceneProgressionOrder에 없는 씬 이름이 들어오면(오타 등) 콘텐츠가 영구히 숨겨지는 걸 막기 위해
+    /// 안전하게 true(노출)로 처리하고 경고를 남깁니다.
+    /// </summary>
+    private bool HasReachedScene(string requiredSceneName)
+    {
+        string currentSceneName = SceneManager.GetActiveScene().name;
+        int currentIndex = Array.IndexOf(SceneProgressionOrder, currentSceneName);
+        int requiredIndex = Array.IndexOf(SceneProgressionOrder, requiredSceneName);
+
+        if (currentIndex < 0)
+        {
+            Debug.LogWarning($"[NewsListManager] 현재 씬 '{currentSceneName}'이 SceneProgressionOrder에 등록되어 있지 않습니다. 기본값(노출)으로 처리합니다.");
+            return true;
+        }
+        if (requiredIndex < 0)
+        {
+            Debug.LogWarning($"[NewsListManager] CSV의 unlockSceneName '{requiredSceneName}'이 SceneProgressionOrder에 등록되어 있지 않습니다. 기본값(노출)으로 처리합니다.");
+            return true;
+        }
+
+        return currentIndex >= requiredIndex;
+    }
+
+    private bool IsLocked(GameObject btnGo)
+    {
+        if (sceneGatedButtons.Contains(btnGo)) return true;
+
+        foreach (var buttons in lockedButtonsByQuestID.Values)
+        {
+            if (buttons.Contains(btnGo)) return true;
+        }
+        return false;
+    }
+
     // 3. 버튼을 눌렀을 때 상세 팝업을 열어주는 중계 함수
     // 💡 하나의 팝업을 재사용하던 방식에서, 클릭마다 새로 복제해서
     // 여러 창을 동시에 띄우는 방식으로 변경. 같은 기사가 이미 열려있으면
@@ -232,6 +341,10 @@ public class NewsListManager : MonoBehaviour
         // 이미 열려있는 기사라면 그 창을 맨 앞으로만 가져오고 끝
         if (openNewsWindows.TryGetValue(data.id, out NewsCard existingWindow) && existingWindow != null)
         {
+            // 💡 최소화(ToggleWindowImmediate)로 비활성화된 상태일 수 있으므로, 다시 켜준 뒤에 진행합니다.
+            // (비활성 오브젝트에서 바로 애니메이션 코루틴을 돌리면 에러가 납니다.)
+            if (!existingWindow.gameObject.activeSelf) existingWindow.gameObject.SetActive(true);
+
             existingWindow.transform.SetAsLastSibling();
 
             PopupSpawnAnimation existingAnim = existingWindow.GetComponent<PopupSpawnAnimation>();

@@ -1,0 +1,2 @@
+﻿id,name,birth,gender,bloodType,occupation,contact,email,address,note,imageName,addressClueID,occupationClueID,noteClueIDs
+2,강도훈,1979. 04. 12,남성,O형,프로야구단 감독(전 야구 선수),+82 10-7904-1208,dohoon.kang@lottegiants.kr,"서울특별시 서초구 반포대로 301, 아크로리버파크 102동","세대 구성: 본인(세대주) 외 배우자 1인, 미성년 직계비속 2인 동거 등록|사법/행정 처분: 형사 처벌 및 행정 제재 이력 없음 (조회 결과: 무)|자격/등록: KBO 공인 전문스포츠지도사 1급, 구단 총괄 임원 등록자",NPC_KANG_1,EP1Q4_ADDR,EP1Q4_JOB,EP1Q4_HOUSEHOLD|EP1Q4_LEGAL_CLEAN|

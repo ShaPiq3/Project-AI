@@ -200,10 +200,25 @@ public class ChatCoordinator : MonoBehaviour
             showButton.gameObject.SetActive(false);
         }
 
-        if (autoOpenDelay > 0f && !string.IsNullOrEmpty(autoOpenContactID))
+        // 💡 [오류 파라미터 - 자동세이브] 게임오버 "이어하기"로 이 씬에 들어온 경우,
+        // 저장된 체크포인트의 연락처/대사 지점으로 점프시킨다. 각 ChatThreadController의
+        // CSV 파싱(ParseCSV)이 자기 Start()에서 일어나기 때문에, 실행 순서 문제를 피하려고
+        // 한 프레임 기다렸다가(다른 모든 Start()가 끝난 뒤) 호출한다.
+        if (CheckpointManager.ConsumePendingRestore(out var checkpoint) && !string.IsNullOrEmpty(checkpoint.contactID))
+        {
+            StartCoroutine(RestoreCheckpointNextFrame(checkpoint));
+        }
+        else if (autoOpenDelay > 0f && !string.IsNullOrEmpty(autoOpenContactID))
         {
             StartCoroutine(StartAbsoluteTimer());
         }
+    }
+
+    private IEnumerator RestoreCheckpointNextFrame(CheckpointData checkpoint)
+    {
+        yield return null;
+        OpenRoom(checkpoint.contactID);
+        JumpToDialogueSafe(checkpoint.contactID, checkpoint.dialogueID);
     }
 
     IEnumerator StartAbsoluteTimer()
@@ -373,6 +388,15 @@ public class ChatCoordinator : MonoBehaviour
     /// </summary>
     public void OpenRoom(string contactID)
     {
+        // 💡 [추가] 게임오버로 잠긴 상태면, 게임오버 방 자신을 여는 호출(LockToGameOverRoom 내부)을
+        // 제외한 모든 OpenRoom 요청을 무시한다. JumpToDialogueSafe가 원래 진행 중이던 방으로
+        // 다시 OpenRoom을 호출해서 포커스를 되찾아가는 문제를 여기서 막는다.
+        if (isGameOverLocked && contactID != gameOverLockedContactID)
+        {
+            Debug.Log($"[ChatCoordinator] 게임오버 상태라 '{contactID}' 방을 열지 않습니다.");
+            return;
+        }
+
         if (!threadsByID.ContainsKey(contactID))
         {
             Debug.LogWarning($"[ChatCoordinator] contactID '{contactID}' 에 해당하는 ChatThreadController를 찾지 못했습니다.");
@@ -482,6 +506,39 @@ public class ChatCoordinator : MonoBehaviour
                 OnFocusCleared?.Invoke();
             }
         }
+    }
+
+    /// <summary>
+    /// 💡 [추가] 현재 열려 있는 대화방을 전부 닫는다("진행중" 슬롯 + 시스템 슬롯 + 아카이브 슬롯).
+    /// </summary>
+    private void CloseAllRooms()
+    {
+        foreach (var contactID in new List<string>(openStoryContactIDs))
+        {
+            CloseRoom(contactID);
+        }
+        if (!string.IsNullOrEmpty(openSystemContactID)) CloseRoom(openSystemContactID);
+        if (!string.IsNullOrEmpty(openArchiveContactID)) CloseRoom(openArchiveContactID);
+    }
+
+    private bool isGameOverLocked = false;
+    private string gameOverLockedContactID = "";
+
+    /// <summary>
+    /// 💡 [추가] 게임오버 전용. 열려 있던 모든 방을 닫고 게임오버 방(보통 시스템 연락처)만 연 뒤,
+    /// 이후로는 어떤 경로(JumpToDialogueSafe가 원래 방으로 OpenRoom을 다시 부르는 경우 포함)로도
+    /// 다른 방이 열리지 못하도록 잠근다. 판정 함수들(DataLogManager 등)이 OnQuestJudged를 쏜 직후
+    /// 자기 방으로 JumpToDialogueSafe를 또 부르면서 포커스를 되찾아가던 문제를 막기 위함.
+    /// </summary>
+    public void LockToGameOverRoom(string gameOverContactID)
+    {
+        if (isGameOverLocked) return;
+
+        isGameOverLocked = true;
+        gameOverLockedContactID = gameOverContactID;
+
+        CloseAllRooms();
+        OpenRoom(gameOverContactID);
     }
 
     private void CreateTabButton(string contactID, string displayName)

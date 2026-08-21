@@ -98,9 +98,16 @@ public class ClueImageHoverEffect : MonoBehaviour, IPointerEnterHandler, IPointe
         ClueIdentifyResult result = DataLogManager.Instance.IdentifyClue(questID, targetClueID);
         ClueScanEffectController.Instance?.PlayScanEffect(GetComponent<RectTransform>(), result);
 
-        if (result == ClueIdentifyResult.Collectible)
+        // 💡 이미 수집한 단서를 다른 출처(예: 다른 게시글)에서 다시 클릭한 경우에도,
+        // 기존 항목을 최신 클릭 정보로 갱신하기 위해 AcquireClue를 그대로 호출합니다.
+        if (result == ClueIdentifyResult.Collectible || result == ClueIdentifyResult.AlreadyCollected)
         {
             DataLogManager.Instance.AcquireClue(this.questID, this.targetClueID, this.sourceTitleOverride);
+
+            // 💡 [변경] 실제로 단서를 수집했을 때만 단서 수집 모드를 끈다. 단서가 아닌 이미지를
+            // 잘못 클릭했을 때도 무조건 꺼버리면, 원하는 단서를 못 맞히는 클릭 한 번마다 모드가
+            // 꺼져서 다시 켜야 하는 문제가 있었다.
+            DataLogManager.Instance.CloseClueSearchMode();
         }
 
         StartCoroutine(ScanLockRoutine());

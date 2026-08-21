@@ -16,12 +16,18 @@ EditorBuildSettings:
     guid: 8c9cfa26abfee488c85f1582747f6a02
   - enabled: 1
     path: Assets/Scenes/VNScene_1.unity
-    guid: 39f34b92b3db316469f4be2be908a667
+    guid: be6e761818e9e0b4c8191dfacd28fb05
   - enabled: 1
     path: Assets/Scenes/VNScene_1_1.unity
     guid: 3855b16bbb9bc5c4bbc1a97f94a41833
   - enabled: 1
     path: Assets/Scenes/MainScene_2.unity
     guid: 33f6f601cba68ea43af9f124aab276d8
+  - enabled: 1
+    path: Assets/Scenes/VNScene_2_1.unity
+    guid: 79171b8bd47e3864caa2e01a895817ce
+  - enabled: 1
+    path: Assets/Scenes/GameOverScene.unity
+    guid: d6deb37deca3b6e4c8b8ea7062482b43
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}

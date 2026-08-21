@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.InputSystem;
 using DG.Tweening;
 
 /// <summary>
@@ -18,6 +20,9 @@ public enum ClueIdentifyResult
 public class DataLogManager : MonoBehaviour
 {
     public static DataLogManager Instance { get; private set; }
+
+    /// <summary> 💡 [오류 파라미터] 단서조사 퀘스트가 판정될 때마다 (questID, isSuccess, errorWeight)와 함께 발생 </summary>
+    public static event Action<string, bool, float> OnQuestJudged;
 
     [Header("UI References")]
     [SerializeField] private GameObject clueSlotPrefab;
@@ -69,6 +74,16 @@ public class DataLogManager : MonoBehaviour
     [SerializeField] private Sprite clueCollectNormalSprite;  // 평소(꺼짐) 스프라이트
     [SerializeField] private Sprite clueCollectActiveSprite;  // 단서 수집 모드 켜짐 스프라이트
 
+    [Header("단서 수집 버튼 강조 애니메이션")]
+    [Tooltip("버튼이 클릭 가능(Active) 상태가 되는 동안 아이콘 이미지만 위아래로 아주 살짝 흔들어 눈에 띄게 한다 (버튼 자체 위치/레이아웃은 안 건드림)")]
+    [SerializeField] private float clueButtonBobDistance = 2f;
+    [SerializeField] private float clueButtonBobDuration = 0.6f;
+
+    private RectTransform clueCollectButtonIconRect;
+    private Vector2 clueCollectButtonIconRestPos;
+    private Tween clueCollectButtonBobTween;
+    private bool isClueButtonHovered = false;
+
     [Header("Sidebar MiniIcon 연동")]
     [Tooltip("단서 수집 상태를 사이드바 미니아이콘으로 보여주기 위한 SidebarController 참조")]
     [SerializeField] private SidebarController sidebarController;
@@ -100,6 +115,8 @@ public class DataLogManager : MonoBehaviour
 
     // 전체 단서 데이터베이스 (엑셀에서 파싱해서 담아둘 사전)
     private Dictionary<string, ClueData> clueDatabase = new Dictionary<string, ClueData>();
+    // 💡 [추가] ClueExcelData.csv에 적힌 순서를 그대로 보존한 리스트 (보고서 조립용 - Dictionary는 순서를 보장하지 않음)
+    private List<ClueData> clueDatabaseOrdered = new List<ClueData>();
 
     // 플레이어가 실제로 인게임에서 획득/수집한 단서 목록
     private List<ClueData> collectedClues = new List<ClueData>();
@@ -192,6 +209,7 @@ public class DataLogManager : MonoBehaviour
         public int correctDialogueID;
         public int incorrectDialogueID;
         public string contactID; // 멀티 NPC 챕터에서 정답/오답 대화를 어느 연락처 스레드로 점프시킬지
+        public float errorWeight; // 💡 [오류 파라미터] 이 퀘스트를 실패했을 때 오류 파라미터가 오르는 양
     }
     private Dictionary<string, QuestDialogueConfig> questDialogueConfigs = new Dictionary<string, QuestDialogueConfig>();
 
@@ -205,6 +223,11 @@ public class DataLogManager : MonoBehaviour
         if (clueCollectButton != null)
         {
             clueCollectButton.interactable = false;
+        }
+        if (clueCollectButtonImage != null)
+        {
+            clueCollectButtonIconRect = clueCollectButtonImage.GetComponent<RectTransform>();
+            if (clueCollectButtonIconRect != null) clueCollectButtonIconRestPos = clueCollectButtonIconRect.anchoredPosition;
         }
         UpdateClueCollectButtonSprite(false);
 
@@ -224,6 +247,19 @@ public class DataLogManager : MonoBehaviour
 
             edgeToggleCanvasGroup = edgeTarget.GetComponent<CanvasGroup>();
             if (edgeToggleCanvasGroup == null) edgeToggleCanvasGroup = edgeTarget.AddComponent<CanvasGroup>();
+        }
+    }
+
+    /// <summary>
+    /// 💡 [추가] Q 키로도 사이드바 "단서 수집" 버튼을 누른 것과 동일하게 단서 수집 모드에
+    /// 진입할 수 있게 한다. 트리거가 진행 중이 아니면(OnClueCollectButtonClicked의 가드)
+    /// 아무 일도 일어나지 않아 버튼이 비활성화된 상태와 동일하게 동작한다.
+    /// </summary>
+    private void Update()
+    {
+        if (Keyboard.current != null && Keyboard.current.qKey.wasPressedThisFrame)
+        {
+            OnClueCollectButtonClicked();
         }
     }
 
@@ -273,6 +309,51 @@ public class DataLogManager : MonoBehaviour
             : clueCollectNormalSprite;
     }
 
+    /// <summary>
+    /// 💡 [추가] 마우스가 버튼 위에 있는 동안은(ClueCollectButtonHoverRelay가 알려줌)
+    /// 흔들림을 멈춘다. 호버를 뗐을 때 상태를 다시 계산해서 흔들림을 재개할 수 있게 한다.
+    /// </summary>
+    public void SetClueButtonHovered(bool hovered)
+    {
+        isClueButtonHovered = hovered;
+        RefreshClueButtonBobbing();
+    }
+
+    /// <summary>
+    /// 💡 [추가] 버튼이 클릭 가능(Active) 상태이고, 마우스가 올라가 있지 않고,
+    /// 단서 수집 모드가 켜져 있지 않을 때만 흔들림이 재생되도록 현재 상태를 다시 계산한다.
+    /// </summary>
+    private void RefreshClueButtonBobbing()
+    {
+        bool shouldBob = activeTriggerCount > 0 && !isClueButtonHovered && !IsClueSearchModeActive;
+        SetClueCollectButtonBobbing(shouldBob);
+    }
+
+    /// <summary>
+    /// 💡 [추가] 버튼이 클릭 가능(Active) 상태가 되면 아이콘 이미지만 위아래로 아주 살짝
+    /// 계속 흔들어서 플레이어가 지금 누를 수 있는 상태라는 걸 더 명확히 인지하게 한다.
+    /// 버튼 자체(레이아웃 상의 위치)는 건드리지 않는다.
+    /// </summary>
+    private void SetClueCollectButtonBobbing(bool active)
+    {
+        if (clueCollectButtonIconRect == null) return;
+
+        clueCollectButtonBobTween?.Kill();
+
+        if (active)
+        {
+            clueCollectButtonBobTween = clueCollectButtonIconRect
+                .DOAnchorPosY(clueCollectButtonIconRestPos.y + clueButtonBobDistance, clueButtonBobDuration)
+                .SetEase(Ease.InOutSine)
+                .SetLoops(-1, LoopType.Yoyo)
+                .SetUpdate(true);
+        }
+        else
+        {
+            clueCollectButtonIconRect.anchoredPosition = clueCollectButtonIconRestPos;
+        }
+    }
+
     public void OnEdgeHoverEnter()
     {
         if (hoverCloseCoroutine != null)
@@ -303,6 +384,7 @@ public class DataLogManager : MonoBehaviour
     private void LoadClueDatabase()
     {
         clueDatabase.Clear();
+        clueDatabaseOrdered.Clear();
 
         List<Dictionary<string, object>> excelRows = CSVReader.Read("ClueExcelData"); // 예시 시트 이름
 
@@ -323,7 +405,19 @@ public class DataLogManager : MonoBehaviour
                 clue.isCorrect = bool.Parse(row["isCorrect"].ToString());
             }
 
+            // 💡 [추가] 오답 단서별로 다른 실패 대사를 지정할 때 씀. 컬럼이 없거나 비어있으면 0(기본값 그대로 사용).
+            if (row.ContainsKey("FailDialogueID"))
+            {
+                int.TryParse(row["FailDialogueID"].ToString(), out clue.failDialogueID);
+            }
+
+            if (row.ContainsKey("ImageDescription"))
+            {
+                clue.imageDescription = row["ImageDescription"].ToString();
+            }
+
             clueDatabase.Add(clue.clueID, clue);
+            clueDatabaseOrdered.Add(clue);
         }
     }
 
@@ -334,7 +428,7 @@ public class DataLogManager : MonoBehaviour
     /// (ChatDialogueManager가 isTrigger 행을 처리할 때, 같은 행에 적힌
     ///  correctDialogueID/incorrectDialogueID를 그대로 넘겨줍니다)
     /// </summary>
-    public void StartQuest(string questID, int targetCount, int correctDialogueID = 0, int incorrectDialogueID = 0, string contactID = "")
+    public void StartQuest(string questID, int targetCount, int correctDialogueID = 0, int incorrectDialogueID = 0, string contactID = "", float errorWeight = 10f)
     {
         questTargetCounts[questID] = targetCount;
         questCollectedClues[questID] = new List<string>();
@@ -345,7 +439,8 @@ public class DataLogManager : MonoBehaviour
             questID = questID,
             correctDialogueID = correctDialogueID,
             incorrectDialogueID = incorrectDialogueID,
-            contactID = contactID
+            contactID = contactID,
+            errorWeight = errorWeight
         };
 
         questStatusUI?.UpdateDisplay();
@@ -398,6 +493,7 @@ public class DataLogManager : MonoBehaviour
         }
 
         UpdateClueCollectButtonSprite(isActive);
+        RefreshClueButtonBobbing();
 
         if (!isActive && sidebarController != null && clueCollectTaskbarIndex >= 0)
         {
@@ -418,7 +514,6 @@ public class DataLogManager : MonoBehaviour
         if (string.IsNullOrEmpty(clueID) || string.IsNullOrEmpty(questID)) return;
         string cleanClueID = clueID.Trim();
 
-        if (collectedClues.Exists(c => c.clueID == cleanClueID)) return;
         if (ChatCoordinator.Instance == null) return;
 
         if (!questCollectedClues.ContainsKey(questID))
@@ -427,7 +522,12 @@ public class DataLogManager : MonoBehaviour
             return;
         }
 
-        if (questTargetCounts.TryGetValue(questID, out int targetCount))
+        // 💡 같은 ClueID를 이 퀘스트에서 이미 모은 적이 있다면, 지금 클릭은 "새로 추가"가 아니라
+        // "다른 출처에서 같은 단서를 다시 클릭"한 것으로 취급합니다. 이 경우 목표 개수 제한을
+        // 적용하지 않습니다 (원래 이미 세어져 있던 항목이라 개수가 늘어나지 않으므로).
+        bool alreadyInThisQuest = questCollectedClues[questID].Contains(cleanClueID);
+
+        if (!alreadyInThisQuest && questTargetCounts.TryGetValue(questID, out int targetCount))
         {
             int currentCount = questCollectedClues[questID].Count;
             if (currentCount >= targetCount)
@@ -443,14 +543,14 @@ public class DataLogManager : MonoBehaviour
             return;
         }
 
-        if (questCollectedClues.ContainsKey(questID))
+        if (!alreadyInThisQuest)
         {
-            if (!questCollectedClues[questID].Contains(cleanClueID))
-            {
-                questCollectedClues[questID].Add(cleanClueID);
-                questStatusUI?.UpdateDisplay();
-            }
+            questCollectedClues[questID].Add(cleanClueID);
+            questStatusUI?.UpdateDisplay();
         }
+
+        // 💡 같은 ClueID로 이미 DataLog에 들어가 있는 항목이 있으면 빼고, 최신 클릭 정보(출처 제목 등)로 다시 넣습니다.
+        bool isReplacing = collectedClues.RemoveAll(c => c.clueID == cleanClueID) > 0;
 
         ClueData collectedClue = new ClueData
         {
@@ -460,11 +560,14 @@ public class DataLogManager : MonoBehaviour
             contentText = targetClue.contentText,
             imageName = targetClue.imageName,
             questID = targetClue.questID,
-            isCorrect = targetClue.isCorrect
+            isCorrect = targetClue.isCorrect,
+            failDialogueID = targetClue.failDialogueID
         };
 
         collectedClues.Add(collectedClue);
-        CreateClueSlot(collectedClue);
+
+        if (isReplacing) RefreshClueUI();
+        else CreateClueSlot(collectedClue);
 
         if (clueCollectedAudioSource != null) clueCollectedAudioSource.Play();
     }
@@ -474,7 +577,7 @@ public class DataLogManager : MonoBehaviour
         if (questCollectedClues.ContainsKey(questID) && questCollectedClues[questID].Contains(clueID))
         {
             questCollectedClues[questID].Remove(clueID);
-            Object.FindAnyObjectByType<QuestStatusUI>()?.UpdateDisplay();
+            UnityEngine.Object.FindAnyObjectByType<QuestStatusUI>()?.UpdateDisplay();
         }
     }
 
@@ -554,6 +657,7 @@ public class DataLogManager : MonoBehaviour
         }
 
         IsClueSearchModeActive = true;
+        RefreshClueButtonBobbing();
 
         if (clueFilterPanel != null)
         {
@@ -573,40 +677,36 @@ public class DataLogManager : MonoBehaviour
 
     public void ToggleClueSearchMode()
     {
-        IsClueSearchModeActive = !IsClueSearchModeActive;
+        if (IsClueSearchModeActive) CloseClueSearchMode();
+        else OpenClueSearchMode();
+    }
+
+    /// <summary>
+    /// 💡 [추가] 단서를 하나 클릭하면(수집 성공/실패 상관없이) 단서 수집 모드를 바로 꺼서,
+    /// 다음 단서를 모으려면 사이드바 버튼을 다시 눌러 모드를 켜야 하게 만든다.
+    /// </summary>
+    public void CloseClueSearchMode()
+    {
+        if (!IsClueSearchModeActive) return;
+
+        IsClueSearchModeActive = false;
+        RefreshClueButtonBobbing();
 
         if (clueFilterPanel != null)
         {
-            if (IsClueSearchModeActive)
+            if (clueFilterPanelCanvasGroup != null)
             {
-                clueFilterPanel.SetActive(true);
-                clueFilterPanel.transform.SetAsLastSibling();
-
-                if (clueFilterPanelCanvasGroup != null)
-                {
-                    clueFilterPanelCanvasGroup.DOKill();
-                    clueFilterPanelCanvasGroup.alpha = 0f;
-                    clueFilterPanelCanvasGroup.DOFade(1f, duration).SetUpdate(true);
-                }
-
-                if (SoundManager.Instance != null) SoundManager.Instance.PlayClueSearchModeOnSound();
+                clueFilterPanelCanvasGroup.DOKill();
+                clueFilterPanelCanvasGroup.DOFade(0f, duration).SetUpdate(true)
+                    .OnComplete(() => clueFilterPanel.SetActive(false));
             }
             else
             {
-                if (clueFilterPanelCanvasGroup != null)
-                {
-                    clueFilterPanelCanvasGroup.DOKill();
-                    clueFilterPanelCanvasGroup.DOFade(0f, duration).SetUpdate(true)
-                        .OnComplete(() => clueFilterPanel.SetActive(false));
-                }
-                else
-                {
-                    clueFilterPanel.SetActive(false);
-                }
+                clueFilterPanel.SetActive(false);
             }
         }
 
-        if (!IsClueSearchModeActive && sidebarController != null && clueCollectTaskbarIndex >= 0)
+        if (sidebarController != null && clueCollectTaskbarIndex >= 0)
         {
             sidebarController.UpdateTaskbarStatus(clueCollectTaskbarIndex, 0, this);
         }
@@ -763,12 +863,56 @@ public class DataLogManager : MonoBehaviour
                 if (ArchiveManager.Instance != null)
                     found = ArchiveManager.Instance.TryOpenClueSource(clue.clueID);
                 break;
+
+            case "HUMANDB":
+                if (HumanDBManager.Instance != null)
+                    found = HumanDBManager.Instance.TryOpenClueSource(clue.clueID);
+                break;
         }
 
         if (!found)
         {
             Debug.LogWarning($"[원본 열기 실패] sourceType: {clue.sourceType}, clueID: {clue.clueID} 에 해당하는 원본을 찾지 못했습니다.");
         }
+    }
+
+    /// <summary>
+    /// 💡 [추가] 실제로 수집한 단서(정답/오답 상관없이)를 ClueExcelData.csv에 적힌 순서대로
+    /// "1. ...\n2. ..." 형태로 이어붙인다. 대사 CSV에서 {{CLUE_REPORT}} 플레이스홀더를 쓰면
+    /// (ChatBubbleController가) 이 결과로 치환한다 - 기존의 미리 써둔 정답/오답 대사와는
+    /// 완전히 별개의 방식이라, 퀘스트마다 둘 중 하나를 골라 쓰면 된다.
+    /// </summary>
+    public string LastGeneratedReport { get; private set; } = "";
+
+    private string GenerateClueReport(string questID)
+    {
+        if (string.IsNullOrEmpty(questID) || !questCollectedClues.TryGetValue(questID, out var collectedIDs))
+        {
+            return "";
+        }
+
+        List<string> lines = new List<string>();
+        int index = 1;
+        foreach (ClueData clue in clueDatabaseOrdered)
+        {
+            if (clue.questID != questID) continue;
+            if (!collectedIDs.Contains(clue.clueID)) continue;
+
+            // 💡 [추가] 이미지 전용 단서(ContentText가 비어있음)는 ImageDescription으로 대체.
+            // 그마저 없으면 "빈 줄" 대신 최소한의 안내 문구로 대체.
+            string reportLine = clue.contentText;
+            if (string.IsNullOrEmpty(reportLine))
+            {
+                reportLine = !string.IsNullOrEmpty(clue.imageDescription)
+                    ? clue.imageDescription
+                    : "(첨부된 이미지)";
+            }
+
+            lines.Add($"{index}. {reportLine}");
+            index++;
+        }
+
+        return string.Join("\n", lines);
     }
 
     /// <summary>
@@ -779,6 +923,19 @@ public class DataLogManager : MonoBehaviour
         bool isSuccess = CheckIfAllCluesAreCorrect();
 
         string currentQuestID = activeQuestIDs.Count > 0 ? activeQuestIDs[activeQuestIDs.Count - 1] : null;
+
+        // 💡 [추가] 대사 CSV에서 {{CLUE_REPORT}}를 쓸 경우를 대비해 항상 미리 조립해둔다
+        // (questCollectedClues는 이 시점에 아직 안 비워져 있어서 여기서 만들어도 안전함).
+        LastGeneratedReport = GenerateClueReport(currentQuestID);
+
+        // 💡 [추가] 실패했다면, 모은 오답 단서 중 전용 실패 대사(failDialogueID)가 지정된 게 있는지
+        // 먼저 확인해둔다. collectedClues가 아래에서 곧 비워지므로 그 전에 찾아야 함.
+        int specificFailDialogueID = 0;
+        if (!isSuccess && !string.IsNullOrEmpty(currentQuestID))
+        {
+            ClueData wrongClue = collectedClues.Find(c => c.questID == currentQuestID && !c.isCorrect && c.failDialogueID != 0);
+            if (wrongClue != null) specificFailDialogueID = wrongClue.failDialogueID;
+        }
 
         // 💡 답변 생성 버튼을 누르면 판정 결과와 상관없이
         // DataLog 패널이 오른쪽으로 슬라이드되며 닫히고, 수집했던 단서도 전부 비웁니다.
@@ -800,7 +957,10 @@ public class DataLogManager : MonoBehaviour
             return;
         }
 
-        int targetDialogueID = isSuccess ? config.correctDialogueID : config.incorrectDialogueID;
+        OnQuestJudged?.Invoke(currentQuestID, isSuccess, config.errorWeight);
+
+        int targetDialogueID = isSuccess ? config.correctDialogueID
+            : (specificFailDialogueID != 0 ? specificFailDialogueID : config.incorrectDialogueID);
 
         ChatCoordinator.JumpToDialogueSafe(config.contactID, targetDialogueID);
     }

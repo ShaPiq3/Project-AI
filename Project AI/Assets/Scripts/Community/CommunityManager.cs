@@ -331,6 +331,10 @@ public class CommunityManager : MonoBehaviour
         // 이미 열려있는 게시글이라면 그 창을 맨 앞으로만 가져오고 끝
         if (openPostWindows.TryGetValue(data.postID, out PostDetailPageUI existingWindow) && existingWindow != null)
         {
+            // 💡 최소화(ToggleWindowImmediate)로 비활성화된 상태일 수 있으므로, 다시 켜준 뒤에 진행합니다.
+            // (비활성 오브젝트에서 바로 애니메이션 코루틴을 돌리면 에러가 납니다.)
+            if (!existingWindow.gameObject.activeSelf) existingWindow.gameObject.SetActive(true);
+
             existingWindow.transform.SetAsLastSibling();
             PopupSpawnAnimation existingAnim = existingWindow.GetComponent<PopupSpawnAnimation>();
             if (existingAnim != null) existingAnim.PlayPopAnimation();

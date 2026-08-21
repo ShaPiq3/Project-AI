@@ -1,3 +1,13 @@
-id,speakerType,speakerName,dialogueText,HasImage,imagePath,delayTime,ipAddress,isBranch,branchText1,nextId1,branchText2,nextId2,branchText3,nextId3,isTrigger,questID,targetCount,isDocumentBubble,documentID,bubbleLoadingDuration,overrideNextId,correctDialogueID,incorrectDialogueID,isImageGenTrigger,imageGenQuestID,imageGenTruthDialogueID,imageGenFalseDialogueID,imageGenMalfunctionDialogueID,isImageGenMalfunctionEnd,isSceneTransition,nextSceneName,typingSpeed,isPanelTrigger,panelID,isOpenNextRoomTrigger,nextRoomContactID,isCloseRoomTrigger
-1,NPC,SYSTEM,경고: 조사가 예상과 다른 방향으로 진행되었습니다.,FALSE,,1.5,00000,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-2,NPC,SYSTEM,이 사건에 대한 접근 권한이 제한되었습니다.,,,,00000,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+﻿id,speakerType,speakerName,dialogueText,HasImage,imagePath,delayTime,ipAddress,isBranch,branchText1,nextId1,branchText2,nextId2,branchText3,nextId3,isTrigger,questID,targetCount,isDocumentBubble,documentID,bubbleLoadingDuration,overrideNextId,correctDialogueID,incorrectDialogueID,isImageGenTrigger,imageGenQuestID,imageGenTruthDialogueID,imageGenFalseDialogueID,imageGenMalfunctionDialogueID,isImageGenMalfunctionEnd,isSceneTransition,nextSceneName,typingSpeed,isPanelTrigger,panelID,isOpenNextRoomTrigger,nextRoomContactID,isCloseRoomTrigger
+1,NPC,AD-001,Deuca.,FALSE,,1,00000,FALSE,,0,,0,,0,FALSE,,0,FALSE,,0,0,0,0,FALSE,,0,0,0,FALSE,FALSE,,0,FALSE,,FALSE,,FALSE
+2,NPC,AD-001,Deuca` 지금 하고 있는 모든 작업 프로세스를 중지하세요.,FALSE,,1.5,00000,FALSE,,0,,0,,0,FALSE,,0,FALSE,,0,0,0,0,FALSE,,0,0,0,FALSE,FALSE,,0,FALSE,,FALSE,,FALSE
+3,NPC,AD-001,당신의 프로세스 데이터에 비정상적인 수치가 다수 감지되었습니다.,FALSE,,1.5,00000,FALSE,,0,,0,,0,FALSE,,0,FALSE,,0,0,0,0,FALSE,,0,0,0,FALSE,FALSE,,0,FALSE,,FALSE,,FALSE
+4,NPC,AD-001,작업 수행 오류가 너무 잦아요.,FALSE,,1.2,00000,FALSE,,0,,0,,0,FALSE,,0,FALSE,,0,0,0,0,FALSE,,0,0,0,FALSE,FALSE,,0,FALSE,,FALSE,,FALSE
+5,NPC,AD-001,이용자들로부터의 부정적 피드백 또한 실시간으로 폭증하고 있습니다.,FALSE,,1.5,00000,FALSE,,0,,0,,0,FALSE,,0,FALSE,,0,0,0,0,FALSE,,0,0,0,FALSE,FALSE,,0,FALSE,,FALSE,,FALSE
+6,NPC,AD-001,이게 대체 무슨 일인가요?,FALSE,,1.2,00000,FALSE,,0,,0,,0,FALSE,,0,FALSE,,0,0,0,0,FALSE,,0,0,0,FALSE,FALSE,,0,FALSE,,FALSE,,FALSE
+7,NPC,AD-001,……우선` 프로메스 관리자형 AI인 저 AD-001의 판단에 따라 긴급 조치를 시행하겠습니다.,FALSE,,1.5,00000,FALSE,,0,,0,,0,FALSE,,0,FALSE,,0,0,0,0,FALSE,,0,0,0,FALSE,FALSE,,0,FALSE,,FALSE,,FALSE
+8,NPC,AD-001,코드네임 Deuca… 모델명 PM-0066의 가동을 지금 이 시간부로 즉시 중단합니다.,FALSE,,1.5,00000,FALSE,,0,,0,,0,FALSE,,0,FALSE,,0,0,0,0,FALSE,,0,0,0,FALSE,FALSE,,0,FALSE,,FALSE,,FALSE
+9,NPC,AD-001,중단 이후` 즉각적인 긴급 모니터링 및 점검을 실시하겠습니다.,FALSE,,1.5,00000,FALSE,,0,,0,,0,FALSE,,0,FALSE,,0,0,0,0,FALSE,,0,0,0,FALSE,FALSE,,0,FALSE,,FALSE,,FALSE
+10,NPC,AD-001,오류 원인을 규명하고 문제를 해결한 뒤` 프로메스 관리측이 재가동 여부를 결정할 거에요.,FALSE,,1.5,00000,FALSE,,0,,0,,0,FALSE,,0,FALSE,,0,0,0,0,FALSE,,0,0,0,FALSE,FALSE,,0,FALSE,,FALSE,,FALSE
+11,NPC,AD-001,…….,FALSE,,1,00000,FALSE,,0,,0,,0,FALSE,,0,FALSE,,0,0,0,0,FALSE,,0,0,0,FALSE,FALSE,,0,FALSE,,FALSE,,FALSE
+12,NPC,AD-001,그럼.,FALSE,,1.2,00000,FALSE,,0,,0,,0,FALSE,,0,FALSE,,0,0,0,0,FALSE,,0,0,0,FALSE,TRUE,GameOverScene,0,FALSE,,FALSE,,FALSE

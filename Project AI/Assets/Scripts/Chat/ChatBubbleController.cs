@@ -39,6 +39,20 @@ public class ChatBubbleController : MonoBehaviour
         }
 
         fullDialogueText = data.dialogueText;
+
+        // 💡 [추가] 수집한 단서를 그대로 조립한 보고서로 대사를 대체하고 싶을 때 CSV에 이 토큰을 써두면 됨.
+        // 안 쓰면(플레이스홀더가 없으면) 기존처럼 CSV에 적힌 텍스트가 그대로 나간다.
+        if (DataLogManager.Instance != null && fullDialogueText.Contains("{{CLUE_REPORT}}"))
+        {
+            fullDialogueText = fullDialogueText.Replace("{{CLUE_REPORT}}", DataLogManager.Instance.LastGeneratedReport);
+        }
+
+        // 💡 [추가] 문서요약 퀘스트에서 선택한 문장들을 그대로 조립한 보고서로 대체하고 싶을 때 CSV에 이 토큰을 써두면 됨.
+        if (fullDialogueText.Contains("{{DOCUMENT_REPORT}}"))
+        {
+            fullDialogueText = fullDialogueText.Replace("{{DOCUMENT_REPORT}}", DocumentQuestManager.LastGeneratedReport);
+        }
+
         currentTypingSpeed = data.typingSpeed > 0f ? data.typingSpeed : defaultTypingSpeed;
         isNpc = (data.speakerType != "USER");
 

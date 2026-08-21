@@ -16,4 +16,11 @@ public class NewsData
 
     // 💡 제목(title) 자체를 클릭해서 수집하는 단서 ID. 비어있으면 제목은 수집 대상 아님.
     public string titleClueID;
+
+    // 💡 이 기사가 처음엔 목록에 숨겨져 있다가, 이 questID가 성공 판정되면 그때 나타남. 비어있으면 항상 보임.
+    public string unlockQuestID;
+
+    // 💡 이 기사가 등장하기 시작하는 씬 이름 (예: "MainScene_2"). 비어있으면 항상 보임.
+    // NewsListManager.SceneProgressionOrder에 등록된 순서를 기준으로, 현재 씬이 이 씬 "이상"이면 노출됨.
+    public string unlockSceneName;
 }

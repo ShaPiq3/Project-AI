@@ -1,5 +1,0 @@
-id,speakerType,speakerName,dialogueText,HasImage,imagePath,delayTime,ipAddress,isBranch,branchText1,nextId1,branchText2,nextId2,branchText3,nextId3,isTrigger,questID,targetCount,isDocumentBubble,documentID,bubbleLoadingDuration,overrideNextId,correctDialogueID,incorrectDialogueID,isImageGenTrigger,imageGenQuestID,imageGenTruthDialogueID,imageGenFalseDialogueID,imageGenMalfunctionDialogueID,isImageGenMalfunctionEnd,isSceneTransition,nextSceneName,typingSpeed,isPanelTrigger,panelID,isOpenNextRoomTrigger,nextRoomContactID,isCloseRoomTrigger
-1,NPC,이서연,어? 저한테 연락 주실 줄은 몰랐네요.,FALSE,,1,22202,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-2,NPC,이서연,김민준씨한테 얘기 들으셨죠? 그 건에 대해 뭐 좀 아시는 거 있으세요?,,,,22202,TRUE,네` 알아요,100,아니요` 잘 모르겠어요,200,,,,,,,,,,,,,,,,,,,,,,,,,
-100,NPC,이서연,정리하신 내용이 맞아요. 덕분에 확실해졌네요.,,,,22202,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,TRUE
-200,NPC,이서연,그건... 아니에요. 뭔가 잘못 짚으신 것 같은데요.,,,,22202,,,,,,,,,,,,,,,,,,,,,,,,,,,,TRUE,C2_SYS,TRUE

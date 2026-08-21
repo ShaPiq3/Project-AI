@@ -14,6 +14,7 @@ public class DocumentQuestManager : MonoBehaviour
         public bool isSuccess;
         public float achievementRate;
         public List<int> selectedParagraphs;
+        public float errorWeight; // 💡 [오류 파라미터] 이 퀘스트를 실패했을 때 오류 파라미터가 오르는 양
     }
 
     [Header("--- UI Panels ---")]
@@ -55,10 +56,16 @@ public class DocumentQuestManager : MonoBehaviour
     [Header("--- 성공/실패 대화 분기 (엑셀 dialogueID) ---")]
     [Tooltip("요약이 성공(isSuccess=true)했을 때 점프할 대화 CSV의 ID")]
     [SerializeField] private int successDialogueID;
-    [Tooltip("요약이 실패(isSuccess=false)했을 때 점프할 대화 CSV의 ID")]
+    [Tooltip("요약이 실패(isSuccess=false)했을 때 점프할 대화 CSV의 ID (1차 실패)")]
     [SerializeField] private int failureDialogueID;
+    [Tooltip("💡 [재도전] 2번째 이상 연속 실패했을 때 점프할 대화 CSV의 ID. 0이면 실패할 때마다 항상 failureDialogueID를 씀")]
+    [SerializeField] private int secondFailureDialogueID;
     [Tooltip("멀티 NPC 챕터(ChatCoordinator)에서 이 문서가 어느 연락처 스레드에 속하는지. 챕터1에서는 비워두면 됨")]
     [SerializeField] private string contactID = "";
+    [Tooltip("💡 [오류 파라미터] 이 퀘스트를 실패했을 때 오류 파라미터가 오르는 양")]
+    [SerializeField] private float errorWeight = 10f;
+    [Tooltip("실패 시 분석 화면을 그대로 유지할지 여부. 켜두면(기본값) 분석 화면이 유지되고, 끄면 예전 방식대로 원본 문서 화면으로 되돌아갑니다.")]
+    [SerializeField] private bool keepAnalysisOpenOnFailure = true;
 
     [Header("--- Archive_저장소 재열람 버튼 (선택 사항) ---")]
     [Tooltip("Archive_저장소 패널에 있는, 이 문서를 다시 여는 버튼. 퀘스트를 완료하기 전엔 숨겨져 있다가 완료하면 나타납니다.")]
@@ -77,6 +84,15 @@ public class DocumentQuestManager : MonoBehaviour
     public bool IsCompleted { get; private set; } = false;
 
     public static event Action<QuestResult> OnQuestComplete;
+
+    /// <summary>
+    /// 💡 [추가] 방금 요약 실행에서 플레이어가 선택한 문장들을, 정답/오답 상관없이 문서에
+    /// 배치된 순서 그대로 "1. ...\n2. ..." 형태로 이어붙인 결과. 대사 CSV에서
+    /// {{DOCUMENT_REPORT}} 플레이스홀더를 쓰면(ChatBubbleController) 이 값으로 치환된다.
+    /// DocumentQuestManager는 문서마다 별도 인스턴스라 static으로 둔다(DataLog의 CLUE_REPORT와
+    /// 같은 이유로, 마지막으로 실행된 요약 결과만 기억하면 충분함).
+    /// </summary>
+    public static string LastGeneratedReport { get; private set; } = "";
 
     private void Awake()
     {
@@ -304,13 +320,17 @@ public class DocumentQuestManager : MonoBehaviour
         if (sentencesContainer != null) sentencesContainer.gameObject.SetActive(true);
     }
 
+    // 💡 [재도전] 연속 실패 횟수. 2회 이상부터는 secondFailureDialogueID로 분기하는 데 씀.
+    private int failCount = 0;
+
     private void ExecuteSummary()
     {
         if (IsCompleted) return;
         int userCorrectCount = 0;
         List<int> selectedIndices = new List<int>();
+        List<string> reportLines = new List<string>();
 
-        // 1. 플레이어가 선택한 블록 집계 및 정답 개수 계산
+        // 1. 플레이어가 선택한 블록 집계 및 정답 개수 계산 (spawnedBlocks는 문서에 배치된 순서 그대로)
         foreach (var block in spawnedBlocks)
         {
             if (block.IsSelected)
@@ -320,8 +340,11 @@ public class DocumentQuestManager : MonoBehaviour
                 {
                     userCorrectCount++;
                 }
+                reportLines.Add($"{reportLines.Count + 1}. {block.BodyText}");
             }
         }
+
+        LastGeneratedReport = string.Join("\n", reportLines);
 
         int totalUserSelectedCount = selectedIndices.Count;
         int totalCorrectAnswersCount = correctSentenceIndices.Count;
@@ -343,38 +366,71 @@ public class DocumentQuestManager : MonoBehaviour
             questTitle = documentTitle,
             isSuccess = success,
             achievementRate = achievementRate,
-            selectedParagraphs = selectedIndices
+            selectedParagraphs = selectedIndices,
+            errorWeight = errorWeight
         };
 
-        // 완료 처리 및 저장 (재스캔 방지)
-        IsCompleted = true;
+        // 💡 [재도전] 성공했을 때만 완료 처리(재스캔 영구 차단). 실패는 IsCompleted를 안 건드려서
+        // 다시 도전할 수 있게 남겨둔다.
+        if (success)
+        {
+            IsCompleted = true;
+            if (reopenButtonInArchive != null) reopenButtonInArchive.SetActive(true);
+            if (summaryExecuteBtn != null) summaryExecuteBtn.interactable = false;
+        }
+        else
+        {
+            failCount++;
+        }
 
-        // 💡 [추가] 퀘스트 완료 시점에 Archive_저장소 재열람 버튼을 활성화(보이게)합니다.
-        if (reopenButtonInArchive != null) reopenButtonInArchive.SetActive(true);
-
-        if (summaryExecuteBtn != null) summaryExecuteBtn.interactable = false;
         string json = JsonUtility.ToJson(result);
         PlayerPrefs.SetString("QuestResult_" + result.questTitle, json);
         PlayerPrefs.Save();
 
         Debug.Log($"[F1-Score 판정 결과]\n" +
                   $"전체 정답 수: {totalCorrectAnswersCount}, 내가 선택한 수: {totalUserSelectedCount}, 맞힌 정답 수: {userCorrectCount}\n" +
-                  $"최종 F1 점수: {achievementRate:F1}% -> {(success ? "성공" : "실패")}\n{json}");
+                  $"최종 F1 점수: {achievementRate:F1}% -> {(success ? "성공" : "실패")} (실패 횟수: {failCount})\n{json}");
 
         OnQuestComplete?.Invoke(result);
 
-        int targetDialogueID = success ? successDialogueID : failureDialogueID;
+        // 💡 [재도전] 2회 이상 연속 실패면 secondFailureDialogueID로(0이면 그냥 failureDialogueID 재사용)
+        int targetDialogueID;
+        if (success)
+        {
+            targetDialogueID = successDialogueID;
+        }
+        else if (failCount >= 2 && secondFailureDialogueID != 0)
+        {
+            targetDialogueID = secondFailureDialogueID;
+        }
+        else
+        {
+            targetDialogueID = failureDialogueID;
+        }
         ChatCoordinator.JumpToDialogueSafe(contactID, targetDialogueID);
 
-        ResetAllUI();
-
-        // 💡 [추가] 단서 수집 버튼 활성화 트리거 종료 알림
-        if (DataLogManager.Instance != null)
+        if (success)
         {
-            Debug.Log($"[진단-문서] NotifyTriggerEnded 호출! documentID:{documentID}");
-            DataLogManager.Instance.NotifyTriggerEnded();
+            ResetAllUI();
+
+            // 💡 최종 완료된 경우에만 단서 수집 버튼 트리거를 종료한다. 실패로 재도전 대기 중일 때는
+            // 이 트리거가 계속 "진행 중"이어야 사이드바 버튼 카운트가 깨지지 않는다.
+            if (DataLogManager.Instance != null)
+            {
+                DataLogManager.Instance.NotifyTriggerEnded();
+            }
+            triggerCountedForDataLog = false;
         }
-        triggerCountedForDataLog = false;
+        else
+        {
+            // 💡 [재도전] 기본값(keepAnalysisOpenOnFailure=true)은 분석 화면을 그대로 띄워둔 채
+            // (원본 화면으로 되돌리지 않고) 선택 상태만 유지해서, 플레이어가 바로 이어서 다시
+            // 고를 수 있게 한다. false로 꺼두면(예: MainScene) 예전 방식대로 원본 화면으로 되돌아간다.
+            if (!keepAnalysisOpenOnFailure)
+            {
+                ShowOriginalKeepingScanAccessible();
+            }
+        }
     }
 
     public static DocumentQuestManager GetByID(string id)

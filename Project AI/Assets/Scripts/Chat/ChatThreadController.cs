@@ -33,6 +33,8 @@ public class ChatThreadController : MonoBehaviour
     [Header("선택지 프리팹 설정")]
     public GameObject branchGroupPrefab;
     [SerializeField] private AudioSource branchClickAudioSource;
+    [Tooltip("선택지를 고르면 그 문장이 Player 말풍선으로 echo될 때 쓰는 화자 이름")]
+    [SerializeField] private string branchEchoSpeakerName = "AI assistant";
 
     [Header("문서 요약 버블 프리팹 설정")]
     [SerializeField] private GameObject documentBubblePrefab;
@@ -217,6 +219,7 @@ public class ChatThreadController : MonoBehaviour
             data.nextRoomContactID = columns.Length >= 37 ? columns[36].Trim() : "";
             data.isCloseRoomTrigger = columns.Length >= 38 && bool.TryParse(columns[37].Trim(), out var icrt) && icrt;
             data.glitchEffect = columns.Length >= 39 ? columns[38].Trim() : "";
+            data.errorWeight = columns.Length >= 40 && float.TryParse(columns[39].Trim(), out var ew) ? ew : 10f;
 
             if (!dialogueDictionary.ContainsKey(data.id))
             {
@@ -273,6 +276,13 @@ public class ChatThreadController : MonoBehaviour
                 topIPText.text = !string.IsNullOrEmpty(data.ipAddress) ? $"IP : {data.ipAddress}" : "IP : -";
             }
 
+            // 💡 [오류 파라미터 - 자동세이브] 퀘스트가 시작되는 행(단서조사/문서분석/이미지생성)마다
+            // "이 지점"을 체크포인트로 저장한다. 게임오버 후 "이어하기"를 누르면 여기로 되돌아온다.
+            if (data.isTrigger || data.isDocumentBubble || data.isImageGenTrigger)
+            {
+                CheckpointManager.SaveCheckpoint(SceneManager.GetActiveScene().name, contactID, data.id);
+            }
+
             if (data.isTrigger)
             {
                 IsTriggerActive = true;
@@ -280,7 +290,7 @@ public class ChatThreadController : MonoBehaviour
 
                 if (DataLogManager.Instance != null)
                 {
-                    DataLogManager.Instance.StartQuest(data.questID, data.targetCount, data.correctDialogueID, data.incorrectDialogueID, contactID);
+                    DataLogManager.Instance.StartQuest(data.questID, data.targetCount, data.correctDialogueID, data.incorrectDialogueID, contactID, data.errorWeight);
 
                     if (DataLogManager.Instance.questStatusUI != null)
                     {
@@ -414,8 +424,16 @@ public class ChatThreadController : MonoBehaviour
                 }
             }
 
-            // 💡 방 닫기가 먼저, 다음 방 열기가 나중 - 이 순서여야 다음 방을 열 때
-            // "진행중" 슬롯이 이미 비워진 상태로 열 수 있다 (자동 진행 체이닝).
+            // 💡 [변경] 방을 닫기 전에 먼저 텀을 준다 - 그래야 마지막 대사가 뜨자마자 창이
+            // 바로 꺼지지 않고, 플레이어가 읽을 시간을 번 뒤에 닫힌다. 방 닫기가 먼저, 다음 방
+            // 열기가 나중이라는 순서 자체는 그대로 유지한다("진행중" 슬롯을 비워야 다음 방을
+            // 열 수 있는 자동 진행 체이닝 때문).
+            if (data.isCloseRoomTrigger || (data.isOpenNextRoomTrigger && !string.IsNullOrEmpty(data.nextRoomContactID)))
+            {
+                float transitionDelay = ChatCoordinator.Instance != null ? ChatCoordinator.Instance.RoomTransitionDelay : 0f;
+                if (transitionDelay > 0f) yield return new WaitForSeconds(transitionDelay);
+            }
+
             if (data.isCloseRoomTrigger)
             {
                 ChatCoordinator.Instance?.CloseRoom(contactID);
@@ -423,11 +441,6 @@ public class ChatThreadController : MonoBehaviour
 
             if (data.isOpenNextRoomTrigger && !string.IsNullOrEmpty(data.nextRoomContactID))
             {
-                // 대화방이 닫히자마자 바로 다음 사람이 말을 거는 게 아니라 약간의 텀을 둔 뒤,
-                // 방을 바로 열지 않고 "메시지 도착" 알림부터 띄운다 (확인을 눌러야 대화 시작).
-                float transitionDelay = ChatCoordinator.Instance != null ? ChatCoordinator.Instance.RoomTransitionDelay : 0f;
-                if (transitionDelay > 0f) yield return new WaitForSeconds(transitionDelay);
-
                 ChatCoordinator.Instance?.NotifyIncomingMessage(data.nextRoomContactID);
             }
 
@@ -449,7 +462,7 @@ public class ChatThreadController : MonoBehaviour
                     {
                         DialogueData userSelectionData = new DialogueData();
                         userSelectionData.speakerType = "USER";
-                        userSelectionData.speakerName = "AI assistant";
+                        userSelectionData.speakerName = branchEchoSpeakerName;
                         userSelectionData.dialogueText = selectedUserText;
                         userSelectionData.hasImage = false;
                         controller.SetupBubble(userSelectionData);

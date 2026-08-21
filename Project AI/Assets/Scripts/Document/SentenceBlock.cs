@@ -4,26 +4,27 @@ using TMPro;
 
 public class SentenceBlock : MonoBehaviour
 {
-    private TextMeshProUGUI indexText;  // ÀÚ½Ä Áß 'Label'À» ÀÚµ¿À¸·Î °Ë»ö
-    private TextMeshProUGUI bodyText;   // ÀÚ½Ä Áß 'Body'¸¦ ÀÚµ¿À¸·Î °Ë»ö
-    private Image backgroundImage;      // ÀÚ±â ÀÚ½ÅÀÇ Image ÄÄÆ÷³ÍÆ®
+    private TextMeshProUGUI indexText;  // ï¿½Ú½ï¿½ ï¿½ï¿½ 'Label'ï¿½ï¿½ ï¿½Úµï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½
+    private TextMeshProUGUI bodyText;   // ï¿½Ú½ï¿½ ï¿½ï¿½ 'Body'ï¿½ï¿½ ï¿½Úµï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½
+    private Image backgroundImage;      // ï¿½Ú±ï¿½ ï¿½Ú½ï¿½ï¿½ï¿½ Image ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
     private Button blockButton;
 
     [Header("--- Color Settings ---")]
     [SerializeField] private Color defaultColor = Color.white;
-    [SerializeField] private Color selectedColor = new Color(0.7f, 0.95f, 0.95f, 1.0f); // ¼±ÅÃ ½Ã ¹ÎÆ®»ö ÇÏÀÌ¶óÀÌÆ®
+    [SerializeField] private Color selectedColor = new Color(0.7f, 0.95f, 0.95f, 1.0f); // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½Ì¶ï¿½ï¿½ï¿½Æ®
 
-    // ¿ÜºÎ(Manager)¿¡¼­ À¯ÀúÀÇ Á¤´ä ¿©ºÎ¸¦ ÆÇ´ÜÇÏ±â À§ÇÑ ÇÁ·ÎÆÛÆ¼
+    // ï¿½Üºï¿½(Manager)ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Î¸ï¿½ ï¿½Ç´ï¿½ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ¼
     public int Index { get; private set; }
     public bool IsSelected { get; private set; }
+    public string BodyText => bodyText != null ? bodyText.text : "";
 
-    // ¸ÞÀÎ ¸Å´ÏÀú°¡ °íÁ¤ ¹öÆ°µéÀ» ¼øÈ¸ÇÏ¸ç ¹øÈ£(Index)¸¦ ¸Å°ÜÁÙ ¶§ È£ÃâÇÏ´Â ÃÊ±âÈ­ ÇÔ¼ö
+    // ï¿½ï¿½ï¿½ï¿½ ï¿½Å´ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ°ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¸ï¿½Ï¸ï¿½ ï¿½ï¿½È£(Index)ï¿½ï¿½ ï¿½Å°ï¿½ï¿½ï¿½ ï¿½ï¿½ È£ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½Ê±ï¿½È­ ï¿½Ô¼ï¿½
     public void Initialize(int index)
     {
         Index = index;
         IsSelected = false;
 
-        // 1) ³»ºÎ ÀÚ½Ä ¿ÀºêÁ§Æ®µé ÀÌ¸§À¸·Î ÄÄÆ÷³ÍÆ® ÀÚµ¿ °Ë»ö (µå·¡±×¾Øµå·Ó ºÒÇÊ¿ä)
+        // 1) ï¿½ï¿½ï¿½ï¿½ ï¿½Ú½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½Ì¸ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½Úµï¿½ ï¿½Ë»ï¿½ (ï¿½å·¡ï¿½×¾Øµï¿½ï¿½ ï¿½ï¿½ï¿½Ê¿ï¿½)
         Transform labelTransform = transform.Find("Label");
         if (labelTransform != null) indexText = labelTransform.GetComponent<TextMeshProUGUI>();
 
@@ -33,18 +34,18 @@ public class SentenceBlock : MonoBehaviour
         backgroundImage = GetComponent<Image>();
         blockButton = GetComponent<Button>();
 
-        // 2) Å¬¸¯ ¸®½º³Ê Áßº¹ ¹æÁö ¹× µî·Ï
+        // 2) Å¬ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ßºï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½
         if (blockButton != null)
         {
             blockButton.onClick.RemoveAllListeners();
             blockButton.onClick.AddListener(ToggleSelect);
         }
 
-        // 3) ÃÊ±â ÄÃ·¯ ¼¼ÆÃ
+        // 3) ï¿½Ê±ï¿½ ï¿½Ã·ï¿½ ï¿½ï¿½ï¿½ï¿½
         if (backgroundImage != null) backgroundImage.color = defaultColor;
     }
 
-    // Å¬¸¯ ½Ã Åä±Û ¿¬Ãâ
+    // Å¬ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
     private void ToggleSelect()
     {
         IsSelected = !IsSelected;

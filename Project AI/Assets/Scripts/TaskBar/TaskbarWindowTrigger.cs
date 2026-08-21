@@ -3,7 +3,7 @@ using System.Collections;
 
 public class TaskbarWindowTrigger : MonoBehaviour
 {
-    public enum WindowType { Archive, News, Community }
+    public enum WindowType { Archive, News, Community, HumanDB }
     [Header("창 설정")]
     [SerializeField] private WindowType windowType;
     [SerializeField] private string windowTitle;
@@ -56,6 +56,9 @@ public class TaskbarWindowTrigger : MonoBehaviour
             case WindowType.Community:
                 TaskbarManager.Instance.AddCommunityWindow(windowTitle, this.gameObject);
                 break;
+            case WindowType.HumanDB:
+                TaskbarManager.Instance.AddHumanDBWindow(windowTitle, this.gameObject);
+                break;
         }
     }
 
@@ -84,6 +87,9 @@ public class TaskbarWindowTrigger : MonoBehaviour
                 break;
             case WindowType.Community:
                 TaskbarManager.Instance.RemoveCommunityWindow(this.gameObject);
+                break;
+            case WindowType.HumanDB:
+                TaskbarManager.Instance.RemoveHumanDBWindow(this.gameObject);
                 break;
         }
     }

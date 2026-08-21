@@ -3,8 +3,8 @@ using UnityEngine.UI;
 
 public class TaskbarPopupButton : MonoBehaviour
 {
-    // 💡 [추가] Community 추가
-    public enum PopupType { Archive, News, Community }
+    // 💡 [추가] Community, HumanDB 추가
+    public enum PopupType { Archive, News, Community, HumanDB }
 
     [Header("이 버튼이 열고 닫을 팝업 종류 선택")]
     public PopupType popupType;
@@ -44,6 +44,12 @@ public class TaskbarPopupButton : MonoBehaviour
         {
             TaskbarManager.Instance.ToggleCommunityPopup();
             nextState = TaskbarManager.Instance.IsCommunityPanelActive();
+        }
+        // 💡 [추가] HUMANDB 케이스
+        else if (popupType == PopupType.HumanDB)
+        {
+            TaskbarManager.Instance.ToggleHumanDBPopup();
+            nextState = TaskbarManager.Instance.IsHumanDBPanelActive();
         }
 
         UpdateSprite(nextState);
